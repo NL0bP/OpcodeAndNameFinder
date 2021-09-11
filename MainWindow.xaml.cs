@@ -10,6 +10,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Windows;
+using System.Windows.Media;
 using System.Windows.Threading;
 
 using static System.String;
@@ -94,10 +95,11 @@ namespace NameFinder
             TextBox16Copy.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox16Copy.Text = "0"; }));
             TextBox17Copy.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox17Copy.Text = "0"; }));
             TextBox19Copy.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox19Copy.Text = "0"; }));
+            Label_Semafor1.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { Label_Semafor1.Background = Brushes.Yellow; }));
 
             var notFoundCount = 0;
-            var baseAddress = 0;
-            var offsetAddres = 0;
+            //var baseAddress = 0;
+            //var offsetAddres = 0;
             var subAddress = "";
             ListOpcodeSourceCS = new List<string>();
 
@@ -127,7 +129,7 @@ namespace NameFinder
                         if (matches.Count <= 0) { continue; }
 
                         // нашли начало подпрограммы, ищем структуры, пока не "endp"
-                        var regexEndp = new Regex(@"endp", RegexOptions.IgnoreCase); // ищем конец подпрограммы
+                        var regexEndp = new Regex(@"\s+endp\s*", RegexOptions.IgnoreCase); // ищем конец подпрограммы
                         var foundEndp = false;
                         do
                         {
@@ -249,6 +251,7 @@ namespace NameFinder
             stopWatch.Stop();
             TextBox19Copy.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox19Copy.Text = stopWatch.Elapsed.ToString(); }));
             ListView14.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ListView14.ItemsSource = ListOpcodeSourceCS; }));
+            Label_Semafor1.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { Label_Semafor1.Background = Brushes.GreenYellow; }));
         }
         private void FindOpcodeSourceSC()
         {
@@ -292,7 +295,7 @@ namespace NameFinder
                         if (matches.Count <= 0) { continue; }
 
                         // нашли начало подпрограммы, ищем структуры, пока не "endp"
-                        var regexEndp = new Regex(@"endp", RegexOptions.IgnoreCase); // ищем конец подпрограммы
+                        var regexEndp = new Regex(@"\s+endp\s*", RegexOptions.IgnoreCase); // ищем конец подпрограммы
                         var foundEndp = false;
                         do
                         {
@@ -460,7 +463,7 @@ namespace NameFinder
                         if (matches.Count <= 0) { continue; }
 
                         // нашли начало подпрограммы, ищем структуры, пока не "endp"
-                        var regexEndp = new Regex(@"endp", RegexOptions.IgnoreCase); // ищем конец подпрограммы
+                        var regexEndp = new Regex(@"\s+endp\s*", RegexOptions.IgnoreCase); // ищем конец подпрограммы
                         var foundEndp = false;
                         do
                         {
@@ -627,7 +630,7 @@ namespace NameFinder
                         if (matches.Count <= 0) { continue; }
 
                         // нашли начало подпрограммы, ищем структуры, пока не "endp"
-                        var regexEndp = new Regex(@"endp", RegexOptions.IgnoreCase); // ищем конец подпрограммы
+                        var regexEndp = new Regex(@"\s+endp\s*", RegexOptions.IgnoreCase); // ищем конец подпрограммы
                         var foundEndp = false;
                         do
                         {
@@ -754,13 +757,14 @@ namespace NameFinder
 
         private List<string> CleanSourceSub(int idx)
         {
+            var progress = InListSource.Count / 100;
             var maxCount = InListSource.Count;
             var found = false;
             var tmpLst = new List<string>();
-            var regex = new Regex(@"(proc\snear)", RegexOptions.IgnoreCase); // ищем начало подпрограммы
+            var regex = new Regex(@"(proc\s+near)", RegexOptions.IgnoreCase); // ищем начало подпрограммы
             for (var index = idx; index < maxCount; index++)
             {
-                if (index % 1000 == 0)
+                if (index % progress == 0)
                 {
                     ProgressBar11.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar11.Value = index; }));
                 }
@@ -772,14 +776,19 @@ namespace NameFinder
                 tmpLst.Add(InListSource[index]); // сохранили
 
                 // нашли начало подпрограммы, ищем структуры, пока не "endp"
-                var regex2 = new Regex(@"endp", RegexOptions.IgnoreCase); // ищем конец подпрограммы
+                var regex2 = new Regex(@"\s+endp\s*", RegexOptions.IgnoreCase); // ищем конец подпрограммы
                 var foundEndp = false;
                 do
                 {
+                    if (index % progress == 0)
+                    {
+                        ProgressBar11.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar11.Value = index; }));
+                    }
                     index++;
-                    var regex3 = new Regex(@"(\x22[0-z._]+\x22)|(call\s{4}(sub_\w+)|(mov\s+\[\w+\+\w+\],\s([1-9][0-f]{1,3}h?|[1-9]{1}h?|0[0-f]{1,3})h?|(mov\s+dword\sptr\s\[\w+\+\w+\],\s([0-f]{1,3}))))", RegexOptions.IgnoreCase);
+                    var regex3 = new Regex(@"(\x22[0-z._]+\x22)|(\s+offset\s+)|(call\s{4}(sub_\w+)|(mov\s+\[\w+\+\w+\],\s([1-9][0-f]{1,3}h?|[1-9]{1}h?|0[0-f]{1,3})h?|(mov\s+dword\sptr\s\[\w+\+\w+\],\s([0-f]{1,3}))))", RegexOptions.IgnoreCase);
                     var matches3 = regex3.Matches(InListSource[index]);
-                    foreach (var match3 in matches3)
+                    //foreach (var match3 in matches3)
+                    if (matches3.Count > 0)
                     {
                         tmpLst.Add(InListSource[index]); // сохранили
                         found = true; // нашли структуру
@@ -803,6 +812,7 @@ namespace NameFinder
         }
         private List<string> CleanSourceOffsCS(int idx)
         {
+            var progress = InListSource.Count / 100;
             var found = false;
             var tmpLst = new List<string>();
             var txtCS = "";
@@ -811,7 +821,7 @@ namespace NameFinder
             var regex = new Regex(@"(dd\soffset\s)" + txtCS, RegexOptions.IgnoreCase); // ищем начало offsets
             for (var index = idx; index < InListSource.Count; index++)
             {
-                if (index % 1000 == 0)
+                if (index % progress == 0)
                 {
                     ProgressBar11.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar11.Value = index; }));
                 }
@@ -823,6 +833,10 @@ namespace NameFinder
                 MatchCollection matches2;
                 do
                 {
+                    if (index % progress == 0)
+                    {
+                        ProgressBar11.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar11.Value = index; }));
+                    }
                     tmpLst.Add(InListSource[index]); // сохранили
                     index++;
                     matches2 = regex2.Matches(InListSource[index]);
@@ -841,6 +855,7 @@ namespace NameFinder
         }
         private List<string> CleanSourceOffsSC(int idx)
         {
+            var progress = InListSource.Count / 100;
             var found = false;
             var tmpLst = new List<string>();
             var txtSC = "";
@@ -849,7 +864,7 @@ namespace NameFinder
             var regex = new Regex(@"(dd\soffset\s)" + txtSC, RegexOptions.IgnoreCase); // ищем начало offsets
             for (var index = idx; index < InListSource.Count; index++)
             {
-                if (index % 1000 == 0)
+                if (index % progress == 0)
                 {
                     ProgressBar11.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar11.Value = index; }));
                 }
@@ -861,6 +876,10 @@ namespace NameFinder
                 MatchCollection matches2;
                 do
                 {
+                    if (index % progress == 0)
+                    {
+                        ProgressBar11.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar11.Value = index; }));
+                    }
                     tmpLst.Add(InListSource[index]); // сохранили
                     index++;
                     matches2 = regex2.Matches(InListSource[index]);
@@ -878,15 +897,55 @@ namespace NameFinder
             return tmpLst;
         }
 
+        private List<string> CleanSourceSpace(int idx)
+        {
+            var progress = InListSource.Count / 100;
+
+            var found = false;
+            var tmpLst = new List<string>();
+            var tmpLst2 = new List<string>();
+            var txtSC = "";
+            TextBox12.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { txtSC = TextBox12.Text; }));
+            var regex = new Regex(@"(^(\s+\w+\s+\d+)|^\s*$)", RegexOptions.IgnoreCase); // ищем мусорные строки 
+            for (var index = idx; index < InListSource.Count; index++)
+            {
+                if (index % progress == 0)
+                {
+                    ProgressBar11.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar11.Value = index; }));
+                }
+                var matches = regex.Matches(InListSource[index]);
+                if (matches.Count > 0)
+                {
+                    //tmpLst2.Add(InListSource[index]); // сохранили мусор, для теста
+                    continue;
+                }
+
+                tmpLst.Add(InListSource[index]); // сохранили
+                found = true;
+            }
+            //var InListSource0 = new List<string>(tmpLst2);
+            //ListView21.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ListView21.ItemsSource = InListSource0; }));
+
+
+            if (!found)
+            {
+                // не нашли структуру
+                return new List<string>();
+            }
+
+            return tmpLst;
+        }
+
         private List<string> CleanDestinationSub(int idx)
         {
+            var progress = InListSource.Count / 100;
             var maxCount = InListDestination.Count;
             var found = false;
             var tmpLst = new List<string>();
-            var regex = new Regex(@"(proc\snear)", RegexOptions.IgnoreCase); // ищем начало подпрограммы
+            var regex = new Regex(@"(proc\s+near)", RegexOptions.IgnoreCase); // ищем начало подпрограммы
             for (var index = idx; index < maxCount; index++)
             {
-                if (index % 1000 == 0)
+                if (index % progress == 0)
                 {
                     ProgressBar21.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar21.Value = index; }));
                 }
@@ -897,16 +956,21 @@ namespace NameFinder
                 tmpLst.Add(InListDestination[index]); // сохранили
 
                 // нашли начало подпрограммы, ищем структуры, пока не "endp"
-                var regex2 = new Regex(@"endp", RegexOptions.IgnoreCase); // ищем конец подпрограммы
+                var regex2 = new Regex(@"\s+endp\s*", RegexOptions.IgnoreCase); // ищем конец подпрограммы
                 var foundEndp = false;
                 do
                 {
-                    index++;
-                    var regex3 = new Regex(@"(\x22[0-z._]+\x22)|(call\s{4}(sub_\w+)|(mov\s+\[\w+\+\w+\],\s([1-9][0-f]{1,3}h?|[1-9]{1}h?|0[0-f]{1,3})h?|(mov\s+dword\sptr\s\[\w+\+\w+\],\s([0-f]{1,3}))))", RegexOptions.IgnoreCase);
-                    var matches3 = regex3.Matches(InListDestination[index]);
-                    foreach (var match3 in matches3)
+                    if (index % progress == 0)
                     {
-                        tmpLst.Add(InListDestination[index]); // сохранили
+                        ProgressBar21.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar21.Value = index; }));
+                    }
+                    index++;
+                    var regex3 = new Regex(@"(\x22[0-z._]+\x22)|(\s+offset\s+)|(call\s{4}(sub_\w+)|(mov\s+\[\w+\+\w+\],\s([1-9][0-f]{1,3}h?|[1-9]{1}h?|0[0-f]{1,3})h?|(mov\s+dword\sptr\s\[\w+\+\w+\],\s([0-f]{1,3}))))", RegexOptions.IgnoreCase);
+                    var matches3 = regex3.Matches(InListSource[index]);
+                    //foreach (var match3 in matches3)
+                    if (matches3.Count > 0)
+                    {
+                        tmpLst.Add(InListSource[index]); // сохранили
                         found = true; // нашли структуру
                     }
                     var matches2 = regex2.Matches(InListDestination[index]);
@@ -928,6 +992,7 @@ namespace NameFinder
         }
         private List<string> CleanDestinationCSOffs(int idx)
         {
+            var progress = InListSource.Count / 100;
             var found = false;
             var tmpLst = new List<string>();
             var txtCS = "";
@@ -936,7 +1001,7 @@ namespace NameFinder
             var regex = new Regex(@"(dd\soffset\s)" + txtCS, RegexOptions.IgnoreCase); // ищем начало offsets
             for (var index = idx; index < InListDestination.Count; index++)
             {
-                if (index % 1000 == 0)
+                if (index % progress == 0)
                 {
                     ProgressBar21.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar21.Value = index; }));
                 }
@@ -948,6 +1013,10 @@ namespace NameFinder
                 MatchCollection matches2;
                 do
                 {
+                    if (index % progress == 0)
+                    {
+                        ProgressBar21.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar21.Value = index; }));
+                    }
                     tmpLst.Add(InListDestination[index]); // сохранили
                     index++;
                     matches2 = regex2.Matches(InListDestination[index]);
@@ -966,6 +1035,7 @@ namespace NameFinder
         }
         private List<string> CleanDestinationSCOffs(int idx)
         {
+            var progress = InListSource.Count / 100;
             var found = false;
             var tmpLst = new List<string>();
             var txtSC = "";
@@ -974,7 +1044,7 @@ namespace NameFinder
             var regex = new Regex(@"(dd\soffset\s)" + txtSC, RegexOptions.IgnoreCase); // ищем начало offsets
             for (var index = idx; index < InListDestination.Count; index++)
             {
-                if (index % 1000 == 0)
+                if (index % progress == 0)
                 {
                     ProgressBar21.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar21.Value = index; }));
                 }
@@ -986,6 +1056,10 @@ namespace NameFinder
                 MatchCollection matches2;
                 do
                 {
+                    if (index % progress == 0)
+                    {
+                        ProgressBar21.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar21.Value = index; }));
+                    }
                     tmpLst.Add(InListDestination[index]); // сохранили
                     index++;
                     matches2 = regex2.Matches(InListDestination[index]);
@@ -1003,6 +1077,26 @@ namespace NameFinder
             return tmpLst;
         }
 
+        private void CleanSource0()
+        {
+            ProgressBar11.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar11.Value = 0; }));
+            ProgressBar11.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar11.Maximum = InListSource.Count; }));
+
+            var tmp = new List<string>();
+
+            // чистим сначала от пустых строк
+            var tmpSpace = CleanSourceSpace(0);
+            tmp.AddRange(tmpSpace);
+
+            InListSource = new List<string>(tmp);
+
+            ProgressBar11.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar11.Value = InListSource.Count; }));
+            ListView11.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ListView11.ItemsSource = InListSource; }));
+            File.WriteAllLines(FilePathIn1, InListSource);
+            CheckBoxCleaningIn.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { CheckBoxCleaningIn.IsChecked = false; }));
+            Label_Semafor1.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { Label_Semafor1.Background = Brushes.Yellow; }));
+        }
+
         private void CleanSource()
         {
             ProgressBar11.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar11.Value = 0; }));
@@ -1010,13 +1104,21 @@ namespace NameFinder
 
             var tmp = new List<string>();
 
-            // чистим списки
+            //// чистим сначала от пустых строк
+            //var tmpSpace = CleanSourceSpace(0);
+            //InListSource = new List<string>(tmpSpace);
+            //ProgressBar11.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar11.Value = InListSource.Count; }));
+            //ListView11.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ListView11.ItemsSource = InListSource; }));
+
+            // затем ищем подпрограммы
             var tmpSub = CleanSourceSub(0);
             tmp.AddRange(tmpSub);
 
+            // затем ищем оффсеты для CS
             var tmpCSOffs = CleanSourceOffsCS(0);
             tmp.AddRange(tmpCSOffs);
 
+            // затем ищем оффсеты для SC
             var tmpSCOffs = CleanSourceOffsSC(0);
             tmp.AddRange(tmpSCOffs);
 
@@ -1026,7 +1128,10 @@ namespace NameFinder
             ListView11.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ListView11.ItemsSource = InListSource; }));
             File.WriteAllLines(FilePathIn1, InListSource);
             CheckBoxCleaningIn.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { CheckBoxCleaningIn.IsChecked = false; }));
+
+            Label_Semafor1.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { Label_Semafor1.Background = Brushes.Yellow; }));
         }
+
         private void CleanDestination()
         {
             ProgressBar21.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar21.Value = 0; }));
@@ -1071,7 +1176,7 @@ namespace NameFinder
                 if (matches4.Count <= 0) { continue; }
 
                 // нашли начало подпрограммы, ищем структуры, пока не "endp"
-                var regex6 = new Regex(@"endp", RegexOptions.IgnoreCase); // ищем конец подпрограммы
+                var regex6 = new Regex(@"\s+endp\s*", RegexOptions.IgnoreCase); // ищем конец подпрограммы
                 var foundEndp = false;
                 tmpLst = new List<string>();
                 //var str = "-->>";
@@ -1145,7 +1250,7 @@ namespace NameFinder
                 if (matches4.Count <= 0) { continue; }
 
                 // нашли начало подпрограммы, ищем структуры, пока не "endp"
-                var regex6 = new Regex(@"endp", RegexOptions.IgnoreCase); // ищем конец подпрограммы
+                var regex6 = new Regex(@"\s+endp\s*", RegexOptions.IgnoreCase); // ищем конец подпрограммы
                 var foundEndp = false;
                 lst = new List<string>();
                 //var str = "-->>";
@@ -1213,8 +1318,8 @@ namespace NameFinder
             TextBox13.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox13.Text = "0"; }));
             TextBox14.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox14.Text = "0"; }));
             TextBox18.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox18.Text = "0"; }));
-
             ProgressBar12.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar12.Value = 0; }));
+            Label_Semafor1.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { Label_Semafor1.Background = Brushes.Yellow; }));
 
             //
             // начали предварительную работу по поиску имен и ссылок на подпрограммы со структурами
@@ -1311,7 +1416,7 @@ namespace NameFinder
                             }
 
                             // нашли начало подпрограммы, ищем структуры, пока не "endp"
-                            var regex6 = new Regex(@"endp", RegexOptions.IgnoreCase); // ищем конец подпрограммы
+                            var regex6 = new Regex(@"\s+endp\s*", RegexOptions.IgnoreCase); // ищем конец подпрограммы
                             var foundEndp = false;
                             var lst = new List<string>();
                             do
@@ -1368,7 +1473,9 @@ namespace NameFinder
             ButtonIn1.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ButtonIn1.IsEnabled = true; }));
             stopWatch.Stop();
             TextBox18.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox18.Text = stopWatch.Elapsed.ToString(); }));
+            Label_Semafor1.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { Label_Semafor1.Background = Brushes.GreenYellow; }));
         }
+
         private void FindSourceStructuresSC(string str)
         {
             var stopWatch = new Stopwatch();
@@ -1482,7 +1589,7 @@ namespace NameFinder
                             }
 
                             // нашли начало подпрограммы, ищем структуры, пока не "endp"
-                            var regex6 = new Regex(@"endp", RegexOptions.IgnoreCase); // ищем конец подпрограммы
+                            var regex6 = new Regex(@"\s+endp\s*", RegexOptions.IgnoreCase); // ищем конец подпрограммы
                             var foundEndp = false;
                             var lst = new List<string>();
                             do
@@ -1658,7 +1765,7 @@ namespace NameFinder
                             }
 
                             // нашли начало подпрограммы, ищем структуры, пока не "endp"
-                            var regex6 = new Regex(@"endp", RegexOptions.IgnoreCase); // ищем конец подпрограммы
+                            var regex6 = new Regex(@"\s+endp\s*", RegexOptions.IgnoreCase); // ищем конец подпрограммы
                             var foundEndp = false;
                             var lst = new List<string>();
                             do
@@ -1829,7 +1936,7 @@ namespace NameFinder
                             if (matches4.Count <= 0) { continue; }
 
                             // нашли начало подпрограммы, ищем структуры, пока не "endp"
-                            var regex6 = new Regex(@"endp", RegexOptions.IgnoreCase); // ищем конец подпрограммы
+                            var regex6 = new Regex(@"\s+endp\s*", RegexOptions.IgnoreCase); // ищем конец подпрограммы
                             var foundEndp = false;
                             var lst = new List<string>();
                             do
@@ -1888,6 +1995,8 @@ namespace NameFinder
         }
         private void btn_Load_In_Click(object sender, RoutedEventArgs e)
         {
+            Label_Semafor1.Background = Brushes.Coral;
+
             if (OpenFileDialog1())
             {
                 TextBoxPathIn.Text = FilePathIn1;
@@ -1920,6 +2029,7 @@ namespace NameFinder
                 BtnScLoadNameIn.IsEnabled = true;
                 isCompareCS = false;
                 isCompareSC = false;
+                Label_Semafor1.Background = Brushes.Yellow;
             }
             else
             {
@@ -1946,13 +2056,40 @@ namespace NameFinder
 
             new Thread(() =>
             {
-                FindSourceStructuresSC(txt);
+                if (FindStructIn)
+                {
+                    FindSourceStructuresSC(txt);
+                }
                 if (FindOpcodeIn)
                 {
                     FindOpcodeSourceSC();
                 }
             }).Start();
         }
+
+        private void btn_CS_Clear_Click(object sender, RoutedEventArgs e)
+        {
+            //Label_Semafor1.Background = Brushes.Coral;
+
+            TextBoxPathIn.Text = FilePathIn1;
+            _isIn = true;
+            var stopWatch = new Stopwatch();
+            stopWatch.Start();
+
+            new Thread(() =>
+            {
+                CleanSource0();
+            }).Start();
+
+            stopWatch.Stop();
+            TextBox15.Text = stopWatch.Elapsed.ToString();
+            BtnCsLoadNameIn.IsEnabled = true;
+            BtnScLoadNameIn.IsEnabled = true;
+            isCompareCS = false;
+            isCompareSC = false;
+            //Label_Semafor1.Background = Brushes.Yellow;
+        }
+
         private void btn_CS_Load_Name1_Click(object sender, RoutedEventArgs e)
         {
             BtnCsLoadNameIn.IsEnabled = false;
@@ -1967,7 +2104,11 @@ namespace NameFinder
 
             new Thread(() =>
             {
-                FindSourceStructuresCS(inText);
+                if (FindStructIn)
+                {
+                    FindSourceStructuresCS(inText);
+                }
+
                 if (FindOpcodeIn)
                 {
                     FindOpcodeSourceCS();
