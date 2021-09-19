@@ -121,7 +121,7 @@
         <TextBox x:Name="TextBoxPathIn" HorizontalAlignment="Left" Height="25" Margin="11,676,0,0" TextWrapping="Wrap" Text="Выбери файл с исходными данными" VerticalAlignment="Top" Width="1088"/>
         <TextBox x:Name="TextBoxPathOut" HorizontalAlignment="Left" Height="25" Margin="10,728,0,0" TextWrapping="Wrap" Text="Выбери файл с исходными данными" VerticalAlignment="Top" Width="1089"/>
         <Label x:Name="LabelPathIn" Content="Путь к файлу с известными именами:" HorizontalAlignment="Left" Height="26" Margin="11,645,0,0" VerticalAlignment="Top" Width="234"/>
-        <Label x:Name="LabelPathOut" Content="Путь к файлу без именён:" HorizontalAlignment="Left" Height="26" Margin="11,701,0,0" VerticalAlignment="Top" Width="234"/>
+        <Label x:Name="LabelPathOut" Content="Путь к файлу без имён:" HorizontalAlignment="Left" Height="26" Margin="11,701,0,0" VerticalAlignment="Top" Width="234"/>
         <ProgressBar x:Name="ProgressBar12" HorizontalAlignment="Left" Height="10" Margin="393,595,0,0" VerticalAlignment="Top" Width="175"/>
         <ProgressBar x:Name="ProgressBar22" HorizontalAlignment="Left" Height="10" Margin="1172,595,0,0" VerticalAlignment="Top" Width="175"/>
         <CheckBox x:Name="CheckBoxFindOpcodeOut" Content="Искать опкоды" HorizontalAlignment="Left" Margin="1425,67,0,0" VerticalAlignment="Top" Checked="checkBox_Checked_In" IsChecked="true"/>
@@ -175,8 +175,8 @@
         <CheckBox x:Name="CheckBoxFindStructOut" Content="Искать структуры" HorizontalAlignment="Left" Margin="1425,47,0,0" VerticalAlignment="Top" Checked="checkBox_Checked_In" IsChecked="true"/>
         <CheckBox x:Name="CheckBoxCleaningIn" Content="Чистить исходник" HorizontalAlignment="Left" Margin="68,141,0,0" VerticalAlignment="Top" IsChecked="False"/>
         <CheckBox x:Name="CheckBoxCleaningOut" Content="Чистить исходник" HorizontalAlignment="Left" Margin="835,141,0,0" VerticalAlignment="Top" IsChecked="False"/>
-        <Label x:Name="Label_Semafor1" Content="" HorizontalAlignment="Left" Margin="40,47,0,0" VerticalAlignment="Top" Height="58" Background="Coral" Width="58"/>
-        <Label x:Name="Label_Semafor2" Content="" HorizontalAlignment="Left" Margin="820,47,0,0" VerticalAlignment="Top" Height="58" Background="Coral" Width="58"/>
+        <Label x:Name="Label_Semafor1" Content="" HorizontalAlignment="Left" Margin="40,47,0,0" VerticalAlignment="Top" Height="58" Background="Red" Width="58"/>
+        <Label x:Name="Label_Semafor2" Content="" HorizontalAlignment="Left" Margin="820,47,0,0" VerticalAlignment="Top" Height="58" Background="Red" Width="58"/>
         <Button x:Name="BtnLoadIn_Copy" Content="PreClear" HorizontalAlignment="Left" Height="30" Margin="23,610,0,0" VerticalAlignment="Top" Width="75" Click="btn_CS_Clear_Click"/>
     </Grid>
 </Window>
