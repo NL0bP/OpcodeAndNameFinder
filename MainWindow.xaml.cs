@@ -493,6 +493,7 @@ namespace NameFinder
             TextBox19Copy.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox19Copy.Text = stopWatch.Elapsed.ToString(); }));
             ListView14.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ListView14.ItemsSource = ListOpcodeSourceSC; }));
         }
+        
         private void FindOpcodeDestinationCS()
         {
             var stopWatch = new Stopwatch();
@@ -502,31 +503,37 @@ namespace NameFinder
             TextBox16Copy1.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox16Copy1.Text = "0"; }));
             TextBox17Copy1.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox17Copy1.Text = "0"; }));
             TextBox19Copy1.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox19Copy1.Text = "0"; }));
+            Label_Semafor2.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { Label_Semafor2.Background = Brushes.Yellow; }));
 
             var notFoundCount = 0;
-            var baseAddress = 0;
-            var offsetAddres = 0;
+            //var baseAddress = 0;
+            //var offsetAddres = 0;
             var subAddress = "";
             ListOpcodeDestinationCS = new List<string>();
 
             // здесь ищем ссылку на подпрограмму, где есть опкоды
             var found = false;
+            var regexEndp = new Regex(@"\s+endp\s*", RegexOptions.Compiled); // ищем конец подпрограммы
+            var regexOffset = new Regex(@"mov\s+\[\w+\+\w+\],\soffset\s|mov\s+dword\sptr\s\[\w+\],\soffset\s|mov\s+dword\sptr\s\[\w+\+\w+\],\soffset\s", RegexOptions.Compiled);
+            var regexOpcode = new Regex(@"mov\s+\[\w+\+\w+\],\s+([0-9A-F]+)|mov\s+dword\sptr\s\[\w+\+\w+\],\s+([0-9A-F]+)|mov\s+dword\sptr\s\[\w+\+\w+\+\w+\],\s+([0-9A-F]+)|mov\s+dword\sptr\s\[\w+\-\w+\],\s+([0-9A-F]+)", RegexOptions.Compiled);
+            //var regexOpcode = new Regex(@"mov\s+\[\w+\+\w+\],\soffset\s|mov\s+\[\w+\+\w+\],\s([1-9]|[0-9A-F]{2,3}h)|mov\s+dword\sptr\s\[\w+\+\w+\],\s([1-9]|[0-9A-F]{2,3}h)|mov\s+dword\sptr\s\[\w+\+\w+\+\w+\],\s([1-9]|[0-9A-F]{2,3}h)|mov\s+dword\sptr\s\[\w+\],\soffset\s|mov\s+dword\sptr\s\[\w+\-\w+\],\soffset\s|mov\s+dword\sptr\s\[\w+\-\w+\],\s([1-9]|[0-9A-F]{2,3}h)", RegexOptions.Compiled);
+
             for (var i = 0; i < XrefsOut.Count; i++)
             {
                 var list = XrefsOut[i].ToList();
                 var foundOpcode = false;
-                foreach (var lst in list)
+                foreach (var str in list)
                 {
-                    subAddress = "";
+                    //subAddress = "";
                     //var regex = new Regex(@"((sub_\w+\+\w{1,3}|loc_\w{8}))", RegexOptions.IgnoreCase);
-                    // выделяем из "sub_39022C10+74A" -> "sub_39022C10" и "74A"
-                    var regexSub = new Regex(@"sub_\w+|loc_\w+", RegexOptions.IgnoreCase);
-                    var matchesSub = regexSub.Matches(lst);
+                    // выделяем из "; DATA XREF: sub_39024010" -> "sub_39024010"
+                    // "; DATA XREF: X2__GameClient__ClientDrivenNpc__UpdateMovementSync" -> "X2__GameClient__ClientDrivenNpc__UpdateMovementSync"
+                    // "; sub_394045F0" -> "sub_394045F0"
+                    var regexSub = new Regex(@"sub_\w+|X2\w+", RegexOptions.IgnoreCase);
+                    var matchesSub = regexSub.Matches(str);
                     if (matchesSub.Count <= 0) { continue; }
-
                     // "sub_39022C10"
                     subAddress = matchesSub[0].ToString();
-
                     // здесь ищем начало подпрограммы
                     // начнем с начала файла
                     found = false;
@@ -536,20 +543,65 @@ namespace NameFinder
                         var matches = regex10.Matches(InListDestination[index]);
                         if (matches.Count <= 0) { continue; }
 
-                        // нашли начало подпрограммы, ищем структуры, пока не "endp"
-                        var regexEndp = new Regex(@"\s+endp\s*", RegexOptions.IgnoreCase); // ищем конец подпрограммы
+                        // нашли начало подпрограммы, ищем опкоды в структуре, пока не "endp"
                         var foundEndp = false;
                         do
                         {
+                            var matchesEndp = regexEndp.Matches(InListDestination[index]);
+                            if (matchesEndp.Count > 0)
+                            {
+                                foundEndp = true;
+                                continue;
+                            }
+
                             index++;
-                            // ищем
-                            // "mov     [ebp+var_10], 6Ch"
-                            // "mov     dword ptr [eax+4], 217h"
+                            // ищем сначала
+                            // "mov     [ebp+var_50], offset ??_7CSWorldRayCastingPacket@@6B@ ; const CSWorldRayCastingPacket::`vftable'",
+                            // а в следующей строке опкод
+                            // "mov     [ebp+var_4C], 0C0h"
+                            // или
+                            // "mov     dword ptr [eax+4], 71h"
+                            // бывает, что не следующая строка, а через несколько строк
+                            /*
+                            mov     dword ptr [eax], offset ??_7CSChangeLootingRulePacket@@6B@ ; const CSChangeLootingRulePacket::`vftable'
+                            mov     byte ptr [eax+10h], 2
+                            mov     byte ptr [eax+18h], 1
+                            mov     dword ptr [eax+4], 71h
+                            */
+                            var matchesOffset = regexOffset.Matches(InListDestination[index]);
+                            if (matchesOffset.Count <= 0)
+                            {
+                                continue;
+                            }
+
+                            index++;
+
                             //var regexOpcode = new Regex(@"mov\s+\[\w+\+\w+\],\s([1-9][0-f]{1,}|0[0-f]{1,})h?$|mov\s+dword\sptr\s\[\w{3}\+4\],\s([1-3][0-f]{1,3}|0[0-f]{1,3}|[1-9]{1})h?$", RegexOptions.IgnoreCase);
-                            //var regexOpcode = new Regex(@"(mov\s+\[ebp\+var_\w+\],\s([0-f]{1,3}))", RegexOptions.IgnoreCase);
-                            var regexOpcode = new Regex(@"(mov\s+\[\w+\+\w+\],\s([1-9][0-f]{1,3}h?|[1-9]{1}h?|0[0-f]{1,3})h?|(mov\s+dword\sptr\s\[\w+\+\w+\],\s([0-f]{1,3})))", RegexOptions.IgnoreCase);
+                            //var regexOpcode = new Regex(@"(mov\s+\[\w+\+\w+\],\s([1-9][0-f]{1,3}h?|[1-9]{1}h?|0[0-f]{1,3})h?|(mov\s+dword\sptr\s\[\w+\+\w+\],\s([0-f]{1,3})))", RegexOptions.IgnoreCase);
                             var matchesOpcode = regexOpcode.Match(InListDestination[index]);
-                            if (matchesOpcode.Groups.Count >= 3)
+
+                            // пропускаем строки, пока не "endp"
+                            foundEndp = false;
+                            do
+                            {
+                                if (matchesOpcode.Groups.Count >= 2)
+                                {
+                                    // нашли опкод
+                                    break;
+                                }
+
+                                index++;
+                                matchesOpcode = regexOpcode.Match(InListDestination[index]);
+
+                                var matches2 = regexEndp.Matches(InListDestination[index]);
+                                if (matches2.Count <= 0) { continue; }
+
+                                // нашли конец подпрограммы
+                                foundEndp = true;
+                            } while (!foundEndp);
+
+
+                            if (matchesOpcode.Groups.Count >= 2)
                             {
                                 if (matchesOpcode.Groups[4].ToString() != "" && matchesOpcode.Groups[4].ToString() != "0")
                                 {
@@ -557,16 +609,16 @@ namespace NameFinder
                                     switch (matchesOpcode.Groups[4].Length)
                                     {
                                         case 1:
-                                            matchGroup = "0x00" + matchesOpcode.Groups[4];
+                                            matchGroup = "0x00" + matchesOpcode.Groups[4].ToString();
                                             break;
                                         case 2:
-                                            matchGroup = "0x00" + matchesOpcode.Groups[4].ToString().Substring(0, 1);
+                                            matchGroup = "0x0" + matchesOpcode.Groups[4].ToString();
                                             break;
                                         case 3:
-                                            matchGroup = "0x0" + matchesOpcode.Groups[4].ToString().Substring(0, 2);
+                                            matchGroup = "0x" + matchesOpcode.Groups[4].ToString();
                                             break;
                                         case 4:
-                                            matchGroup = "0x" + matchesOpcode.Groups[4].ToString().Substring(0, 3);
+                                            matchGroup = "0x" + matchesOpcode.Groups[4].ToString();
                                             break;
                                     }
                                     foundOpcode = true; // нашли Opcode
@@ -578,16 +630,16 @@ namespace NameFinder
                                     switch (matchesOpcode.Groups[3].Length)
                                     {
                                         case 1:
-                                            matchGroup = "0x00" + matchesOpcode.Groups[3];
+                                            matchGroup = "0x00" + matchesOpcode.Groups[3].ToString();
                                             break;
                                         case 2:
-                                            matchGroup = "0x00" + matchesOpcode.Groups[3].ToString().Substring(0, 1);
+                                            matchGroup = "0x0" + matchesOpcode.Groups[3].ToString();
                                             break;
                                         case 3:
-                                            matchGroup = "0x0" + matchesOpcode.Groups[3].ToString().Substring(0, 2);
+                                            matchGroup = "0x" + matchesOpcode.Groups[3].ToString();
                                             break;
                                         case 4:
-                                            matchGroup = "0x" + matchesOpcode.Groups[3].ToString().Substring(0, 3);
+                                            matchGroup = "0x" + matchesOpcode.Groups[3].ToString();
                                             break;
                                     }
                                     ListOpcodeDestinationCS.Add(matchGroup);
@@ -599,16 +651,16 @@ namespace NameFinder
                                     switch (matchesOpcode.Groups[2].Length)
                                     {
                                         case 1:
-                                            matchGroup = "0x00" + matchesOpcode.Groups[2];
+                                            matchGroup = "0x00" + matchesOpcode.Groups[2].ToString();
                                             break;
                                         case 2:
-                                            matchGroup = "0x00" + matchesOpcode.Groups[2].ToString().Substring(0, 1);
+                                            matchGroup = "0x0" + matchesOpcode.Groups[2].ToString();
                                             break;
                                         case 3:
-                                            matchGroup = "0x0" + matchesOpcode.Groups[2].ToString().Substring(0, 2);
+                                            matchGroup = "0x" + matchesOpcode.Groups[2].ToString();
                                             break;
                                         case 4:
-                                            matchGroup = "0x" + matchesOpcode.Groups[2].ToString().Substring(0, 3);
+                                            matchGroup = "0x" + matchesOpcode.Groups[2].ToString();
                                             break;
                                     }
                                     ListOpcodeDestinationCS.Add(matchGroup);
@@ -620,32 +672,53 @@ namespace NameFinder
                                     switch (matchesOpcode.Groups[1].Length)
                                     {
                                         case 1:
-                                            matchGroup = "0x00" + matchesOpcode.Groups[1];
+                                            matchGroup = "0x00" + matchesOpcode.Groups[1].ToString();
                                             break;
                                         case 2:
-                                            matchGroup = "0x00" + matchesOpcode.Groups[1].ToString().Substring(0, 1);
+                                            matchGroup = "0x0" + matchesOpcode.Groups[1].ToString();
                                             break;
                                         case 3:
-                                            matchGroup = "0x0" + matchesOpcode.Groups[1].ToString().Substring(0, 2);
+                                            matchGroup = "0x" + matchesOpcode.Groups[1].ToString();
                                             break;
                                         case 4:
-                                            matchGroup = "0x" + matchesOpcode.Groups[1].ToString().Substring(0, 3);
+                                            matchGroup = "0x" + matchesOpcode.Groups[1].ToString();
+                                            break;
+                                    }
+                                    ListOpcodeDestinationCS.Add(matchGroup);
+                                    foundOpcode = true; // нашли Opcode
+                                }
+                                else if (matchesOpcode.Groups[0].ToString() != "" && matchesOpcode.Groups[0].ToString() != "0")
+                                {
+                                    var matchGroup = "";
+                                    switch (matchesOpcode.Groups[0].Length)
+                                    {
+                                        case 1:
+                                            matchGroup = "0x00" + matchesOpcode.Groups[0].ToString();
+                                            break;
+                                        case 2:
+                                            matchGroup = "0x0" + matchesOpcode.Groups[0].ToString();
+                                            break;
+                                        case 3:
+                                            matchGroup = "0x" + matchesOpcode.Groups[0].ToString();
+                                            break;
+                                        case 4:
+                                            matchGroup = "0x" + matchesOpcode.Groups[0].ToString();
                                             break;
                                     }
                                     ListOpcodeDestinationCS.Add(matchGroup);
                                     foundOpcode = true; // нашли Opcode
                                 }
                             }
-                            var matchesEndp = regexEndp.Matches(InListDestination[index]);
-                            if (matchesEndp.Count <= 0) { continue; }
-
-                            foundEndp = true;
                         } while (!foundEndp && !foundOpcode);
 
                         if (foundEndp || foundOpcode)
                         {
                             break;
                         }
+                    }
+                    if (foundOpcode)
+                    {
+                        break;
                     }
                 }
                 if (!foundOpcode)
@@ -661,7 +734,9 @@ namespace NameFinder
             stopWatch.Stop();
             TextBox19Copy1.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox19Copy1.Text = stopWatch.Elapsed.ToString(); }));
             ListView24.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ListView24.ItemsSource = ListOpcodeDestinationCS; }));
+            Label_Semafor2.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { Label_Semafor2.Background = Brushes.GreenYellow; }));
         }
+
         private void FindOpcodeDestinationSC()
         {
             var stopWatch = new Stopwatch();
@@ -1114,26 +1189,29 @@ namespace NameFinder
 
         private List<string> CleanDestinationSub(int idx)
         {
-            var progress = CalcProgress(InListSource.Count);
+            var progress = CalcProgress(InListDestination.Count);
 
             var maxCount = InListDestination.Count;
             var found = false;
             var tmpLst = new List<string>();
-            var regex = new Regex(@"(proc\s+near)", RegexOptions.IgnoreCase); // ищем начало подпрограммы
+            var regexProcNear = new Regex(@"(proc\s+near)", RegexOptions.Compiled); // ищем начало подпрограммы
+            var regexEndP = new Regex(@"\s+endp\s*", RegexOptions.Compiled); // ищем конец подпрограммы
+            //var regexSub = new Regex(@"push\s+offset\s|call\s+sub_\w+|mov\s+\[\w+\+\w+\],\soffset\s|mov\s+\[\w+\+\w+\],\s([1-9]|[0-9A-F]{2,3}h)|mov\s+dword\sptr\s\[\w+\+\w+\],\s([1-9]|[0-9A-F]{2,3}h)|mov\s+dword\sptr\s\[\w+\+\w+\+\w+\],\s([1-9]|[0-9A-F]{2,3}h)|mov\s+dword\sptr\s\[\w+\],\soffset\s|mov\s+dword\sptr\s\[\w+\-\w+\],\soffset\s|mov\s+dword\sptr\s\[\w+\-\w+\],\s([1-9]|[0-9A-F]{2,3}h)", RegexOptions.Compiled);
+            var regexSub = new Regex(@"push\s+offset\s|call\s+sub_\w+|mov\s+\[\w+\+\w+\],\soffset\s|mov\s+dword\sptr\s\[\w+\+\w+\],\soffset\s|mov\s+\[\w+\+\w+\],\s([1-9]|[0-9A-F]{2,3}h)|mov\s+dword\sptr\s\[\w+\+\w+\],\s([1-9]|[0-9A-F]{2,3}h)|mov\s+dword\sptr\s\[\w+\+\w+\+\w+\],\s([1-9]|[0-9A-F]{2,3}h)|mov\s+dword\sptr\s\[\w+\],\soffset\s|mov\s+dword\sptr\s\[\w+\-\w+\],\soffset\s|mov\s+dword\sptr\s\[\w+\-\w+\],\s([1-9]|[0-9A-F]{2,3}h)", RegexOptions.Compiled);
             for (var index = idx; index < maxCount; index++)
             {
                 if (index % progress == 0)
                 {
                     ProgressBar21.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar21.Value = index; }));
                 }
-                var matches = regex.Matches(InListDestination[index]);
-                if (matches.Count <= 0) { continue; }
+
+                var matchesProcNear = regexProcNear.Matches(InListDestination[index]);
+                if (matchesProcNear.Count <= 0) { continue; }
 
                 // нашли начало подпрограммы
                 tmpLst.Add(InListDestination[index]); // сохранили
 
                 // нашли начало подпрограммы, ищем структуры, пока не "endp"
-                var regex2 = new Regex(@"\s+endp\s*", RegexOptions.IgnoreCase); // ищем конец подпрограммы
                 var foundEndp = false;
                 do
                 {
@@ -1142,15 +1220,32 @@ namespace NameFinder
                         ProgressBar21.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar21.Value = index; }));
                     }
                     index++;
-                    var regex3 = new Regex(@"(\x22[0-z._]+\x22)|(\s+offset\s+)|(call\s{4}(sub_\w+)|(mov\s+\[\w+\+\w+\],\s([1-9][0-f]{1,3}h?|[1-9]{1}h?|0[0-f]{1,3})h?|(mov\s+dword\sptr\s\[\w+\+\w+\],\s([0-f]{1,3}))))", RegexOptions.IgnoreCase);
-                    var matches3 = regex3.Matches(InListSource[index]);
-                    //foreach (var match3 in matches3)
-                    if (matches3.Count > 0)
+
+                    // ищем:
+                    // push    offset aDialog  ; "dialog"
+                    // push\s+offset\s|
+                    // call    sub_392299B0
+                    // call\s+sub_\w+|
+                    //                 mov     [ebp+var_A64C], offset ??_7CharacterStatePacket@@6B@ ; const CharacterStatePacket::`vftable'
+                    // mov\s+\[\w+\+\w+\],\soffset\s|
+                    //                  mov     [ebp+var_A648], 2Fh
+                    // mov\s+\[\w+\+\w+\],\s([1-9]|[0-9A-F]{2,3}h)|
+                    //                mov     dword ptr [eax+4], 1ADh
+                    // mov\s+dword\sptr\s\[\w+\+\w+\],\s([1-9]|[0-9A-F]{2,3}h)|
+                    //                mov     dword ptr [eax], offset ??_7SCSetBountyPermittedPacket@@6B@ ; const SCSetBountyPermittedPacket::`vftable'
+                    // mov\s+dword\sptr\s\[\w+\],\soffset\s|
+                    //                mov     dword ptr [ebp-10h], offset ??_7CSChangeSlaveTargetPacket@@6B@ ; const CSChangeSlaveTargetPacket::`vftable'
+                    // mov\s+dword\sptr\s\[\w+\-\w+\],\soffset\s|
+                    //                mov     dword ptr [ebp-0Ch], 2Bh
+                    // mov\s+dword\sptr\s\[\w+\-\w+\],\s([1-9]|[0-9A-F]{2,3}h)|
+
+                    var matchesSub = regexSub.Matches(InListDestination[index]);
+                    if (matchesSub.Count > 0)
                     {
-                        tmpLst.Add(InListSource[index]); // сохранили
+                        tmpLst.Add(InListDestination[index]); // сохранили
                         found = true; // нашли структуру
                     }
-                    var matches2 = regex2.Matches(InListDestination[index]);
+                    var matches2 = regexEndP.Matches(InListDestination[index]);
                     if (matches2.Count <= 0) { continue; }
 
                     foundEndp = true;
@@ -1167,93 +1262,175 @@ namespace NameFinder
 
             return tmpLst;
         }
+
         private List<string> CleanDestinationCSOffs(int idx)
         {
-            var progress = CalcProgress(InListSource.Count);
+            var progress = CalcProgress(InListDestination.Count);
 
             var found = false;
             var tmpLst = new List<string>();
             var txtCS = "";
             TextBox21.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { txtCS = TextBox21.Text; }));
-            //var regex = new Regex(@"(dd\soffset\s\w+)|(dd\soffset\s\sub_)|(; DATA XREF:)|(; sub_)", RegexOptions.IgnoreCase); // ищем начало offsets
-            var regex = new Regex(@"(dd\soffset\s)" + txtCS, RegexOptions.IgnoreCase); // ищем начало offsets
+
+            // ищем:
+            /*
+             off_3A01C97C    dd offset CS_PACKETS_return_0
+                или
+             ??_7CSBroadcastVisualOptionPacket@@6B@ dd offset CS_PACKETS_return_0
+            // ^[a-zA-Z0-9_?@]+\s+dd\soffset\s               + txtCS
+                                    ; DATA XREF: sub_391D5940+100↑o
+                                    ; sub_39347360+69↑o ...
+                            dd offset CS_SC_PACKET
+                            dd offset sub_395DB460
+            // ищем отступ: ^\s{8,}
+
+            // бывает такое
+                CSResturnAddrsPacket_0xfff dd offset CS_PACKETS_return_0
+                            dd offset CS_PACKETS
+                            dd offset sub_39807490
+            // надо добавлять строку
+                                     ; DATA XREF: sub_7F000000
+
+            */
+            // ищем начало offsets
+            // ищем:
+            var regex = new Regex(@"(^[a-zA-Z0-9_?@]+\s+dd\soffset\s)" + txtCS, RegexOptions.Compiled);
             for (var index = idx; index < InListDestination.Count; index++)
             {
                 if (index % progress == 0)
                 {
                     ProgressBar21.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar21.Value = index; }));
                 }
+
+                // ??_7X2ClientToWorldPacket@@6B@ dd offset CS_PACKETS_return_0
                 var matches = regex.Matches(InListDestination[index]);
                 if (matches.Count <= 0) { continue; }
-
-                // нашли, записываем следующие 5 строк, пока в начале пробелы
-                var regex2 = new Regex(@"(^\s{8,})", RegexOptions.IgnoreCase); // ищем начало offsets
-                MatchCollection matches2;
-                do
+                tmpLst.Add(InListDestination[index]); // сохранили
+                index++;
+                // проверим есть следующая строка с отступом 40 пробелов
+                var regexSpace40 = new Regex(@"^\s{40}", RegexOptions.Compiled);
+                var matchesSpace40 = regexSpace40.Matches(InListDestination[index]);
+                if (matchesSpace40.Count <= 0)
                 {
-                    if (index % progress == 0)
+                    tmpLst.Add("                                        ; DATA XREF: sub_FFFFFFFF"); // добавим отсутствующую строку
+                }
+                else
+                {
+                    // сначала нужно записать строки с начальными пробелами [40]; DATA XREF: sub_39015740+1A↑o, таких строк 1 или 2
+                    do
                     {
-                        ProgressBar21.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar21.Value = index; }));
-                    }
-                    tmpLst.Add(InListDestination[index]); // сохранили
-                    index++;
-                    matches2 = regex2.Matches(InListDestination[index]);
-                } while (matches2.Count > 0);
-
+                        tmpLst.Add(InListDestination[index]); // сохранили
+                        index++;
+                        matchesSpace40 = regexSpace40.Matches(InListDestination[index]);
+                        if (matchesSpace40.Count <= 0)
+                        {
+                            break;
+                        }
+                    } while (true);
+                }
+                // dd offset CS_PACKET
+                // или
+                // dd offset SC_PACKET
+                // затем сохраняем одну строку с начальными пробелами  [16]dd offset CS_SC_PACKET
+                tmpLst.Add(InListDestination[index]); // сохранили
+                index++;
+                // запишем
+                // dd offset sub_395D0370
+                // или
+                // dd offset nullsub_18
+                // или
+                // dd offset CSInteractGimmickPacket
+                // или
+                // dd offset CSGmCommandPacket
+                tmpLst.Add(InListDestination[index]); // сохранили
+                //index++;
                 found = true;
-                index--;
             }
-            if (!found)
-            {
-                // не нашли структуру
-                return new List<string>();
-            }
-
-            return tmpLst;
+            return !found ? new List<string>() : tmpLst;
         }
+
         private List<string> CleanDestinationSCOffs(int idx)
         {
-            var progress = CalcProgress(InListSource.Count);
+            var progress = CalcProgress(InListDestination.Count);
 
             var found = false;
             var tmpLst = new List<string>();
             var txtSC = "";
             TextBox22.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { txtSC = TextBox22.Text; }));
-            //var regex = new Regex(@"(dd\soffset\s\w+)|(dd\soffset\s\sub_)|(; DATA XREF:)|(; sub_)", RegexOptions.IgnoreCase); // ищем начало offsets
-            var regex = new Regex(@"(dd\soffset\s)" + txtSC, RegexOptions.IgnoreCase); // ищем начало offsets
+
+            // ищем:
+            /*
+               ??_7SCSetBountyDonePacket@@6B@ dd offset SC_PACKETS_return_2
+            // ^[a-zA-Z0-9_?@]+\sdd\soffset\s         + txtSC
+                                        ; DATA XREF: sub_3920B790+15↑o
+                                        ; sub_3920B820+17↑o
+                               dd offset CS_SC_PACKET
+                               dd offset sub_395DCB90
+                               dd offset ??_R4SCBountyPaidPacket@@6B@ ; const SCBountyPaidPacket::`RTTI Complete Object Locator'
+               ; const SCBountyPaidPacket::`vftable'
+               ??_7SCBountyPaidPacket@@6B@ dd offset SC_PACKETS_return_2
+                                        ; DATA XREF: sub_3920B880+15↑o
+                                        ; sub_3920B910+17↑o
+                               dd offset CS_SC_PACKET
+                               dd offset sub_395DCC80
+            // ищем отступ: ^\s{8,}
+                               align 8
+               
+             */
+            // ищем начало offsets
+            var regex = new Regex(@"(^[a-zA-Z0-9_?@]+\s+dd\soffset\s)" + txtSC, RegexOptions.Compiled);
             for (var index = idx; index < InListDestination.Count; index++)
             {
                 if (index % progress == 0)
                 {
                     ProgressBar21.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar21.Value = index; }));
                 }
+
                 var matches = regex.Matches(InListDestination[index]);
                 if (matches.Count <= 0) { continue; }
+                tmpLst.Add(InListDestination[index]); // сохранили
+                index++;
 
-                // нашли, записываем следующие 5 строк, пока в начале пробелы
-                var regex2 = new Regex(@"(^\s{8,})", RegexOptions.IgnoreCase); // ищем начало offsets
-                MatchCollection matches2;
-                do
+                // проверим есть следующая строка с отступом 40 пробелов
+                var regexSpace40 = new Regex(@"^\s{40}", RegexOptions.Compiled);
+                var matchesSpace40 = regexSpace40.Matches(InListDestination[index]);
+                if (matchesSpace40.Count <= 0)
                 {
-                    if (index % progress == 0)
+                    tmpLst.Add("                                        ; DATA XREF: sub_FFFFFFFF"); // добавим отсутствующую строку
+                }
+                else
+                {
+                    // сначала нужно записать строки с начальными пробелами [40]; DATA XREF: sub_39015740+1A↑o, таких строк 1 или 2
+                    do
                     {
-                        ProgressBar21.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar21.Value = index; }));
-                    }
-                    tmpLst.Add(InListDestination[index]); // сохранили
-                    index++;
-                    matches2 = regex2.Matches(InListDestination[index]);
-                } while (matches2.Count > 0);
-
+                        tmpLst.Add(InListDestination[index]); // сохранили
+                        index++;
+                        matchesSpace40 = regexSpace40.Matches(InListDestination[index]);
+                        if (matchesSpace40.Count <= 0)
+                        {
+                            break;
+                        }
+                    } while (true);
+                }
+                // dd offset CS_PACKET
+                // или
+                // dd offset SC_PACKET
+                // затем сохраняем одну строку с начальными пробелами  [16]dd offset CS_SC_PACKET
+                tmpLst.Add(InListDestination[index]); // сохранили
+                index++;
+                // запишем
+                // dd offset sub_395D0370
+                // или
+                // dd offset nullsub_18
+                // или
+                // dd offset CSInteractGimmickPacket
+                // или
+                // dd offset CSGmCommandPacket
+                tmpLst.Add(InListDestination[index]); // сохранили
+                //index++;
                 found = true;
-                index--;
             }
-            if (!found)
-            {
-                // не нашли структуру
-                return new List<string>();
-            }
-
-            return tmpLst;
+            return !found ? new List<string>() : tmpLst;
         }
 
         private static int CalcProgress(int maxCount)
@@ -1373,18 +1550,23 @@ namespace NameFinder
 
         private void CleanDestination()
         {
+            var stopWatch = new Stopwatch();
+            stopWatch.Start();
+
             ProgressBar21.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar21.Value = 0; }));
             ProgressBar21.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar21.Maximum = InListDestination.Count; }));
 
             var tmp = new List<string>();
 
-            // чистим списки
+            // затем ищем подпрограммы
             var tmpSub = CleanDestinationSub(0);
             tmp.AddRange(tmpSub);
 
+            // затем ищем оффсеты для CS
             var tmpCSOffs = CleanDestinationCSOffs(0);
             tmp.AddRange(tmpCSOffs);
 
+            // затем ищем оффсеты для SC
             var tmpSCOffs = CleanDestinationSCOffs(0);
             tmp.AddRange(tmpSCOffs);
 
@@ -1394,10 +1576,16 @@ namespace NameFinder
             ListView21.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ListView21.ItemsSource = InListDestination; }));
             File.WriteAllLines(FilePathIn2, InListDestination);
             CheckBoxCleaningOut.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { CheckBoxCleaningOut.IsChecked = false; }));
+
+            stopWatch.Stop();
+            TextBox25.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox25.Text = stopWatch.Elapsed.ToString(); }));
             Label_Semafor2.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { Label_Semafor1.Background = Brushes.GreenYellow; }));
             BtnCsLoadNameOut.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnCsLoadNameOut.IsEnabled = true; }));
             BtnScLoadNameOut.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnScLoadNameOut.IsEnabled = true; }));
+            //BtnLoadIn_Copy.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnLoadIn_Copy.IsEnabled = true; }));
+            BtnLoadOut.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnLoadOut.IsEnabled = true; }));
         }
+
         private List<string> FindStructureIn(string address)
         {
             var tmpLst = new List<string>();
@@ -1472,12 +1660,13 @@ namespace NameFinder
 
             return tmpLst;
         }
+
         private List<string> FindStructureOut(string address)
         {
-            var lst = new List<string>();
+            var tmpLst = new List<string>();
             if (DepthOut == DepthMax)
             {
-                return lst;
+                return tmpLst;
             }
             DepthOut++;
             //
@@ -1485,23 +1674,23 @@ namespace NameFinder
             //
             // начнем с начала файла
             var found = false;
-            var regex4 = new Regex(@"^" + address, RegexOptions.Compiled); // ищем начало подпрограммы, каждый раз с начала файла
-            var regex5 = new Regex(@"(\x22[0-z._]+\x22)|(call\s{4}(sub_\w+)|(call\s{4}(\w+)))", RegexOptions.Compiled);
+            var regexSub = new Regex(@"^" + address, RegexOptions.Compiled); // ищем начало подпрограммы, каждый раз с начала файла
+            var regexCall = new Regex(@"(\x22[0-z._]+\x22)|(call\s{4}(sub_\w+)|(call\s{4}(\w+)))", RegexOptions.Compiled);
             for (var index = 0; index < InListDestination.Count; index++)
             {
-                var matches4 = regex4.Matches(InListDestination[index]);
+                var matches4 = regexSub.Matches(InListDestination[index]);
                 if (matches4.Count <= 0) { continue; }
 
                 // нашли начало подпрограммы, ищем структуры, пока не "endp"
-                var regex6 = new Regex(@"\s+endp\s*", RegexOptions.IgnoreCase); // ищем конец подпрограммы
+                var regexEndP = new Regex(@"\s+endp\s*", RegexOptions.IgnoreCase); // ищем конец подпрограммы
                 var foundEndp = false;
-                lst = new List<string>();
+                tmpLst = new List<string>();
                 //var str = "-->>";
                 //lst.Add(str);
                 do
                 {
                     index++;
-                    var matches5 = regex5.Matches(InListDestination[index]);
+                    var matches5 = regexCall.Matches(InListDestination[index]);
                     foreach (var match5 in matches5)
                     {
                         if (match5.ToString() == "call    eax" || match5.ToString() == "call    ebx" || match5.ToString() == "call    edx" || match5.ToString() == "call    ecx")
@@ -1513,18 +1702,17 @@ namespace NameFinder
                             var findList = FindStructureOut(match5.ToString().Substring(8));
                             if (findList.Count > 0)
                             {
-                                lst.AddRange(findList);
+                                tmpLst.AddRange(findList);
                                 found = true; // нашли структуру
                             }
                         }
                         else
                         {
-                            lst.Add(match5.ToString()); // сохранили часть структуры пакета
+                            tmpLst.Add(match5.ToString()); // сохранили часть структуры пакета
                             found = true; // нашли структуру
                         }
-                        //lst.Add(match5.ToString()); // сохранили часть структуры пакета
                     }
-                    var matches6 = regex6.Matches(InListDestination[index]);
+                    var matches6 = regexEndP.Matches(InListDestination[index]);
                     if (matches6.Count <= 0) { continue; }
 
                     foundEndp = true;
@@ -1534,7 +1722,7 @@ namespace NameFinder
                 DepthOut--;
                 //str = "<<--";
                 //lst.Add(str);
-                return lst;
+                return tmpLst;
             }
             if (!found)
             {
@@ -1545,8 +1733,9 @@ namespace NameFinder
                 return new List<string>();
             }
 
-            return lst;
+            return tmpLst;
         }
+
         private void FindSourceStructuresCS(string str)
         {
             var stopWatch = new Stopwatch();
@@ -1939,6 +2128,7 @@ namespace NameFinder
             // уничтожаем ненужный список
             //ListSubSourceSC = new List<string>();
         }
+
         private void FindDestinationStructuresCS(string str)
         {
             var stopWatch = new Stopwatch();
@@ -1952,8 +2142,8 @@ namespace NameFinder
             TextBox23.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox23.Text = "0"; }));
             TextBox24.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox24.Text = "0"; }));
             TextBox28.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox28.Text = "0"; }));
-
             ProgressBar22.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar22.Value = 0; }));
+            Label_Semafor2.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { Label_Semafor2.Background = Brushes.Yellow; }));
 
             //
             // начали предварительную работу по поиску имен и ссылок на подпрограммы со структурами
@@ -1966,7 +2156,8 @@ namespace NameFinder
             // Блокируем объект.
             lock (lockObj)
             {
-                var regex = new Regex(@"dd\soffset\s" + str, RegexOptions.IgnoreCase);
+                var regex = new Regex(@"^[a-zA-Z0-9_?@]+\s+dd\soffset\s" + str, RegexOptions.Compiled);
+                var regexXREF = new Regex(@"(^\s+;[a-zA-Z:\s]*\s(sub_\w+|X2\w+))", RegexOptions.Compiled);
                 for (var index = 0; index < InListDestination.Count; index++)
                 {
                     var foundName = false;
@@ -1979,8 +2170,7 @@ namespace NameFinder
                     do
                     {
                         tmpIdx++;
-                        var regexXREF = new Regex(@"((sub_\w+)|(loc_\w{8}))", RegexOptions.IgnoreCase);
-                        //var regexXREF = new Regex(@"((sub_\w+\+\w{1,3})|(loc_\w{8}))", RegexOptions.IgnoreCase);
+                        //var regexXREF = new Regex(@"((sub_\w+\+\w{1,3}|loc_\w{8}))", RegexOptions.IgnoreCase);
                         // ищем "; DATA XREF: sub_3922E1C0+79↑o" или "; sub_3922E1C0:loc_3922E37F↑o"
                         var matchesXREF = regexXREF.Matches(InListDestination[tmpIdx]);
                         if (matchesXREF.Count <= 0) { continue; }
@@ -1993,7 +2183,7 @@ namespace NameFinder
                     XrefsOut.Add(indexRefs, lst); // сохраним список XREF для пакета
                     indexRefs++;               // следующий номер пакета
 
-                    var regex2 = new Regex(@"^(\S+)\s", RegexOptions.IgnoreCase);
+                    var regex2 = new Regex(@"^(\S+)", RegexOptions.IgnoreCase);
                     var matches2 = regex2.Matches(InListDestination[index]);
                     foreach (var match2 in matches2)
                     {
@@ -2003,24 +2193,34 @@ namespace NameFinder
                     if (!foundName)
                     {
                         // не нашли имя пакета, бывает что его нет из-зи защиты themida
-                        ListNameDestinationCS.Add("Unknown"); // сохранили адрес подпрограммы
+                        ListNameDestinationCS.Add("CS_Unknown"); // сохранили адрес подпрограммы
                     }
 
-                    var regex3 = new Regex(@"(dd\soffset\s)((\w{11,}|(nullsub)|(sub)_\w+))", RegexOptions.IgnoreCase); // ищем "sub_00000000"
-                    var found = false;
+                    // сначала нужно пропустить строки с начальными пробелами [40]; DATA XREF: sub_39015740+1A↑o, таких строк 1 или 2
                     do
                     {
                         index++;
-                        var matches3 = regex3.Matches(InListDestination[index]);
-                        if (matches3.Count <= 0) { continue; }
-
-                        foreach (var match3 in matches3)
+                        var regexSpace40 = new Regex(@"^\s{40}", RegexOptions.IgnoreCase);
+                        var matchesSpace40 = regexSpace40.Matches(InListDestination[index]);
+                        if (matchesSpace40.Count <= 0)
                         {
-                            var strin = match3.ToString();
-                            ListSubDestinationCS.Add(strin.Substring(10)); // сохранили адрес подпрограммы
-                            found = true;
+                            break;
                         }
-                    } while (!found);
+                    } while (true);
+                    // пропускаем
+                    // dd offset CS_PACKET
+                    // или
+                    // dd offset SC_PACKET
+                    // затем одну строку с начальными пробелами  [16]dd offset CS_SC_PACKET
+                    index++;
+
+                    // ищем "dd offset sub_395D0370"
+                    // dd offset nullsub_18
+                    // dd offset CSInteractGimmickPacket
+                    // dd offset CSGmCommandPacket
+                    var regexBody = new Regex(@"(dd\soffset\snullsub|dd\soffset\ssub_\w+|dd\soffset\s\w+)", RegexOptions.Compiled);
+                    var matchesBodys = regexBody.Match(InListDestination[index]);
+                    ListSubDestinationCS.Add(matchesBodys.ToString().Substring(10)); // сохранили адрес подпрограммы
                 }
 
                 // закончили предварительную работу по поиску имен и ссылок на подпрограммы со структурами
@@ -2038,51 +2238,76 @@ namespace NameFinder
                     // начали предварительную работу по поиску структур пакетов
                     //
                     // начнем с начала файла
+                    var regexEndP = new Regex(@"\s+endp\s*", RegexOptions.Compiled); // ищем конец подпрограммы
+                    var regexCall = new Regex(@"(\x22[0-z._]+\x22)|(call\s{4}(sub_\w+)|(call\s{4}(\w+)))", RegexOptions.Compiled);
+                    /*
+                       sub_395D3050    proc near               ; CODE XREF: sub_391DE5C0+47↑p
+                       push    offset aBc      ; "bc"
+                       call    sub_395E18A0
+                       call    sub_395E1730
+                       call    sub_395E16B0
+                       push    offset aAction  ; "action"
+                       sub_395D3050    endp              
+                       
+                       sub_395E18A0    proc near               ; CODE XREF: .text:394B5DEC↑p
+                       push    offset aType    ; "type"
+                       push    offset aType    ; "type"
+                       push    offset aType    ; "type"
+                       push    offset aType    ; "type"
+                       push    offset aModified ; "modified"
+                       sub_395E18A0    endp
+                       
+                       sub_395E1730    proc near               ; CODE XREF: .text:394B1C67↑p
+                       push    offset aType    ; "type"
+                       push    offset asc_396AFCE0 ; "x"
+                       push    offset aY       ; "y"
+                       push    offset aZ_0     ; "z"
+                       push    offset aModified ; "modified"
+                       sub_395E1730    endp
+                       
+                       sub_395E16B0    proc near               ; CODE XREF: .text:394B1CB7↑p
+                       push    offset aType    ; "type"
+                       push    offset aData    ; "data"
+                       push    offset aData    ; "data"
+                       push    offset aModified ; "modified"
+                       sub_395E16B0    endp
+                       
+                    */
+
                     for (var i = 0; i < ListSubDestinationCS.Count; i++)
                     {
                         var found = false;
-                        var regex4 =
-                            new Regex(@"^" + ListSubDestinationCS[i],
-                                RegexOptions.IgnoreCase); // ищем начало подпрограммы, каждый раз с начала файла
+                        var regexSub = new Regex(@"^" + ListSubDestinationCS[i], RegexOptions.Compiled); // ищем начало подпрограммы, каждый раз с начала файла
                         for (var index = 0; index < InListDestination.Count; index++)
                         {
-                            var matches4 = regex4.Matches(InListDestination[index]);
-                            if (matches4.Count <= 0)
-                            {
-                                continue;
-                            }
+                            var matchesSub = regexSub.Matches(InListDestination[index]);
+                            if (matchesSub.Count <= 0) { continue; }
 
                             // нашли начало подпрограммы, ищем структуры, пока не "endp"
-                            var regex6 = new Regex(@"\s+endp\s*", RegexOptions.IgnoreCase); // ищем конец подпрограммы
                             var foundEndp = false;
                             var lst = new List<string>();
                             do
                             {
                                 index++;
-                                var regex5 = new Regex(@"(\x22[0-z._]+\x22)|(call\s{4}(sub_\w+)|(call\s{4}(\w+)))",
-                                    RegexOptions.IgnoreCase);
-                                var matches5 = regex5.Matches(InListDestination[index]);
-                                foreach (var match5 in matches5)
+                                var matchesCalls = regexCall.Matches(InListDestination[index]);
+                                foreach (var matchCall in matchesCalls)
                                 {
-                                    if (match5.ToString().Length >= 4 && match5.ToString().Substring(0, 4) == "call")
+                                    if (matchCall.ToString().Length >= 4 && matchCall.ToString().Substring(0, 4) == "call")
                                     {
-                                        var findList = FindStructureOut(match5.ToString().Substring(8));
+                                        var findList = FindStructureOut(matchCall.ToString().Substring(8));
                                         if (findList.Count > 0)
                                         {
-                                            lst.AddRange(findList);
+                                            lst.AddRange(findList); // сохранили несколько строк структуры пакета найденной в подпрограмме
                                         }
                                     }
                                     else
                                     {
-                                        lst.Add(match5.ToString()); // сохранили часть структуры пакета
+                                        lst.Add(matchCall.ToString()); // сохранили одну строку структуры пакета
                                     }
                                 }
 
-                                var matches6 = regex6.Matches(InListDestination[index]);
-                                if (matches6.Count <= 0)
-                                {
-                                    continue;
-                                }
+                                var matchesEndP = regexEndP.Matches(InListDestination[index]);
+                                if (matchesEndP.Count <= 0) { continue; }
 
                                 foundEndp = true;
                             } while (!foundEndp);
@@ -2096,11 +2321,10 @@ namespace NameFinder
                         {
                             // не нашли структуру
                             var lst = new List<string>();
-                            StructureDestinationCS.Add(i, lst); // сохраним пустой список, так как не нашли ничего
+                            StructureDestinationCS.Add(i, lst); // сохраним пустой список, так как ничего не нашли 
                         }
 
-                        ProgressBar22.Dispatcher.Invoke(DispatcherPriority.Background,
-                            new Action(() => { ProgressBar22.Value = StructureDestinationCS.Count; }));
+                        ProgressBar22.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar22.Value = StructureDestinationCS.Count; }));
                     }
                 }
             }
@@ -2108,14 +2332,20 @@ namespace NameFinder
             BtnCsLoadNameOut.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnCsLoadNameOut.IsEnabled = true; }));
             BtnScLoadNameOut.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnScLoadNameOut.IsEnabled = true; }));
             BtnLoadOut.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnLoadOut.IsEnabled = true; }));
-            ButtonCsCompare.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ButtonCsCompare.IsEnabled = true; }));
+            //BtnLoadIn_Copy.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnLoadIn_Copy.IsEnabled = true; }));
+            
+            _isOut = true;
+            if (_isIn && _isOut)
+            {
+                ButtonCsCompare.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ButtonCsCompare.IsEnabled = true; }));
+            }
+
             ButtonOut1.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ButtonOut1.IsEnabled = true; }));
             stopWatch.Stop();
             TextBox28.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox28.Text = stopWatch.Elapsed.ToString(); }));
-
-            // уничтожаем ненужный список
-            //ListSubDestinationCS = new List<string>();
+            Label_Semafor2.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { Label_Semafor2.Background = Brushes.GreenYellow; }));
         }
+
         private void FindDestinationStructuresSC(string str)
         {
             var stopWatch = new Stopwatch();
@@ -2432,6 +2662,9 @@ namespace NameFinder
         private void btn_Load_Out_Click(object sender, RoutedEventArgs e)
         {
             Label_Semafor2.Background = Brushes.Red;
+            //BtnLoadIn_Copy.IsEnabled = false;
+            BtnLoadOut.IsEnabled = false;
+
             if (OpenFileDialog2())
             {
                 TextBoxPathOut.Text = FilePathIn2;
@@ -2448,6 +2681,16 @@ namespace NameFinder
                     // заполним ListView
                     ListView21.ItemsSource = InListDestination;
                 }
+
+                // инициализируем прогрессбары и списки
+                ProgressBar21.Value = 0;
+                ProgressBar22.Value = 0;
+                ProgressBar23.Value = 0;
+                ListView22.ItemsSource = new List<string>();
+                ListView23.ItemsSource = new List<string>();
+                ListView24.ItemsSource = new List<string>();
+
+
                 isCleaningOut = CheckBoxCleaningOut.IsChecked == true;
                 if (isCleaningOut)
                 {
@@ -2460,8 +2703,9 @@ namespace NameFinder
                 {
                     BtnCsLoadNameOut.IsEnabled = true;
                     BtnScLoadNameOut.IsEnabled = true;
+                    //BtnLoadIn_Copy.IsEnabled = true;
+                    BtnLoadOut.IsEnabled = true;
                 }
-
                 stopWatch.Stop();
                 TextBox25.Text = stopWatch.Elapsed.ToString();
                 isCompareCS = false;
@@ -2472,11 +2716,9 @@ namespace NameFinder
             {
                 _isOut = false;
                 MessageBox.Show("Для работы программы необходимо выбрать .asm файл!");
+                //BtnLoadIn_Copy.IsEnabled = true;
+                BtnLoadOut.IsEnabled = true;
             }
-            //if (_isIn && _isOut)
-            //{
-            //    BtnLoadOut.IsEnabled = true;
-            //}
         }
         private void btn_SC_Load_Name2_Click(object sender, RoutedEventArgs e)
         {
@@ -2503,9 +2745,10 @@ namespace NameFinder
         {
             BtnCsLoadNameOut.IsEnabled = false;
             BtnScLoadNameOut.IsEnabled = false;
+            //BtnLoadIn_Copy.IsEnabled = false;
             BtnLoadOut.IsEnabled = false;
-            var txt = TextBox21.Text;
-            DepthOut = 0;
+            var inText = TextBox21.Text;
+            DepthIn = 0;
 
             ListNameDestinationCS = new List<string>();
             FindOpcodeOut = CheckBoxFindOpcodeOut.IsChecked == true;
@@ -2513,13 +2756,15 @@ namespace NameFinder
 
             new Thread(() =>
             {
-                FindDestinationStructuresCS(txt);
+                FindDestinationStructuresCS(inText);
+
                 if (FindOpcodeOut)
                 {
                     FindOpcodeDestinationCS();
                 }
             }).Start();
         }
+
         private void CompareSourceStructuresCS(ref List<string> listNameSource, ref List<string> listNameDestination, ref List<string> listSubDestination, ref Dictionary<int, List<string>> dictSource, ref Dictionary<int, List<string>> dictDestination, List<string> listOpcodes)
         {
             // подготовим список
