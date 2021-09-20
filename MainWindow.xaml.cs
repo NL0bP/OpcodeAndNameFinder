@@ -99,7 +99,7 @@ namespace NameFinder
             var notFoundCount = 0;
             //var baseAddress = 0;
             //var offsetAddres = 0;
-            //var subAddress = "";
+            var subAddress = "";
             ListOpcodeSourceCS = new List<string>();
 
             // здесь ищем ссылку на подпрограмму, где есть опкоды
@@ -113,16 +113,18 @@ namespace NameFinder
             {
                 var list = XrefsIn[i].ToList();
                 var foundOpcode = false;
-                foreach (var subAddress in list)
+                foreach (var str in list)
                 {
                     //subAddress = "";
-                    ////var regex = new Regex(@"((sub_\w+\+\w{1,3}|loc_\w{8}))", RegexOptions.IgnoreCase);
-                    //// выделяем из "sub_39022C10+74A" -> "sub_39022C10" и "74A"
-                    //var regexSub = new Regex(@"sub_\w+|loc_\w+", RegexOptions.IgnoreCase);
-                    //var matchesSub = regexSub.Matches(lst);
-                    //if (matchesSub.Count <= 0) { continue; }
-                    //// "sub_39022C10"
-                    //subAddress = matchesSub[0].ToString();
+                    //var regex = new Regex(@"((sub_\w+\+\w{1,3}|loc_\w{8}))", RegexOptions.IgnoreCase);
+                    // выделяем из "; DATA XREF: sub_39024010" -> "sub_39024010"
+                    // "; DATA XREF: X2__GameClient__ClientDrivenNpc__UpdateMovementSync" -> "X2__GameClient__ClientDrivenNpc__UpdateMovementSync"
+                    // "; sub_394045F0" -> "sub_394045F0"
+                    var regexSub = new Regex(@"sub_\w+|X2\w+", RegexOptions.IgnoreCase);
+                    var matchesSub = regexSub.Matches(str);
+                    if (matchesSub.Count <= 0) { continue; }
+                    // "sub_39022C10"
+                    subAddress = matchesSub[0].ToString();
                     // здесь ищем начало подпрограммы
                     // начнем с начала файла
                     found = false;
@@ -1573,7 +1575,7 @@ namespace NameFinder
             lock (lockObj)
             {
                 var regex = new Regex(@"^[a-zA-Z0-9_?@]+\s+dd\soffset\s" + str, RegexOptions.Compiled);
-                var regexXREF = new Regex(@"(sub_\w+|X2\w+)", RegexOptions.Compiled);
+                var regexXREF = new Regex(@"(^\s+;[a-zA-Z:\s]*\s(sub_\w+|X2\w+))", RegexOptions.Compiled);
                 for (var index = 0; index < InListSource.Count; index++)
                 {
                     var foundName = false;
@@ -2301,6 +2303,15 @@ namespace NameFinder
                     // заполним ListView
                     ListView11.ItemsSource = InListSource;
                 }
+
+                // инициализируем прогрессбары и списки
+                ProgressBar11.Value = 0;
+                ProgressBar12.Value = 0;
+                ProgressBar13.Value = 0;
+                ListView12.ItemsSource = new List<string>();
+                ListView13.ItemsSource = new List<string>();
+                ListView14.ItemsSource = new List<string>();
+
 
                 isCleaningIn = CheckBoxCleaningIn.IsChecked == true;
                 if (isCleaningIn)
