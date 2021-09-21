@@ -7,12 +7,12 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Threading;
+using Newtonsoft.Json;
 
 namespace NameFinder
 {
@@ -73,6 +73,8 @@ namespace NameFinder
         public static List<string> ListNameCompareCS = new List<string>();
         public static List<string> ListNameCompareSC = new List<string>();
         public static List<string> ListNameCompare = new List<string>();
+        public static List<string> ListNameCompareOutCS = new List<string>();
+        public static List<string> ListNameCompareOutSC = new List<string>();
 
         public bool isCleaningIn = false;
         public bool isCleaningOut = false;
@@ -590,7 +592,7 @@ namespace NameFinder
             BtnCsLoadNameIn.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnCsLoadNameIn.IsEnabled = true; }));
             BtnScLoadNameIn.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnScLoadNameIn.IsEnabled = true; }));
         }
-        
+
         private void FindOpcodeDestinationCS()
         {
             var stopWatch = new Stopwatch();
@@ -1854,7 +1856,7 @@ namespace NameFinder
             BtnLoadIn_Copy.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnLoadIn_Copy.IsEnabled = false; }));
             BtnCsLoadNameIn.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnCsLoadNameIn.IsEnabled = false; }));
             BtnScLoadNameIn.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnScLoadNameIn.IsEnabled = false; }));
-            
+
             //
             // начали предварительную работу по поиску имен и ссылок на подпрограммы со структурами
             //
@@ -2043,7 +2045,7 @@ namespace NameFinder
             BtnScLoadNameIn.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnScLoadNameIn.IsEnabled = true; }));
             BtnLoadIn.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnLoadIn.IsEnabled = true; }));
             BtnLoadIn_Copy.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnLoadIn_Copy.IsEnabled = true; }));
-            
+
             _isInCs = true;
             if (_isInCs && _isOutCs)
             {
@@ -2266,7 +2268,7 @@ namespace NameFinder
             BtnScLoadNameIn.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnScLoadNameIn.IsEnabled = true; }));
             BtnLoadIn.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnLoadIn.IsEnabled = true; }));
             BtnLoadIn_Copy.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnLoadIn_Copy.IsEnabled = true; }));
-            
+
             _isInSc = true;
             if (_isInSc && _isOutSc)
             {
@@ -2485,7 +2487,7 @@ namespace NameFinder
             BtnScLoadNameOut.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnScLoadNameOut.IsEnabled = true; }));
             BtnLoadOut.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnLoadOut.IsEnabled = true; }));
             //BtnLoadIn_Copy.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnLoadIn_Copy.IsEnabled = true; }));
-            
+
             _isOutCs = true;
             if (_isInCs && _isOutCs)
             {
@@ -3046,6 +3048,7 @@ namespace NameFinder
                 } while (IdxD < lenDestinationListName);
             }
         }
+
         private void CompareSourceStructuresSC(ref List<string> listNameSource, ref List<string> listNameDestination, ref List<string> listSubDestination, ref Dictionary<int, List<string>> dictSource, ref Dictionary<int, List<string>> dictDestination, List<string> listOpcodes)
         {
             // подготовим список
@@ -3177,13 +3180,14 @@ namespace NameFinder
                 } while (IdxD < lenDestinationListName);
             }
         }
+
         private void button2_Copy1_Click(object sender, RoutedEventArgs e)
         {
             // пробуем сравнивать структуры пакетов
             if (!isCompareCS)
             {
                 CompareSourceStructuresCS(ref ListNameSourceCS, ref ListNameDestinationCS, ref ListSubDestinationCS, ref StructureSourceCS, ref StructureDestinationCS, ListOpcodeDestinationCS);
-                isCompareCS = true;
+                //isCompareCS = true;
             }
             else
             {
@@ -3198,23 +3202,23 @@ namespace NameFinder
                 compareWindow.CompareSourceStructures(ref ListNameSourceCS, ref ListNameDestinationCS, ref ListNameCompareCS, ref ListSubDestinationCS, ref StructureSourceCS, ref StructureDestinationCS, ListOpcodeDestinationCS);
             }
 
-            var tmp = new List<string>();
+            ListNameCompareOutCS = new List<string>();
             var idxD = 0;
             foreach (var t in ListNameCompareCS)
             {
                 if (ListOpcodeDestinationCS.Count > 0)
                 {
-                    tmp.Add(t + " " + ListOpcodeDestinationCS[idxD]);
+                    ListNameCompareOutCS.Add(t + " " + ListOpcodeDestinationCS[idxD]);
                 }
                 else
                 {
-                    tmp.Add(t + " " + "0xfff");
+                    ListNameCompareOutCS.Add(t + " " + "0xfff");
                 }
 
                 idxD++;
             }
 
-            ListView32.ItemsSource = tmp;
+            ListView32.ItemsSource = ListNameCompareOutCS;
             Button2Copy2.IsEnabled = true;
             Button2Copy2_Copy.IsEnabled = true;
         }
@@ -3224,7 +3228,7 @@ namespace NameFinder
             if (!isCompareSC)
             {
                 CompareSourceStructuresSC(ref ListNameSourceSC, ref ListNameDestinationSC, ref ListSubDestinationSC, ref StructureSourceSC, ref StructureDestinationSC, ListOpcodeDestinationSC);
-                isCompareSC = true;
+                //isCompareSC = true;
             }
             else
             {
@@ -3239,22 +3243,22 @@ namespace NameFinder
                 compareWindow.CompareSourceStructures(ref ListNameSourceSC, ref ListNameDestinationSC, ref ListNameCompareSC, ref ListSubDestinationSC, ref StructureSourceSC, ref StructureDestinationSC, ListOpcodeDestinationSC);
             }
 
-            var tmp = new List<string>();
+            ListNameCompareOutSC = new List<string>();
             var idxD = 0;
             foreach (var t in ListNameCompareSC)
             {
                 if (ListOpcodeDestinationCS.Count > 0)
                 {
-                    tmp.Add(t + " " + ListOpcodeDestinationSC[idxD]);
+                    ListNameCompareOutSC.Add(t + " " + ListOpcodeDestinationSC[idxD]);
                 }
                 else
                 {
-                    tmp.Add(t + " " + "0xfff");
+                    ListNameCompareOutSC.Add(t + " " + "0xfff");
                 }
 
                 idxD++;
             }
-            ListView32.ItemsSource = tmp;
+            ListView32.ItemsSource = ListNameCompareOutSC;
             ButtonCopy2.IsEnabled = true;
             ButtonCopy2_Copy.IsEnabled = true;
         }
@@ -3771,6 +3775,365 @@ namespace NameFinder
         private void checkBox_Checked_Out(object sender, RoutedEventArgs e)
         {
             //FindOpcodeOut = checkBoxOut.IsChecked == true;
+        }
+
+        private void btn_SaveSnapshot_Click(object sender, RoutedEventArgs e)
+        {
+            Label_Semafor1.Background = Brushes.Red;
+            Label_Semafor2.Background = Brushes.Red;
+
+            //if (SaveSnapshotFileDialog())
+            {
+                TextBoxPathIn.Text = FilePathIn1;
+                var stopWatch = new Stopwatch();
+                stopWatch.Start();
+                // Создаем объект для блокировки.
+                var lockObj = new object();
+                lock (lockObj)
+                {
+                    //new Thread(() =>
+                    //{
+                    //    PreCleanSource();
+                    //}).Start();
+
+                    File.WriteAllLines(DirPath + "\\TextBoxPathIn", new List<string> { TextBoxPathIn.Text });
+                    File.WriteAllLines(DirPath + "\\TextBoxPathOut", new List<string> { TextBoxPathOut.Text });
+                    if (ButtonSaveIn1.IsEnabled)
+                    {
+                        File.WriteAllLines(DirPath + "\\InListSource", InListSource);
+                        File.WriteAllLines(DirPath + "\\ListNameSourceCS", ListNameSourceCS);
+                        File.WriteAllLines(DirPath + "\\ListNameSourceSC", new List<string>());
+                        File.WriteAllLines(DirPath + "\\ListSubSourceCS", ListSubSourceCS);
+                        File.WriteAllLines(DirPath + "\\ListSubSourceSC", new List<string>());
+                        File.WriteAllLines(DirPath + "\\ListOpcodeSourceCS", ListOpcodeSourceCS);
+                        File.WriteAllLines(DirPath + "\\ListOpcodeSourceSC", new List<string>());
+
+                        File.WriteAllLines(DirPath + "\\InListDestination", InListDestination);
+                        File.WriteAllLines(DirPath + "\\ListNameDestinationCS", ListNameDestinationCS);
+                        File.WriteAllLines(DirPath + "\\ListNameDestinationSC", new List<string>());
+                        File.WriteAllLines(DirPath + "\\ListSubDestinationCS", ListSubDestinationCS);
+                        File.WriteAllLines(DirPath + "\\ListSubDestinationSC", new List<string>());
+                        File.WriteAllLines(DirPath + "\\ListOpcodeDestinationCS", ListOpcodeDestinationCS);
+                        File.WriteAllLines(DirPath + "\\ListOpcodeDestinationSC", new List<string>());
+
+                        File.WriteAllLines(DirPath + "\\ListNameCompareCS", ListNameCompareCS);
+                        File.WriteAllLines(DirPath + "\\ListNameCompareSC", new List<string>());
+                                        
+                        File.WriteAllLines(DirPath + "\\ListNameCompareOutCS", ListNameCompareOutCS);
+                        File.WriteAllLines(DirPath + "\\ListNameCompareOutSC", new List<string>());
+                    }
+                    else
+                    {
+                        File.WriteAllLines(DirPath + "\\InListSource", InListSource);
+                        File.WriteAllLines(DirPath + "\\ListNameSourceCS", new List<string>());
+                        File.WriteAllLines(DirPath + "\\ListNameSourceSC", ListNameSourceSC);
+                        File.WriteAllLines(DirPath + "\\ListSubSourceCS", new List<string>());
+                        File.WriteAllLines(DirPath + "\\ListSubSourceSC", ListSubSourceSC);
+                        File.WriteAllLines(DirPath + "\\ListOpcodeSourceCS", new List<string>());
+                        File.WriteAllLines(DirPath + "\\ListOpcodeSourceSC", ListOpcodeSourceSC);
+
+                        File.WriteAllLines(DirPath + "\\InListDestination", InListDestination);
+                        File.WriteAllLines(DirPath + "\\ListNameDestinationCS", new List<string>());
+                        File.WriteAllLines(DirPath + "\\ListNameDestinationSC", ListNameDestinationSC);
+                        File.WriteAllLines(DirPath + "\\ListSubDestinationCS", new List<string>());
+                        File.WriteAllLines(DirPath + "\\ListSubDestinationSC", ListSubDestinationSC);
+                        File.WriteAllLines(DirPath + "\\ListOpcodeDestinationCS", new List<string>());
+                        File.WriteAllLines(DirPath + "\\ListOpcodeDestinationSC", ListOpcodeDestinationSC);
+
+                        File.WriteAllLines(DirPath + "\\ListNameCompareCS", new List<string>());
+                        File.WriteAllLines(DirPath + "\\ListNameCompareSC", ListNameCompareSC);
+                    
+                        File.WriteAllLines(DirPath + "\\ListNameCompareOutCS", new List<string>());
+                        File.WriteAllLines(DirPath + "\\ListNameCompareOutSC", ListNameCompareOutSC);
+                    }
+
+                    string json = JsonConvert.SerializeObject(InUseIn, Formatting.Indented); 
+                    File.WriteAllText(DirPath + "\\InUseIn.json", json);
+                    
+                    json = JsonConvert.SerializeObject(InUseOut, Formatting.Indented); 
+                    File.WriteAllText(DirPath + "\\InUseOut.json", json);
+                    
+                    json = JsonConvert.SerializeObject(IsRenameDestination, Formatting.Indented); 
+                    File.WriteAllText(DirPath + "\\IsRenameDestination.json", json);
+                    
+                    json = JsonConvert.SerializeObject(StructureSourceCS, Formatting.Indented); 
+                    File.WriteAllText(DirPath + "\\StructureSourceCS.json", json);
+                
+                    json = JsonConvert.SerializeObject(StructureSourceSC, Formatting.Indented); 
+                    File.WriteAllText(DirPath + "\\StructureSourceSC.json", json);
+                                
+                    json = JsonConvert.SerializeObject(StructureDestinationCS, Formatting.Indented); 
+                    File.WriteAllText(DirPath + "\\StructureDestinationCS.json", json);
+                                
+                    json = JsonConvert.SerializeObject(StructureDestinationSC, Formatting.Indented); 
+                    File.WriteAllText(DirPath + "\\StructureDestinationSC.json", json);
+                                
+                    json = JsonConvert.SerializeObject(XrefsIn, Formatting.Indented); 
+                    File.WriteAllText(DirPath + "\\XrefsIn.json", json);
+                                
+                    json = JsonConvert.SerializeObject(XrefsOut, Formatting.Indented); 
+                    File.WriteAllText(DirPath + "\\XrefsOut.json", json);
+                }
+
+                stopWatch.Stop();
+                TextBox15.Text = stopWatch.Elapsed.ToString();
+                isCompareCS = false;
+                isCompareSC = false;
+                Label_Semafor1.Background = Brushes.Yellow;
+                Label_Semafor2.Background = Brushes.Yellow;
+            }
+            //else
+            //{
+            //    MessageBox.Show("Для работы программы необходимо выбрать .asm файл!");
+            //    BtnLoadIn_Copy.IsEnabled = true;
+            //    BtnLoadIn.IsEnabled = true;
+            //}
+        }
+        private string DirPath = Environment.CurrentDirectory + "\\data\\";
+        private void btn_LoadSnapshot_Click(object sender, RoutedEventArgs e)
+        {
+            Label_Semafor1.Background = Brushes.Red;
+            Label_Semafor2.Background = Brushes.Red;
+
+            // Создаем объект для блокировки.
+            var lockObj = new object();
+            lock (lockObj)
+            {
+
+                TextBoxPathIn.Text = File.ReadAllLines(DirPath + "\\TextBoxPathIn")[0].ToString();
+                TextBoxPathOut.Text = File.ReadAllLines(DirPath + "\\TextBoxPathOut")[0].ToString();
+                InListSource = File.ReadAllLines(DirPath + "\\InListSource").ToList();
+                ListView11.ItemsSource = InListSource;
+                ListNameSourceCS = File.ReadAllLines(DirPath + "\\ListNameSourceCS").ToList();
+                InListDestination = File.ReadAllLines(DirPath + "\\InListDestination").ToList();
+                ListView21.ItemsSource = InListDestination;
+                if (ListNameSourceCS.Count != 0)
+                {
+                    ListNameSourceCS = File.ReadAllLines(DirPath + "\\ListNameSourceCS").ToList();
+                    ListView12.ItemsSource = ListNameSourceCS;
+                    TextBox13.Text = ListNameSourceCS.Count.ToString();
+
+                    ListNameSourceSC = File.ReadAllLines(DirPath + "\\ListNameSourceSC").ToList();
+                    //ListView12.ItemsSource = ListNameSourceSC;
+                    TextBox16.Text = ListNameSourceSC.Count.ToString();
+                    
+                    ListSubSourceCS = File.ReadAllLines(DirPath + "\\ListSubSourceCS").ToList();
+                    ListView13.ItemsSource = ListSubSourceCS;
+                    TextBox14.Text = ListSubSourceCS.Count.ToString();
+                    
+                    ListSubSourceSC = File.ReadAllLines(DirPath + "\\ListSubSourceSC").ToList();
+                    //ListView13.ItemsSource = ListSubSourceSC;
+                    TextBox17.Text = ListSubSourceSC.Count.ToString();
+
+                    ListOpcodeSourceCS = File.ReadAllLines(DirPath + "\\ListOpcodeSourceCS").ToList();
+                    ListView14.ItemsSource = ListOpcodeSourceCS;
+                    TextBox16Copy.Text = ListOpcodeSourceCS.Count.ToString();
+                    
+                    ListOpcodeSourceSC = File.ReadAllLines(DirPath + "\\ListOpcodeSourceSC").ToList();
+                    //ListView14.ItemsSource = ListOpcodeSourceSC;
+                    TextBox17Copy.Text = ListOpcodeSourceSC.Count.ToString();
+
+                    ListNameDestinationCS = File.ReadAllLines(DirPath + "\\ListNameDestinationCS").ToList();
+                    ListView22.ItemsSource = ListNameDestinationCS;
+                    TextBox23.Text = ListNameDestinationCS.Count.ToString();
+
+                    ListNameDestinationSC = File.ReadAllLines(DirPath + "\\ListNameDestinationSC").ToList();
+                    //ListView22.ItemsSource = ListNameDestinationSC;
+                    TextBox26.Text = ListNameDestinationSC.Count.ToString();
+                    
+                    ListSubDestinationCS = File.ReadAllLines(DirPath + "\\ListSubDestinationCS").ToList();
+                    ListView23.ItemsSource = ListSubDestinationCS;
+                    TextBox24.Text = ListSubDestinationCS.Count.ToString();
+
+                    ListSubDestinationSC = File.ReadAllLines(DirPath + "\\ListSubDestinationSC").ToList();
+                    //ListView23.ItemsSource = ListSubDestinationSC;
+                    TextBox27.Text = ListSubDestinationSC.Count.ToString();
+
+                    ListOpcodeDestinationCS = File.ReadAllLines(DirPath + "\\ListOpcodeDestinationCS").ToList();
+                    ListView24.ItemsSource = ListOpcodeDestinationCS;
+                    TextBox16Copy1.Text = ListOpcodeDestinationCS.Count.ToString();
+
+                    ListOpcodeDestinationSC = File.ReadAllLines(DirPath + "\\ListOpcodeDestinationSC").ToList();
+                    //ListView24.ItemsSource = ListOpcodeDestinationSC;
+                    //TextBox16Copy1.Text = ListOpcodeDestinationSC.Count.ToString();
+
+                    ListNameCompareCS = File.ReadAllLines(DirPath + "\\ListNameCompareCS").ToList();
+                    ListView31.ItemsSource = ListNameCompareCS;
+                    TextBox31.Text = ListNameCompareCS.Count.ToString();
+
+                    ListNameCompareSC = File.ReadAllLines(DirPath + "\\ListNameCompareSC").ToList();
+                    //ListView31.ItemsSource = ListNameCompareCS;
+                    //TextBox31.Text = ListNameCompareSC.Count.ToString();
+
+                    ListNameCompare = File.ReadAllLines(DirPath + "\\ListNameCompare").ToList();
+                                        
+                    ListNameCompareOutCS = File.ReadAllLines(DirPath + "\\ListNameCompareOutCS").ToList();
+                    ListView32.ItemsSource = ListNameCompareOutCS;
+
+                    ListNameCompareOutSC = File.ReadAllLines(DirPath + "\\ListNameCompareOutSC").ToList();
+                    //ListView32.ItemsSource = ListNameCompareOutSC;
+
+                    BtnLoadIn_Copy.IsEnabled = true;
+                    BtnLoadIn.IsEnabled = true;
+                    BtnCsLoadNameIn.IsEnabled = true;
+                    BtnScLoadNameIn.IsEnabled = true;
+                    ButtonSaveIn1.IsEnabled = true;
+                    ButtonSaveIn2.IsEnabled = false;
+                    BtnLoadOut.IsEnabled = true;
+                    BtnCsLoadNameOut.IsEnabled = true;
+                    BtnScLoadNameOut.IsEnabled = true;
+                    ButtonOut1.IsEnabled = true;
+                    ButtonOut2.IsEnabled = false;
+                    ButtonCsCompare.IsEnabled = true;
+                    ButtonScCompare.IsEnabled = false;
+                }
+                else
+                {
+                    ListNameSourceCS = File.ReadAllLines(DirPath + "\\ListNameSourceCS").ToList();
+                    //ListView12.ItemsSource = ListNameSourceCS;
+                    TextBox13.Text = ListNameSourceCS.Count.ToString();
+
+                    ListNameSourceSC = File.ReadAllLines(DirPath + "\\ListNameSourceSC").ToList();
+                    ListView12.ItemsSource = ListNameSourceSC;
+                    TextBox16.Text = ListNameSourceSC.Count.ToString();
+                    
+                    ListSubSourceCS = File.ReadAllLines(DirPath + "\\ListSubSourceCS").ToList();
+                    //ListView13.ItemsSource = ListSubSourceCS;
+                    TextBox14.Text = ListSubSourceCS.Count.ToString();
+                    
+                    ListSubSourceSC = File.ReadAllLines(DirPath + "\\ListSubSourceSC").ToList();
+                    ListView13.ItemsSource = ListSubSourceSC;
+                    TextBox17.Text = ListSubSourceSC.Count.ToString();
+
+                    ListOpcodeSourceCS = File.ReadAllLines(DirPath + "\\ListOpcodeSourceCS").ToList();
+                    //ListView14.ItemsSource = ListOpcodeSourceCS;
+                    TextBox16Copy.Text = ListOpcodeSourceCS.Count.ToString();
+
+                    ListOpcodeSourceSC = File.ReadAllLines(DirPath + "\\ListOpcodeSourceSC").ToList();
+                    ListView14.ItemsSource = ListOpcodeSourceSC;
+                    TextBox17Copy.Text = ListOpcodeSourceSC.Count.ToString();
+
+                    ListNameDestinationCS = File.ReadAllLines(DirPath + "\\ListNameDestinationCS").ToList();
+                    //ListView22.ItemsSource = ListNameDestinationCS;
+                    TextBox23.Text = ListNameDestinationCS.Count.ToString();
+
+                    ListNameDestinationSC = File.ReadAllLines(DirPath + "\\ListNameDestinationSC").ToList();
+                    ListView22.ItemsSource = ListNameDestinationSC;
+                    TextBox26.Text = ListNameDestinationSC.Count.ToString();
+
+                    ListSubDestinationCS = File.ReadAllLines(DirPath + "\\ListSubDestinationCS").ToList();
+                    //ListView23.ItemsSource = ListSubDestinationCS;
+                    TextBox24.Text = ListSubDestinationCS.Count.ToString();
+
+                    ListSubDestinationSC = File.ReadAllLines(DirPath + "\\ListSubDestinationSC").ToList();
+                    ListView23.ItemsSource = ListSubDestinationSC;
+                    TextBox27.Text = ListSubDestinationSC.Count.ToString();
+
+                    ListOpcodeDestinationCS = File.ReadAllLines(DirPath + "\\ListOpcodeDestinationCS").ToList();
+                    //ListView24.ItemsSource = ListOpcodeDestinationCS;
+                    //TextBox16Copy1.Text = ListOpcodeDestinationCS.Count.ToString();
+
+                    ListOpcodeDestinationSC = File.ReadAllLines(DirPath + "\\ListOpcodeDestinationSC").ToList();
+                    ListView24.ItemsSource = ListOpcodeDestinationSC;
+                    TextBox16Copy1.Text = ListOpcodeDestinationSC.Count.ToString();
+
+                    ListNameCompareCS = File.ReadAllLines(DirPath + "\\ListNameCompareCS").ToList();
+                    //ListView31.ItemsSource = ListNameCompareCS;
+                    //TextBox31.Text = ListNameCompareCS.Count.ToString();
+
+                    ListNameCompareSC = File.ReadAllLines(DirPath + "\\ListNameCompareSC").ToList();
+                    ListView31.ItemsSource = ListNameCompareSC;
+                    TextBox31.Text = ListNameCompareSC.Count.ToString();
+
+                    ListNameCompare = File.ReadAllLines(DirPath + "\\ListNameCompare").ToList();
+                                        
+                    ListNameCompareOutCS = File.ReadAllLines(DirPath + "\\ListNameCompareOutCS").ToList();
+                    //ListView32.ItemsSource = ListNameCompareOutCS;
+
+                    ListNameCompareOutSC = File.ReadAllLines(DirPath + "\\ListNameCompareOutSC").ToList();
+                    ListView32.ItemsSource = ListNameCompareOutSC;
+
+                    BtnLoadIn_Copy.IsEnabled = true;
+                    BtnLoadIn.IsEnabled = true;
+                    BtnCsLoadNameIn.IsEnabled = true;
+                    BtnScLoadNameIn.IsEnabled = true;
+                    ButtonSaveIn1.IsEnabled = false;
+                    ButtonSaveIn2.IsEnabled = true;
+                    BtnLoadOut.IsEnabled = true;
+                    BtnCsLoadNameOut.IsEnabled = true;
+                    BtnScLoadNameOut.IsEnabled = true;
+                    ButtonOut1.IsEnabled = false;
+                    ButtonOut2.IsEnabled = true;
+                    ButtonCsCompare.IsEnabled = false;
+                    ButtonScCompare.IsEnabled = true;
+                }
+                
+                
+                string json = File.ReadAllText(DirPath + "\\InUseIn.json");
+                InUseIn = JsonConvert.DeserializeObject<Dictionary<int, int>>(json);
+
+                json = File.ReadAllText(DirPath + "\\InUseOut.json");
+                InUseOut = JsonConvert.DeserializeObject<Dictionary<int, int>>(json);
+
+                json = File.ReadAllText(DirPath + "\\IsRenameDestination.json");
+                IsRenameDestination = JsonConvert.DeserializeObject<Dictionary<int, bool>>(json);
+                    
+                json = File.ReadAllText(DirPath + "\\StructureSourceCS.json");
+                StructureSourceCS = JsonConvert.DeserializeObject<Dictionary<int, List<string>>>(json);
+                    
+                json = File.ReadAllText(DirPath + "\\StructureSourceSC.json");
+                StructureSourceSC = JsonConvert.DeserializeObject<Dictionary<int, List<string>>>(json);
+                
+                json = File.ReadAllText(DirPath + "\\StructureDestinationCS.json");
+                StructureDestinationCS = JsonConvert.DeserializeObject<Dictionary<int, List<string>>>(json);
+                                
+                json = File.ReadAllText(DirPath + "\\StructureDestinationSC.json");
+                StructureDestinationSC = JsonConvert.DeserializeObject<Dictionary<int, List<string>>>(json);
+                                
+                json = File.ReadAllText(DirPath + "\\XrefsIn.json");
+                XrefsIn = JsonConvert.DeserializeObject<Dictionary<int, List<string>>>(json);
+                                
+                json = File.ReadAllText(DirPath + "\\XrefsOut.json");
+                XrefsOut = JsonConvert.DeserializeObject<Dictionary<int, List<string>>>(json);
+            }
+
+            isCompareCS = false;
+            isCompareSC = false;
+            Label_Semafor1.Background = Brushes.Yellow;
+            Label_Semafor2.Background = Brushes.Yellow;
+        }
+
+        public bool SaveSnapshotFileDialog()
+        {
+            var saveSnapshotFileDialog = new SaveFileDialog();
+            saveSnapshotFileDialog.Filter = "X2Game.project File|*.project";
+            saveSnapshotFileDialog.FileName = "X2Game_1200.project";
+            saveSnapshotFileDialog.Title = "Save As Text File";
+            saveSnapshotFileDialog.InitialDirectory = Environment.CurrentDirectory + "\\data\\";
+
+            if (saveSnapshotFileDialog.ShowDialog() == true)
+            {
+                DirPath = saveSnapshotFileDialog.FileName;
+                return true;
+            }
+
+            return false;
+        }
+        public bool OpenSnapshotFileDialog()
+        {
+            var openSnapshotFileDialog = new OpenFileDialog
+            {
+                Filter = "Asm File|*.asm",
+                FileName = "New Text Doucment",
+                Title = "Open As Text File"
+            };
+
+            if (openSnapshotFileDialog.ShowDialog() == true)
+            {
+                DirPath = openSnapshotFileDialog.FileName;
+                return true;
+            }
+            return false;
         }
     }
 }

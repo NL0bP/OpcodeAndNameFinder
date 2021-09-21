@@ -178,5 +178,7 @@
         <Label x:Name="Label_Semafor1" Content="" HorizontalAlignment="Left" Margin="40,47,0,0" VerticalAlignment="Top" Height="58" Background="Red" Width="58"/>
         <Label x:Name="Label_Semafor2" Content="" HorizontalAlignment="Left" Margin="820,47,0,0" VerticalAlignment="Top" Height="58" Background="Red" Width="58"/>
         <Button x:Name="BtnLoadIn_Copy" Content="PreClear" HorizontalAlignment="Left" Height="30" Margin="23,610,0,0" VerticalAlignment="Top" Width="75" Click="btn_CS_Clear_Click"/>
+        <Button x:Name="BtnSaveSnapshot" Content="Save Snapshot" HorizontalAlignment="Left" Height="60" Margin="1223,671,0,0" VerticalAlignment="Top" Width="100" Click="btn_SaveSnapshot_Click"/>
+        <Button x:Name="BtnLoadSnapshot_Copy" Content="Load Snapshot" HorizontalAlignment="Left" Height="60" Margin="1342,671,0,0" VerticalAlignment="Top" Width="100" Click="btn_LoadSnapshot_Click"/>
     </Grid>
 </Window>
