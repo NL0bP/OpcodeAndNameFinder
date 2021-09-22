@@ -160,8 +160,8 @@
         <ProgressBar x:Name="ProgressBar23" HorizontalAlignment="Left" Height="10" Margin="1357,595,0,0" VerticalAlignment="Top" Width="175"/>
         <Button x:Name="ButtonSaveIn1" Content="Save CS" HorizontalAlignment="Left" Height="30" Margin="576,610,0,0" VerticalAlignment="Top" Width="75" Click="button_In_Save_CSOpcode_Click" IsEnabled="false"/>
         <Button x:Name="ButtonSaveIn2" Content="Save SC" HorizontalAlignment="Left" Height="30" Margin="675,610,0,0" VerticalAlignment="Top" Width="75" Click="button_In_Save_SCOpcode_Click" IsEnabled="false"/>
-        <Button x:Name="ButtonOut1" Content="Save CS" HorizontalAlignment="Left" Height="30" Margin="1358,610,0,0" VerticalAlignment="Top" Width="75" Click="button_Out_Save_CSOpcode_Click" IsEnabled="false"/>
-        <Button x:Name="ButtonOut2" Content="Save SC" HorizontalAlignment="Left" Height="30" Margin="1458,610,0,0" VerticalAlignment="Top" Width="75" Click="button_Out_Save_SCOpcode_Click" IsEnabled="false"/>
+        <Button x:Name="ButtonSaveOut1" Content="Save CS" HorizontalAlignment="Left" Height="30" Margin="1358,610,0,0" VerticalAlignment="Top" Width="75" Click="button_Out_Save_CSOpcode_Click" IsEnabled="false"/>
+        <Button x:Name="ButtonSaveOut2" Content="Save SC" HorizontalAlignment="Left" Height="30" Margin="1458,610,0,0" VerticalAlignment="Top" Width="75" Click="button_Out_Save_SCOpcode_Click" IsEnabled="false"/>
         <Label x:Name="Label31" Content="Всего пакетов:" HorizontalAlignment="Left" Margin="1750,100,0,0" VerticalAlignment="Top"/>
         <TextBox x:Name="TextBox31" HorizontalAlignment="Left" Height="22" Margin="1844,104,0,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top" Width="65"/>
         <Label x:Name="Label32" Content="Не найдено:" HorizontalAlignment="Left" Margin="1766,135,0,0" VerticalAlignment="Top"/>
