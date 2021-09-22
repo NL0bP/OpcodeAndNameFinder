@@ -233,6 +233,62 @@ namespace NameFinder
             {
                 File.WriteAllLines(FilePath, tmp);
             }
+
+            // сохраняем в виде файла для внесения опкодов в PDEC
+            tmp = new List<string>();
+            for (var i = 0; i < ListNameCompare.Count; i++)
+            {
+                if (ListOpcodeDestination.Count > 0)
+                {
+                    var lst = "        <packet type=\"" + ListOpcodeDestination[i] + "\" desc=\"" + ListNameCompare[i] + "\">";
+                    tmp.Add(lst);
+                }
+                else
+                {
+                    break;
+                }
+            }
+
+            File.WriteAllLines(FilePath + "_PDEC.txt", tmp);
+
+            // сохраняем в виде файла для внесения опкодов в AAEMU
+            var offset = FilePath.LastIndexOf("\\", StringComparison.Ordinal) + 1;
+            var name = FilePath.Substring(offset);
+            name = name.Substring(0,name.Length - 3);
+            tmp = new List<string>();
+            if (name == "CSOffsets")
+            {
+                tmp.Add("namespace AAEmu.Game.Core.Packets.C2G");
+            }
+            else if (name == "SCOffsets")
+            {
+                tmp.Add("namespace AAEmu.Game.Core.Packets.G2C");
+            }
+            else
+            {
+                tmp.Add("namespace AAEmu.Game.Core.Packets.");
+            }
+            tmp.Add("{");
+            tmp.Add("    public static class " + name);
+            tmp.Add("    {");
+            tmp.Add("        // All opcodes here are updated for version client_XX_rXXXXXX");
+
+            for (var i = 0; i < ListNameCompare.Count; i++)
+            {
+                if (ListOpcodeDestination.Count > 0)
+                {
+                    var lst = "        public const ushort " + ListNameCompare[i] + " = "+ ListOpcodeDestination[i] + ";";
+                    tmp.Add(lst);
+                }
+                else
+                {
+                    break;
+                }
+            }
+            tmp.Add("    }");
+            tmp.Add("}");
+
+            File.WriteAllLines(FilePath + "_AAEMU.cs", tmp);
         }
 
         private string FilePath { get; set; }
@@ -324,7 +380,7 @@ namespace NameFinder
             {
                 return;
             }
-            
+
             var useOut = MainWindow.InUseIn[IdxS];
             ListNameCompare[useOut] = ListNameDestination[useOut];
 
