@@ -106,7 +106,7 @@
                 </GridView>
             </ListView.View>
         </ListView>
-        <ListView x:Name="ListView31" HorizontalAlignment="Left" Height="350" Margin="1540,240,0,0" VerticalAlignment="Top" Width="175">
+        <ListView x:Name="ListView31" HorizontalAlignment="Left" Height="350" Margin="1540,240,0,0" VerticalAlignment="Top" Width="175" SelectionChanged="ListView31_SelectionChanged">
             <ListView.View>
                 <GridView>
                     <GridViewColumn Width="150"/>
@@ -132,7 +132,7 @@
         <TextBox x:Name="TextBox17Copy" HorizontalAlignment="Left" Height="22" Margin="681,139,0,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top" Width="65"/>
         <Label x:Name="Label19Copy" Content="Затрачено времени:" HorizontalAlignment="Left" Height="25" Margin="558,175,0,0" VerticalAlignment="Top" Width="122"/>
         <TextBox x:Name="TextBox19Copy" HorizontalAlignment="Left" Height="21" Margin="681,179,0,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top" Width="65"/>
-        <ListView x:Name="ListView14" HorizontalAlignment="Left" Height="350" Margin="575,240,0,0" VerticalAlignment="Top" Width="175">
+        <ListView x:Name="ListView14" HorizontalAlignment="Left" Height="350" Margin="575,240,0,0" VerticalAlignment="Top" Width="175" SelectionChanged="ListView14_SelectionChanged">
             <ListView.View>
                 <GridView>
                     <GridViewColumn Width="150"/>
@@ -146,7 +146,7 @@
         <TextBox x:Name="TextBox17Copy1" HorizontalAlignment="Left" Height="22" Margin="1463,139,0,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top" Width="65"/>
         <Label x:Name="Label19Copy1" Content="Затрачено времени:" HorizontalAlignment="Left" Height="25" Margin="1340,175,0,0" VerticalAlignment="Top" Width="122"/>
         <TextBox x:Name="TextBox19Copy1" HorizontalAlignment="Left" Height="21" Margin="1463,179,0,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top" Width="65"/>
-        <ListView x:Name="ListView24" HorizontalAlignment="Left" Height="350" Margin="1357,240,0,0" VerticalAlignment="Top" Width="175">
+        <ListView x:Name="ListView24" HorizontalAlignment="Left" Height="350" Margin="1357,240,0,0" VerticalAlignment="Top" Width="175" SelectionChanged="ListView24_SelectionChanged">
             <ListView.View>
                 <GridView>
                     <GridViewColumn Width="150"/>

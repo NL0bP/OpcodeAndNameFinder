@@ -2,6 +2,8 @@
 
 using NameFinder.Conversion;
 
+using Newtonsoft.Json;
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -12,7 +14,6 @@ using System.Threading;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Threading;
-using Newtonsoft.Json;
 
 namespace NameFinder
 {
@@ -4653,7 +4654,6 @@ namespace NameFinder
             Label_Semafor1.Background = Brushes.Red;
             Label_Semafor2.Background = Brushes.Red;
 
-            TextBoxPathIn.Text = FilePathIn1;
             var stopWatch = new Stopwatch();
             stopWatch.Start();
             // Создаем объект для блокировки.
@@ -5013,6 +5013,32 @@ namespace NameFinder
                 ListView24.SelectedItem = TextBoxEditOutOpcode.Text;
                 ListView24.Items.Refresh();
             }
+        }
+
+        private void ListView24_SelectionChanged(object sender, RoutedEventArgs e)
+        {
+            TextBoxEditOutOpcode.Text = ListView24.SelectedItem.ToString();
+
+            ListView22.SelectedIndex = ListView24.SelectedIndex;
+            ListView23.SelectedIndex = ListView24.SelectedIndex;
+            
+            ListView22.ScrollIntoView(ListView22.SelectedItem);
+            ListView23.ScrollIntoView(ListView23.SelectedItem);
+        }
+
+        private void ListView14_SelectionChanged(object sender, RoutedEventArgs e)
+        {
+            ListView12.SelectedIndex = ListView14.SelectedIndex;
+            ListView13.SelectedIndex = ListView14.SelectedIndex;
+            
+            ListView12.ScrollIntoView(ListView12.SelectedItem);
+            ListView13.ScrollIntoView(ListView13.SelectedItem);
+        }
+        
+        private void ListView31_SelectionChanged(object sender, RoutedEventArgs e)
+        {
+            ListView32.SelectedIndex = ListView31.SelectedIndex;
+            ListView32.ScrollIntoView(ListView32.SelectedItem);
         }
     }
 }

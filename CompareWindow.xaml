@@ -11,14 +11,14 @@
         <ListView x:Name="ListView11" HorizontalAlignment="Left" Height="575" Margin="5,140,0,0" VerticalAlignment="Top" Width="377">
             <ListView.View>
                 <GridView>
-                    <GridViewColumn/>
+                    <GridViewColumn Width="350"/>
                 </GridView>
             </ListView.View>
         </ListView>
         <ListView x:Name="ListView21" HorizontalAlignment="Left" Height="575" Margin="403,140,0,0" VerticalAlignment="Top" Width="377">
             <ListView.View>
                 <GridView>
-                    <GridViewColumn/>
+                    <GridViewColumn Width="350"/>
                 </GridView>
             </ListView.View>
         </ListView>
