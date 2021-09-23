@@ -5020,24 +5020,29 @@ namespace NameFinder
             TextBoxEditOutOpcode.Text = ListView24.SelectedItem.ToString();
 
             ListView22.SelectedIndex = ListView24.SelectedIndex;
-            ListView23.SelectedIndex = ListView24.SelectedIndex;
-            
+            ListView22.UpdateLayout();
             ListView22.ScrollIntoView(ListView22.SelectedItem);
+
+            ListView23.SelectedIndex = ListView24.SelectedIndex;
+            ListView23.UpdateLayout();
             ListView23.ScrollIntoView(ListView23.SelectedItem);
         }
 
         private void ListView14_SelectionChanged(object sender, RoutedEventArgs e)
         {
             ListView12.SelectedIndex = ListView14.SelectedIndex;
-            ListView13.SelectedIndex = ListView14.SelectedIndex;
-            
+            ListView12.UpdateLayout();
             ListView12.ScrollIntoView(ListView12.SelectedItem);
+            
+            ListView13.SelectedIndex = ListView14.SelectedIndex;
+            ListView13.UpdateLayout();
             ListView13.ScrollIntoView(ListView13.SelectedItem);
         }
         
         private void ListView31_SelectionChanged(object sender, RoutedEventArgs e)
         {
             ListView32.SelectedIndex = ListView31.SelectedIndex;
+            ListView32.UpdateLayout();
             ListView32.ScrollIntoView(ListView32.SelectedItem);
         }
     }
