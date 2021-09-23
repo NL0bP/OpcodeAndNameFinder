@@ -30,9 +30,13 @@ namespace NameFinder
         public static Dictionary<int, List<string>> StructureDestination = new Dictionary<int, List<string>>();
         public static List<string> ListOpcodeDestination = new List<string>();
 
-        public void CompareSourceStructures(ref List<string> listNameSource, ref List<string> listNameDestination,
-            ref List<string> listNameCompare, ref List<string> listSubDestination,
-            ref Dictionary<int, List<string>> structureSource, ref Dictionary<int, List<string>> structureDestination,
+        public void CompareSourceStructures(
+            ref List<string> listNameSource,
+            ref List<string> listNameDestination,
+            ref List<string> listNameCompare,
+            ref List<string> listSubDestination,
+            ref Dictionary<int, List<string>> structureSource,
+            ref Dictionary<int, List<string>> structureDestination,
             List<string> listOpcodeDestination)
         {
             ListNameCompare = new List<string>(listNameCompare);
@@ -316,6 +320,7 @@ namespace NameFinder
             // продублируем в оба списка
             MainWindow.ListNameCompareCS = new List<string>(ListNameCompare);
             MainWindow.ListNameCompareSC = new List<string>(ListNameCompare);
+            MainWindow.ListNameCompare = new List<string>(ListNameCompare);
 
             Close();
         }
