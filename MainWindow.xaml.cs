@@ -5005,5 +5005,14 @@ namespace NameFinder
 
             return false;
         }
+        private void button_EditOutOpcode_Click(object sender, RoutedEventArgs e)
+        {
+            if (ListView24.SelectedItem != null)
+            {
+                ListOpcodeDestinationCS[ListView24.SelectedIndex] = TextBoxEditOutOpcode.Text;
+                ListView24.SelectedItem = TextBoxEditOutOpcode.Text;
+                ListView24.Items.Refresh();
+            }
+        }
     }
 }
