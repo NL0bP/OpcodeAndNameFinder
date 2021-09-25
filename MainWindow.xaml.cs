@@ -24,8 +24,7 @@ namespace NameFinder
     {
         public bool IsLittleEndian { get; } = true;
 
-        public EndianBitConverter Converter =>
-            (IsLittleEndian ? EndianBitConverter.Little : (EndianBitConverter)EndianBitConverter.Big);
+        public EndianBitConverter Converter => (IsLittleEndian ? EndianBitConverter.Little : (EndianBitConverter)EndianBitConverter.Big);
 
         private readonly string[] _inF;
         private readonly string[] _outF;
@@ -84,7 +83,7 @@ namespace NameFinder
 
         public bool isCleaningIn = false;
         public bool isCleaningOut = false;
-        public const int DepthMax = 2;
+        public const int DepthMax = 10;
         public static int DepthIn = 0;
         public static int DepthOut = 0;
         public int IdxS = 0;
@@ -99,51 +98,31 @@ namespace NameFinder
         {
             var stopWatch = new Stopwatch();
             stopWatch.Start();
-            ProgressBar13.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { ProgressBar13.Value = 0; }));
-            ProgressBar13.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { ProgressBar13.Maximum = XrefsIn.Count; }));
-            TextBox16Copy.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { TextBox16Copy.Text = "0"; }));
-            TextBox17Copy.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { TextBox17Copy.Text = "0"; }));
-            TextBox19Copy.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { TextBox19Copy.Text = "0"; }));
-            Label_Semafor1.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { Label_Semafor1.Background = Brushes.Yellow; }));
-            ButtonSaveIn1.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { ButtonSaveIn1.IsEnabled = false; }));
-            ButtonSaveIn2.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { ButtonSaveIn2.IsEnabled = false; }));
-            BtnLoadIn.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { BtnLoadIn.IsEnabled = false; }));
-            BtnLoadIn_Copy.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { BtnLoadIn_Copy.IsEnabled = false; }));
+            ProgressBar13.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar13.Value = 0; }));
+            ProgressBar13.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar13.Maximum = XrefsIn.Count; }));
+            TextBox16Copy.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox16Copy.Text = "0"; }));
+            TextBox17Copy.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox17Copy.Text = "0"; }));
+            TextBox19Copy.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox19Copy.Text = "0"; }));
+            Label_Semafor1.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { Label_Semafor1.Background = Brushes.Yellow; }));
+            ButtonSaveIn1.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ButtonSaveIn1.IsEnabled = false; }));
+            ButtonSaveIn2.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ButtonSaveIn2.IsEnabled = false; }));
+            BtnLoadIn.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnLoadIn.IsEnabled = false; }));
+            BtnLoadIn_Copy.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnLoadIn_Copy.IsEnabled = false; }));
 
             _isInCs = false;
-            ButtonCsCompare.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { ButtonCsCompare.IsEnabled = false; }));
-            ButtonScCompare.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { ButtonScCompare.IsEnabled = false; }));
+            ButtonCsCompare.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ButtonCsCompare.IsEnabled = false; }));
+            ButtonScCompare.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ButtonScCompare.IsEnabled = false; }));
 
             var notFoundCount = 0;
-            //var baseAddress = 0;
-            //var offsetAddres = 0;
             var subAddress = "";
             ListOpcodeSourceCS = new List<string>();
 
             // здесь ищем ссылку на подпрограмму, где есть опкоды
             var found = false;
             var regexEndp = new Regex(@"\s+endp\s*", RegexOptions.Compiled); // ищем конец подпрограммы
-            var regexOffset =
-                new Regex(
-                    @"mov\s+\[\w+\+\w+\],\soffset\s|mov\s+dword\sptr\s\[\w+\],\soffset\s|mov\s+dword\sptr\s\[\w+\+\w+\],\soffset\s",
-                    RegexOptions.Compiled);
-            var regexOpcode =
-                new Regex(
-                    @"mov\s+\[\w+\+\w+\],\s+([0-9A-F]+)|mov\s+dword\sptr\s\[\w+\+\w+\],\s+([0-9A-F]+)|mov\s+dword\sptr\s\[\w+\+\w+\+\w+\],\s+([0-9A-F]+)|mov\s+dword\sptr\s\[\w+\-\w+\],\s+([0-9A-F]+)",
-                    RegexOptions.Compiled);
-            //var regexOpcode = new Regex(@"mov\s+\[\w+\+\w+\],\soffset\s|mov\s+\[\w+\+\w+\],\s([1-9]|[0-9A-F]{2,3}h)|mov\s+dword\sptr\s\[\w+\+\w+\],\s([1-9]|[0-9A-F]{2,3}h)|mov\s+dword\sptr\s\[\w+\+\w+\+\w+\],\s([1-9]|[0-9A-F]{2,3}h)|mov\s+dword\sptr\s\[\w+\],\soffset\s|mov\s+dword\sptr\s\[\w+\-\w+\],\soffset\s|mov\s+dword\sptr\s\[\w+\-\w+\],\s([1-9]|[0-9A-F]{2,3}h)", RegexOptions.Compiled);
+            var regexOffset = new Regex(@"mov\s+\[(\w+\+\w+)\],\soffset\s|mov\s+dword\sptr\s\[(\w+)\],\soffset\s|mov\s+dword\sptr\s\[(\w+\+\w+)\],\soffset\s", RegexOptions.Compiled);
+            //var regexOpcode = new Regex(@"mov\s+\[\w+\+\w+\],\s+([0-9A-F]+)|mov\s+dword\sptr\s\[\w+\+\w+\],\s+([0-9A-F]+)|mov\s+dword\sptr\s\[\w+\+\w+\+\w+\],\s+([0-9A-F]+)|mov\s+dword\sptr\s\[\w+\-\w+\],\s+([0-9A-F]+)", RegexOptions.Compiled);
+            var regexOpcode = new Regex(@"\[\w+\-(?![0-9a-f]+h+)[0-9a-fA-F]+\],\s([0-9a-fA-F]+)|\[\w+\+(?![0-9a-f]+h+)[0-9a-fA-F]+\],\s([0-9a-fA-F]+)|\[\w+\+(?![0-9a-f]+h+)\w+[0-9a-fA-F]+\],\s([0-9a-fA-F]+)|\[\w+\+(?![0-9a-f]+h)\w+[0-9a-fA-F]+\+[0-9a-fA-F]+\],\s([0-9a-fA-F]+)", RegexOptions.Compiled);
 
             for (var i = 0; i < XrefsIn.Count; i++)
             {
@@ -151,8 +130,6 @@ namespace NameFinder
                 var foundOpcode = false;
                 foreach (var str in list)
                 {
-                    //subAddress = "";
-                    //var regex = new Regex(@"((sub_\w+\+\w{1,3}|loc_\w{8}))", RegexOptions.IgnoreCase);
                     // выделяем из "; DATA XREF: sub_39024010" -> "sub_39024010"
                     // "; DATA XREF: X2__GameClient__ClientDrivenNpc__UpdateMovementSync" -> "X2__GameClient__ClientDrivenNpc__UpdateMovementSync"
                     // "; sub_394045F0" -> "sub_394045F0"
@@ -168,11 +145,11 @@ namespace NameFinder
                     // здесь ищем начало подпрограммы
                     // начнем с начала файла
                     found = false;
+                    var find = "";
+                    var ss = "";
                     for (var index = 0; index < InListSource.Count; index++)
                     {
-                        var regex10 =
-                            new Regex(@"^" + subAddress,
-                                RegexOptions.IgnoreCase); // ищем начало подпрограммы, каждый раз с начала файла
+                        var regex10 = new Regex(@"^" + subAddress, RegexOptions.IgnoreCase); // ищем начало подпрограммы, каждый раз с начала файла
                         var matches = regex10.Matches(InListSource[index]);
                         if (matches.Count <= 0)
                         {
@@ -204,30 +181,49 @@ namespace NameFinder
                             mov     byte ptr [eax+18h], 1
                             mov     dword ptr [eax+4], 71h
                             */
-                            var matchesOffset = regexOffset.Matches(InListSource[index]);
-                            if (matchesOffset.Count <= 0)
+                            var matchesOffset = regexOffset.Match(InListSource[index]);
+                            if (matchesOffset.Groups.Count <= 1)
                             {
                                 continue;
                             }
-
-                            index++;
-
-                            //var regexOpcode = new Regex(@"mov\s+\[\w+\+\w+\],\s([1-9][0-f]{1,}|0[0-f]{1,})h?$|mov\s+dword\sptr\s\[\w{3}\+4\],\s([1-3][0-f]{1,3}|0[0-f]{1,3}|[1-9]{1})h?$", RegexOptions.IgnoreCase);
-                            //var regexOpcode = new Regex(@"(mov\s+\[\w+\+\w+\],\s([1-9][0-f]{1,3}h?|[1-9]{1}h?|0[0-f]{1,3})h?|(mov\s+dword\sptr\s\[\w+\+\w+\],\s([0-f]{1,3})))", RegexOptions.IgnoreCase);
+                            //group 1 = mov\s+\[(\w+\+\w+)\],\soffset\s|
+                            if (matchesOffset.Groups[1].Length > 0)
+                            {
+                                // mov     [ebp+var_48C], offset SCDominionDataPacket_0x0b2
+                                // mov     [ebp+var_488], 0B2h
+                                ss = matchesOffset.Groups[1].ToString();
+                                find = Decrease4(ss, 4);
+                                regexOpcode = new Regex(@"" + find, RegexOptions.IgnoreCase);
+                            }
+                            //group 2 = mov\s+dword\sptr\s\[(\w+)\],\soffset\s|
+                            else if (matchesOffset.Groups[2].Length > 0)
+                            {
+                                ss = matchesOffset.Groups[2].ToString();
+                                find = Increase4(ss, 4);
+                                regexOpcode = new Regex(@"" + find, RegexOptions.IgnoreCase);
+                            }
+                            //group 3 = mov\s+dword\sptr\s\[(\w+\+\w+)\],\soffset\s
+                            else if (matchesOffset.Groups[3].Length > 0)
+                            {
+                                // mov     dword ptr [esi+10C0h], offset SCUnitDeathPacket_0x1f5
+                                // mov     dword ptr [esi+10C4h], 1F5h
+                                ss = matchesOffset.Groups[3].ToString();
+                                find = Increase4(ss, 4);
+                                regexOpcode = new Regex(@"" + find, RegexOptions.IgnoreCase);
+                            }
                             var matchesOpcode = regexOpcode.Match(InListSource[index]);
 
                             // пропускаем строки, пока не "endp"
                             foundEndp = false;
                             do
                             {
+                                index++;
+                                matchesOpcode = regexOpcode.Match(InListSource[index]);
                                 if (matchesOpcode.Groups.Count >= 2)
                                 {
                                     // нашли опкод
                                     break;
                                 }
-
-                                index++;
-                                matchesOpcode = regexOpcode.Match(InListSource[index]);
 
                                 var matches2 = regexEndp.Matches(InListSource[index]);
                                 if (matches2.Count <= 0)
@@ -242,8 +238,7 @@ namespace NameFinder
 
                             if (matchesOpcode.Groups.Count >= 2)
                             {
-                                if (matchesOpcode.Groups[4].ToString() != "" &&
-                                    matchesOpcode.Groups[4].ToString() != "0")
+                                if (matchesOpcode.Groups[4].ToString() != "" && matchesOpcode.Groups[4].ToString() != "0")
                                 {
                                     var matchGroup = "";
                                     switch (matchesOpcode.Groups[4].Length)
@@ -262,11 +257,10 @@ namespace NameFinder
                                             break;
                                     }
 
-                                    foundOpcode = true; // нашли Opcode
                                     ListOpcodeSourceCS.Add(matchGroup);
+                                    foundOpcode = true; // нашли Opcode
                                 }
-                                else if (matchesOpcode.Groups[3].ToString() != "" &&
-                                         matchesOpcode.Groups[3].ToString() != "0")
+                                else if (matchesOpcode.Groups[3].ToString() != "" && matchesOpcode.Groups[3].ToString() != "0")
                                 {
                                     var matchGroup = "";
                                     switch (matchesOpcode.Groups[3].Length)
@@ -288,8 +282,7 @@ namespace NameFinder
                                     ListOpcodeSourceCS.Add(matchGroup);
                                     foundOpcode = true; // нашли Opcode
                                 }
-                                else if (matchesOpcode.Groups[2].ToString() != "" &&
-                                         matchesOpcode.Groups[2].ToString() != "0")
+                                else if (matchesOpcode.Groups[2].ToString() != "" && matchesOpcode.Groups[2].ToString() != "0")
                                 {
                                     var matchGroup = "";
                                     switch (matchesOpcode.Groups[2].Length)
@@ -311,8 +304,7 @@ namespace NameFinder
                                     ListOpcodeSourceCS.Add(matchGroup);
                                     foundOpcode = true; // нашли Opcode
                                 }
-                                else if (matchesOpcode.Groups[1].ToString() != "" &&
-                                         matchesOpcode.Groups[1].ToString() != "0")
+                                else if (matchesOpcode.Groups[1].ToString() != "" && matchesOpcode.Groups[1].ToString() != "0")
                                 {
                                     var matchGroup = "";
                                     switch (matchesOpcode.Groups[1].Length)
@@ -334,8 +326,7 @@ namespace NameFinder
                                     ListOpcodeSourceCS.Add(matchGroup);
                                     foundOpcode = true; // нашли Opcode
                                 }
-                                else if (matchesOpcode.Groups[0].ToString() != "" &&
-                                         matchesOpcode.Groups[0].ToString() != "0")
+                                else if (matchesOpcode.Groups[0].ToString() != "" && matchesOpcode.Groups[0].ToString() != "0")
                                 {
                                     var matchGroup = "";
                                     switch (matchesOpcode.Groups[0].Length)
@@ -378,43 +369,30 @@ namespace NameFinder
                     ListOpcodeSourceCS.Add("0xfff"); // не нашли опкод
                 }
 
-                ProgressBar13.Dispatcher.Invoke(DispatcherPriority.Background,
-                    new Action(() => { ProgressBar13.Value = ListOpcodeSourceCS.Count; }));
+                ProgressBar13.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar13.Value = ListOpcodeSourceCS.Count; }));
             }
 
             var lnCount = ListOpcodeSourceCS.Count;
-            TextBox16Copy.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { TextBox16Copy.Text = lnCount.ToString(); }));
-            TextBox17Copy.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { TextBox17Copy.Text = notFoundCount.ToString(); }));
+            TextBox16Copy.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox16Copy.Text = lnCount.ToString(); }));
+            TextBox17Copy.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox17Copy.Text = notFoundCount.ToString(); }));
             stopWatch.Stop();
-            TextBox19Copy.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { TextBox19Copy.Text = stopWatch.Elapsed.ToString(); }));
-            ListView14.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { ListView14.ItemsSource = ListOpcodeSourceCS; }));
-            Label_Semafor1.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { Label_Semafor1.Background = Brushes.GreenYellow; }));
-            ButtonSaveIn1.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { ButtonSaveIn1.IsEnabled = true; }));
-            BtnLoadIn.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { BtnLoadIn.IsEnabled = true; }));
-            BtnLoadIn_Copy.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { BtnLoadIn_Copy.IsEnabled = true; }));
+            TextBox19Copy.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox19Copy.Text = stopWatch.Elapsed.ToString(); }));
+            ListView14.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ListView14.ItemsSource = ListOpcodeSourceCS; }));
+            Label_Semafor1.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { Label_Semafor1.Background = Brushes.GreenYellow; }));
+            ButtonSaveIn1.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ButtonSaveIn1.IsEnabled = true; }));
+            BtnLoadIn.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnLoadIn.IsEnabled = true; }));
+            BtnLoadIn_Copy.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnLoadIn_Copy.IsEnabled = true; }));
 
             _isInCs = true;
             if (_isInCs && _isOutCs)
             {
-                ButtonCsCompare.Dispatcher.Invoke(DispatcherPriority.Background,
-                    new Action(() => { ButtonCsCompare.IsEnabled = true; }));
-                ButtonScCompare.Dispatcher.Invoke(DispatcherPriority.Background,
-                    new Action(() => { ButtonScCompare.IsEnabled = false; }));
+                ButtonCsCompare.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ButtonCsCompare.IsEnabled = true; }));
+                ButtonScCompare.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ButtonScCompare.IsEnabled = false; }));
             }
             else
             {
-                ButtonCsCompare.Dispatcher.Invoke(DispatcherPriority.Background,
-                    new Action(() => { ButtonCsCompare.IsEnabled = false; }));
-                ButtonScCompare.Dispatcher.Invoke(DispatcherPriority.Background,
-                    new Action(() => { ButtonScCompare.IsEnabled = false; }));
+                ButtonCsCompare.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ButtonCsCompare.IsEnabled = false; }));
+                ButtonScCompare.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ButtonScCompare.IsEnabled = false; }));
             }
         }
 
@@ -422,55 +400,33 @@ namespace NameFinder
         {
             var stopWatch = new Stopwatch();
             stopWatch.Start();
-            ProgressBar13.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { ProgressBar13.Value = 0; }));
-            ProgressBar13.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { ProgressBar13.Maximum = XrefsIn.Count; }));
-            TextBox16Copy.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { TextBox16Copy.Text = "0"; }));
-            TextBox17Copy.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { TextBox17Copy.Text = "0"; }));
-            TextBox19Copy.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { TextBox19Copy.Text = "0"; }));
-            Label_Semafor1.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { Label_Semafor1.Background = Brushes.Yellow; }));
-            ButtonSaveIn1.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { ButtonSaveIn1.IsEnabled = false; }));
-            ButtonSaveIn2.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { ButtonSaveIn2.IsEnabled = false; }));
-            BtnLoadIn.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { BtnLoadIn.IsEnabled = false; }));
-            BtnLoadIn_Copy.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { BtnLoadIn_Copy.IsEnabled = false; }));
-            BtnCsLoadNameIn.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { BtnCsLoadNameIn.IsEnabled = false; }));
-            BtnScLoadNameIn.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { BtnScLoadNameIn.IsEnabled = false; }));
+            ProgressBar13.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar13.Value = 0; }));
+            ProgressBar13.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar13.Maximum = XrefsIn.Count; }));
+            TextBox16Copy.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox16Copy.Text = "0"; }));
+            TextBox17Copy.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox17Copy.Text = "0"; }));
+            TextBox19Copy.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox19Copy.Text = "0"; }));
+            Label_Semafor1.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { Label_Semafor1.Background = Brushes.Yellow; }));
+            ButtonSaveIn1.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ButtonSaveIn1.IsEnabled = false; }));
+            ButtonSaveIn2.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ButtonSaveIn2.IsEnabled = false; }));
+            BtnLoadIn.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnLoadIn.IsEnabled = false; }));
+            BtnLoadIn_Copy.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnLoadIn_Copy.IsEnabled = false; }));
+            BtnCsLoadNameIn.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnCsLoadNameIn.IsEnabled = false; }));
+            BtnScLoadNameIn.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnScLoadNameIn.IsEnabled = false; }));
 
             _isInSc = false;
-            ButtonCsCompare.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { ButtonCsCompare.IsEnabled = false; }));
-            ButtonScCompare.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { ButtonScCompare.IsEnabled = false; }));
+            ButtonCsCompare.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ButtonCsCompare.IsEnabled = false; }));
+            ButtonScCompare.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ButtonScCompare.IsEnabled = false; }));
 
             var notFoundCount = 0;
-            //var baseAddress = 0;
-            //var offsetAddres = 0;
             var subAddress = "";
             ListOpcodeSourceSC = new List<string>();
 
             // здесь ищем ссылку на подпрограмму, где есть опкоды
             var found = false;
             var regexEndp = new Regex(@"\s+endp\s*", RegexOptions.Compiled); // ищем конец подпрограммы
-            var regexOffset =
-                new Regex(
-                    @"mov\s+\[\w+\+\w+\],\soffset\s|mov\s+dword\sptr\s\[\w+\],\soffset\s|mov\s+dword\sptr\s\[\w+\+\w+\],\soffset\s",
-                    RegexOptions.Compiled);
-            var regexOpcode =
-                new Regex(
-                    @"mov\s+\[\w+\+\w+\],\s+([0-9A-F]+)|mov\s+dword\sptr\s\[\w+\+\w+\],\s+([0-9A-F]+)|mov\s+dword\sptr\s\[\w+\+\w+\+\w+\],\s+([0-9A-F]+)|mov\s+dword\sptr\s\[\w+\-\w+\],\s+([0-9A-F]+)",
-                    RegexOptions.Compiled);
-            //var regexOpcode = new Regex(@"mov\s+\[\w+\+\w+\],\soffset\s|mov\s+\[\w+\+\w+\],\s([1-9]|[0-9A-F]{2,3}h)|mov\s+dword\sptr\s\[\w+\+\w+\],\s([1-9]|[0-9A-F]{2,3}h)|mov\s+dword\sptr\s\[\w+\+\w+\+\w+\],\s([1-9]|[0-9A-F]{2,3}h)|mov\s+dword\sptr\s\[\w+\],\soffset\s|mov\s+dword\sptr\s\[\w+\-\w+\],\soffset\s|mov\s+dword\sptr\s\[\w+\-\w+\],\s([1-9]|[0-9A-F]{2,3}h)", RegexOptions.Compiled);
+            var regexOffset = new Regex(@"mov\s+\[(\w+\+\w+)\],\soffset\s|mov\s+dword\sptr\s\[(\w+)\],\soffset\s|mov\s+dword\sptr\s\[(\w+\+\w+)\],\soffset\s", RegexOptions.Compiled);
+            //var regexOpcode = new Regex(@"mov\s+\[\w+\+\w+\],\s+([0-9A-F]+)|mov\s+dword\sptr\s\[\w+\+\w+\],\s+([0-9A-F]+)|mov\s+dword\sptr\s\[\w+\+\w+\+\w+\],\s+([0-9A-F]+)|mov\s+dword\sptr\s\[\w+\-\w+\],\s+([0-9A-F]+)", RegexOptions.Compiled);
+            var regexOpcode = new Regex(@"\[\w+\-(?![0-9a-f]+h+)[0-9a-fA-F]+\],\s([0-9a-fA-F]+)|\[\w+\+(?![0-9a-f]+h+)[0-9a-fA-F]+\],\s([0-9a-fA-F]+)|\[\w+\+(?![0-9a-f]+h+)\w+[0-9a-fA-F]+\],\s([0-9a-fA-F]+)|\[\w+\+(?![0-9a-f]+h)\w+[0-9a-fA-F]+\+[0-9a-fA-F]+\],\s([0-9a-fA-F]+)", RegexOptions.Compiled);
 
             for (var i = 0; i < XrefsIn.Count; i++)
             {
@@ -478,7 +434,6 @@ namespace NameFinder
                 var foundOpcode = false;
                 foreach (var str in list)
                 {
-                    //subAddress = "";
                     //var regex = new Regex(@"((sub_\w+\+\w{1,3}|loc_\w{8}))", RegexOptions.IgnoreCase);
                     // выделяем из "; DATA XREF: sub_39024010" -> "sub_39024010"
                     // "; DATA XREF: X2__GameClient__ClientDrivenNpc__UpdateMovementSync" -> "X2__GameClient__ClientDrivenNpc__UpdateMovementSync"
@@ -495,11 +450,11 @@ namespace NameFinder
                     // здесь ищем начало подпрограммы
                     // начнем с начала файла
                     found = false;
+                    var find = "";
+                    var ss = "";
                     for (var index = 0; index < InListSource.Count; index++)
                     {
-                        var regex10 =
-                            new Regex(@"^" + subAddress,
-                                RegexOptions.IgnoreCase); // ищем начало подпрограммы, каждый раз с начала файла
+                        var regex10 = new Regex(@"^" + subAddress, RegexOptions.IgnoreCase); // ищем начало подпрограммы, каждый раз с начала файла
                         var matches = regex10.Matches(InListSource[index]);
                         if (matches.Count <= 0)
                         {
@@ -531,30 +486,49 @@ namespace NameFinder
                             mov     byte ptr [eax+18h], 1
                             mov     dword ptr [eax+4], 71h
                             */
-                            var matchesOffset = regexOffset.Matches(InListSource[index]);
-                            if (matchesOffset.Count <= 0)
+                            var matchesOffset = regexOffset.Match(InListSource[index]);
+                            if (matchesOffset.Groups.Count <= 1)
                             {
                                 continue;
                             }
-
-                            index++;
-
-                            //var regexOpcode = new Regex(@"mov\s+\[\w+\+\w+\],\s([1-9][0-f]{1,}|0[0-f]{1,})h?$|mov\s+dword\sptr\s\[\w{3}\+4\],\s([1-3][0-f]{1,3}|0[0-f]{1,3}|[1-9]{1})h?$", RegexOptions.IgnoreCase);
-                            //var regexOpcode = new Regex(@"(mov\s+\[\w+\+\w+\],\s([1-9][0-f]{1,3}h?|[1-9]{1}h?|0[0-f]{1,3})h?|(mov\s+dword\sptr\s\[\w+\+\w+\],\s([0-f]{1,3})))", RegexOptions.IgnoreCase);
+                            //group 1 = mov\s+\[(\w+\+\w+)\],\soffset\s|
+                            if (matchesOffset.Groups[1].Length > 0)
+                            {
+                                // mov     [ebp+var_48C], offset SCDominionDataPacket_0x0b2
+                                // mov     [ebp+var_488], 0B2h
+                                ss = matchesOffset.Groups[1].ToString();
+                                find = Decrease4(ss, 4);
+                                regexOpcode = new Regex(@"" + find, RegexOptions.IgnoreCase);
+                            }
+                            //group 2 = mov\s+dword\sptr\s\[(\w+)\],\soffset\s|
+                            else if (matchesOffset.Groups[2].Length > 0)
+                            {
+                                ss = matchesOffset.Groups[2].ToString();
+                                find = Increase4(ss, 4);
+                                regexOpcode = new Regex(@"" + find, RegexOptions.IgnoreCase);
+                            }
+                            //group 3 = mov\s+dword\sptr\s\[(\w+\+\w+)\],\soffset\s
+                            else if (matchesOffset.Groups[3].Length > 0)
+                            {
+                                // mov     dword ptr [esi+10C0h], offset SCUnitDeathPacket_0x1f5
+                                // mov     dword ptr [esi+10C4h], 1F5h
+                                ss = matchesOffset.Groups[3].ToString();
+                                find = Increase4(ss, 4);
+                                regexOpcode = new Regex(@"" + find, RegexOptions.IgnoreCase);
+                            }
                             var matchesOpcode = regexOpcode.Match(InListSource[index]);
 
                             // пропускаем строки, пока не "endp"
                             foundEndp = false;
                             do
                             {
+                                index++;
+                                matchesOpcode = regexOpcode.Match(InListSource[index]);
                                 if (matchesOpcode.Groups.Count >= 2)
                                 {
                                     // нашли опкод
                                     break;
                                 }
-
-                                index++;
-                                matchesOpcode = regexOpcode.Match(InListSource[index]);
 
                                 var matches2 = regexEndp.Matches(InListSource[index]);
                                 if (matches2.Count <= 0)
@@ -569,8 +543,7 @@ namespace NameFinder
 
                             if (matchesOpcode.Groups.Count >= 2)
                             {
-                                if (matchesOpcode.Groups[4].ToString() != "" &&
-                                    matchesOpcode.Groups[4].ToString() != "0")
+                                if (matchesOpcode.Groups[4].ToString() != "" && matchesOpcode.Groups[4].ToString() != "0")
                                 {
                                     var matchGroup = "";
                                     switch (matchesOpcode.Groups[4].Length)
@@ -589,11 +562,10 @@ namespace NameFinder
                                             break;
                                     }
 
-                                    foundOpcode = true; // нашли Opcode
                                     ListOpcodeSourceSC.Add(matchGroup);
+                                    foundOpcode = true; // нашли Opcode
                                 }
-                                else if (matchesOpcode.Groups[3].ToString() != "" &&
-                                         matchesOpcode.Groups[3].ToString() != "0")
+                                else if (matchesOpcode.Groups[3].ToString() != "" && matchesOpcode.Groups[3].ToString() != "0")
                                 {
                                     var matchGroup = "";
                                     switch (matchesOpcode.Groups[3].Length)
@@ -615,8 +587,7 @@ namespace NameFinder
                                     ListOpcodeSourceSC.Add(matchGroup);
                                     foundOpcode = true; // нашли Opcode
                                 }
-                                else if (matchesOpcode.Groups[2].ToString() != "" &&
-                                         matchesOpcode.Groups[2].ToString() != "0")
+                                else if (matchesOpcode.Groups[2].ToString() != "" && matchesOpcode.Groups[2].ToString() != "0")
                                 {
                                     var matchGroup = "";
                                     switch (matchesOpcode.Groups[2].Length)
@@ -638,8 +609,7 @@ namespace NameFinder
                                     ListOpcodeSourceSC.Add(matchGroup);
                                     foundOpcode = true; // нашли Opcode
                                 }
-                                else if (matchesOpcode.Groups[1].ToString() != "" &&
-                                         matchesOpcode.Groups[1].ToString() != "0")
+                                else if (matchesOpcode.Groups[1].ToString() != "" && matchesOpcode.Groups[1].ToString() != "0")
                                 {
                                     var matchGroup = "";
                                     switch (matchesOpcode.Groups[1].Length)
@@ -661,8 +631,7 @@ namespace NameFinder
                                     ListOpcodeSourceSC.Add(matchGroup);
                                     foundOpcode = true; // нашли Opcode
                                 }
-                                else if (matchesOpcode.Groups[0].ToString() != "" &&
-                                         matchesOpcode.Groups[0].ToString() != "0")
+                                else if (matchesOpcode.Groups[0].ToString() != "" && matchesOpcode.Groups[0].ToString() != "0")
                                 {
                                     var matchGroup = "";
                                     switch (matchesOpcode.Groups[0].Length)
@@ -705,47 +674,32 @@ namespace NameFinder
                     ListOpcodeSourceSC.Add("0xfff"); // не нашли опкод
                 }
 
-                ProgressBar13.Dispatcher.Invoke(DispatcherPriority.Background,
-                    new Action(() => { ProgressBar13.Value = ListOpcodeSourceSC.Count; }));
+                ProgressBar13.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar13.Value = ListOpcodeSourceSC.Count; }));
             }
 
             var lnCount = ListOpcodeSourceSC.Count;
-            TextBox16Copy.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { TextBox16Copy.Text = lnCount.ToString(); }));
-            TextBox17Copy.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { TextBox17Copy.Text = notFoundCount.ToString(); }));
+            TextBox16Copy.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox16Copy.Text = lnCount.ToString(); }));
+            TextBox17Copy.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox17Copy.Text = notFoundCount.ToString(); }));
             stopWatch.Stop();
-            TextBox19Copy.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { TextBox19Copy.Text = stopWatch.Elapsed.ToString(); }));
-            ListView14.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { ListView14.ItemsSource = ListOpcodeSourceSC; }));
-            Label_Semafor1.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { Label_Semafor1.Background = Brushes.GreenYellow; }));
-            ButtonSaveIn2.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { ButtonSaveIn2.IsEnabled = true; }));
-            BtnLoadIn.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { BtnLoadIn.IsEnabled = true; }));
-            BtnLoadIn_Copy.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { BtnLoadIn_Copy.IsEnabled = true; }));
-            BtnCsLoadNameIn.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { BtnCsLoadNameIn.IsEnabled = true; }));
-            BtnScLoadNameIn.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { BtnScLoadNameIn.IsEnabled = true; }));
+            TextBox19Copy.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox19Copy.Text = stopWatch.Elapsed.ToString(); }));
+            ListView14.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ListView14.ItemsSource = ListOpcodeSourceSC; }));
+            Label_Semafor1.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { Label_Semafor1.Background = Brushes.GreenYellow; }));
+            ButtonSaveIn2.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ButtonSaveIn2.IsEnabled = true; }));
+            BtnLoadIn.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnLoadIn.IsEnabled = true; }));
+            BtnLoadIn_Copy.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnLoadIn_Copy.IsEnabled = true; }));
+            BtnCsLoadNameIn.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnCsLoadNameIn.IsEnabled = true; }));
+            BtnScLoadNameIn.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnScLoadNameIn.IsEnabled = true; }));
 
             _isInSc = true;
             if (_isInSc && _isOutSc)
             {
-                ButtonCsCompare.Dispatcher.Invoke(DispatcherPriority.Background,
-                    new Action(() => { ButtonCsCompare.IsEnabled = false; }));
-                ButtonScCompare.Dispatcher.Invoke(DispatcherPriority.Background,
-                    new Action(() => { ButtonScCompare.IsEnabled = true; }));
+                ButtonCsCompare.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ButtonCsCompare.IsEnabled = false; }));
+                ButtonScCompare.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ButtonScCompare.IsEnabled = true; }));
             }
             else
             {
-                ButtonCsCompare.Dispatcher.Invoke(DispatcherPriority.Background,
-                    new Action(() => { ButtonCsCompare.IsEnabled = false; }));
-                ButtonScCompare.Dispatcher.Invoke(DispatcherPriority.Background,
-                    new Action(() => { ButtonScCompare.IsEnabled = false; }));
+                ButtonCsCompare.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ButtonCsCompare.IsEnabled = false; }));
+                ButtonScCompare.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ButtonScCompare.IsEnabled = false; }));
             }
         }
 
@@ -753,24 +707,16 @@ namespace NameFinder
         {
             var stopWatch = new Stopwatch();
             stopWatch.Start();
-            ProgressBar23.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { ProgressBar23.Value = 0; }));
-            ProgressBar23.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { ProgressBar23.Maximum = XrefsOut.Count; }));
-            TextBox16Copy1.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { TextBox16Copy1.Text = "0"; }));
-            TextBox17Copy1.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { TextBox17Copy1.Text = "0"; }));
-            TextBox19Copy1.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { TextBox19Copy1.Text = "0"; }));
-            Label_Semafor2.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { Label_Semafor2.Background = Brushes.Yellow; }));
+            ProgressBar23.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar23.Value = 0; }));
+            ProgressBar23.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar23.Maximum = XrefsOut.Count; }));
+            TextBox16Copy1.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox16Copy1.Text = "0"; }));
+            TextBox17Copy1.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox17Copy1.Text = "0"; }));
+            TextBox19Copy1.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox19Copy1.Text = "0"; }));
+            Label_Semafor2.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { Label_Semafor2.Background = Brushes.Yellow; }));
 
             _isOutCs = false;
-            ButtonCsCompare.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { ButtonCsCompare.IsEnabled = false; }));
-            ButtonScCompare.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { ButtonScCompare.IsEnabled = false; }));
+            ButtonCsCompare.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ButtonCsCompare.IsEnabled = false; }));
+            ButtonScCompare.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ButtonScCompare.IsEnabled = false; }));
 
             var notFoundCount = 0;
             //var baseAddress = 0;
@@ -781,15 +727,9 @@ namespace NameFinder
             // здесь ищем ссылку на подпрограмму, где есть опкоды
             var found = false;
             var regexEndp = new Regex(@"\s+endp\s*", RegexOptions.Compiled); // ищем конец подпрограммы
-            var regexOffset =
-                new Regex(
-                    @"mov\s+\[\w+\+\w+\],\soffset\s|mov\s+dword\sptr\s\[\w+\],\soffset\s|mov\s+dword\sptr\s\[\w+\+\w+\],\soffset\s",
-                    RegexOptions.Compiled);
-            var regexOpcode =
-                new Regex(
-                    @"mov\s+\[\w+\+\w+\],\s+([0-9A-F]+)|mov\s+dword\sptr\s\[\w+\+\w+\],\s+([0-9A-F]+)|mov\s+dword\sptr\s\[\w+\+\w+\+\w+\],\s+([0-9A-F]+)|mov\s+dword\sptr\s\[\w+\-\w+\],\s+([0-9A-F]+)",
-                    RegexOptions.Compiled);
-            //var regexOpcode = new Regex(@"mov\s+\[\w+\+\w+\],\soffset\s|mov\s+\[\w+\+\w+\],\s([1-9]|[0-9A-F]{2,3}h)|mov\s+dword\sptr\s\[\w+\+\w+\],\s([1-9]|[0-9A-F]{2,3}h)|mov\s+dword\sptr\s\[\w+\+\w+\+\w+\],\s([1-9]|[0-9A-F]{2,3}h)|mov\s+dword\sptr\s\[\w+\],\soffset\s|mov\s+dword\sptr\s\[\w+\-\w+\],\soffset\s|mov\s+dword\sptr\s\[\w+\-\w+\],\s([1-9]|[0-9A-F]{2,3}h)", RegexOptions.Compiled);
+            var regexOffset = new Regex(@"mov\s+\[(\w+\+\w+)\],\soffset\s|mov\s+dword\sptr\s\[(\w+)\],\soffset\s|mov\s+dword\sptr\s\[(\w+\+\w+)\],\soffset\s", RegexOptions.Compiled);
+            //var regexOpcode = new Regex(@"mov\s+\[\w+\+\w+\],\s+([0-9A-F]+)|mov\s+dword\sptr\s\[\w+\+\w+\],\s+([0-9A-F]+)|mov\s+dword\sptr\s\[\w+\+\w+\+\w+\],\s+([0-9A-F]+)|mov\s+dword\sptr\s\[\w+\-\w+\],\s+([0-9A-F]+)", RegexOptions.Compiled);
+            var regexOpcode = new Regex(@"\[\w+\-(?![0-9a-f]+h+)[0-9a-fA-F]+\],\s([0-9a-fA-F]+)|\[\w+\+(?![0-9a-f]+h+)[0-9a-fA-F]+\],\s([0-9a-fA-F]+)|\[\w+\+(?![0-9a-f]+h+)\w+[0-9a-fA-F]+\],\s([0-9a-fA-F]+)|\[\w+\+(?![0-9a-f]+h)\w+[0-9a-fA-F]+\+[0-9a-fA-F]+\],\s([0-9a-fA-F]+)", RegexOptions.Compiled);
 
             for (var i = 0; i < XrefsOut.Count; i++)
             {
@@ -797,7 +737,6 @@ namespace NameFinder
                 var foundOpcode = false;
                 foreach (var str in list)
                 {
-                    //subAddress = "";
                     //var regex = new Regex(@"((sub_\w+\+\w{1,3}|loc_\w{8}))", RegexOptions.IgnoreCase);
                     // выделяем из "; DATA XREF: sub_39024010" -> "sub_39024010"
                     // "; DATA XREF: X2__GameClient__ClientDrivenNpc__UpdateMovementSync" -> "X2__GameClient__ClientDrivenNpc__UpdateMovementSync"
@@ -814,11 +753,11 @@ namespace NameFinder
                     // здесь ищем начало подпрограммы
                     // начнем с начала файла
                     found = false;
+                    var find = "";
+                    var ss = "";
                     for (var index = 0; index < InListDestination.Count; index++)
                     {
-                        var regex10 =
-                            new Regex(@"^" + subAddress,
-                                RegexOptions.IgnoreCase); // ищем начало подпрограммы, каждый раз с начала файла
+                        var regex10 = new Regex(@"^" + subAddress, RegexOptions.IgnoreCase); // ищем начало подпрограммы, каждый раз с начала файла
                         var matches = regex10.Matches(InListDestination[index]);
                         if (matches.Count <= 0)
                         {
@@ -850,30 +789,50 @@ namespace NameFinder
                             mov     byte ptr [eax+18h], 1
                             mov     dword ptr [eax+4], 71h
                             */
-                            var matchesOffset = regexOffset.Matches(InListDestination[index]);
-                            if (matchesOffset.Count <= 0)
+                            var matchesOffset = regexOffset.Match(InListDestination[index]);
+                            if (matchesOffset.Groups.Count <= 1)
                             {
                                 continue;
                             }
+                            //group 1 = mov\s+\[(\w+\+\w+)\],\soffset\s|
+                            if (matchesOffset.Groups[1].Length > 0)
+                            {
+                                // mov     [ebp+var_48C], offset SCDominionDataPacket_0x0b2
+                                // mov     [ebp+var_488], 0B2h
+                                ss = matchesOffset.Groups[1].ToString();
+                                find = Decrease4(ss, 4);
+                                regexOpcode = new Regex(@"" + find, RegexOptions.IgnoreCase);
+                            }
+                            //group 2 = mov\s+dword\sptr\s\[(\w+)\],\soffset\s|
+                            else if (matchesOffset.Groups[2].Length > 0)
+                            {
+                                ss = matchesOffset.Groups[2].ToString();
+                                find = Increase4(ss, 4);
+                                regexOpcode = new Regex(@"" + find, RegexOptions.IgnoreCase);
+                            }
+                            //group 3 = mov\s+dword\sptr\s\[(\w+\+\w+)\],\soffset\s
+                            else if (matchesOffset.Groups[3].Length > 0)
+                            {
+                                // mov     dword ptr [esi+10C0h], offset SCUnitDeathPacket_0x1f5
+                                // mov     dword ptr [esi+10C4h], 1F5h
+                                ss = matchesOffset.Groups[3].ToString();
+                                find = Increase4(ss, 4);
+                                regexOpcode = new Regex(@"" + find, RegexOptions.IgnoreCase);
+                            }
 
-                            index++;
-
-                            //var regexOpcode = new Regex(@"mov\s+\[\w+\+\w+\],\s([1-9][0-f]{1,}|0[0-f]{1,})h?$|mov\s+dword\sptr\s\[\w{3}\+4\],\s([1-3][0-f]{1,3}|0[0-f]{1,3}|[1-9]{1})h?$", RegexOptions.IgnoreCase);
-                            //var regexOpcode = new Regex(@"(mov\s+\[\w+\+\w+\],\s([1-9][0-f]{1,3}h?|[1-9]{1}h?|0[0-f]{1,3})h?|(mov\s+dword\sptr\s\[\w+\+\w+\],\s([0-f]{1,3})))", RegexOptions.IgnoreCase);
                             var matchesOpcode = regexOpcode.Match(InListDestination[index]);
 
                             // пропускаем строки, пока не "endp"
                             foundEndp = false;
                             do
                             {
+                                index++;
+                                matchesOpcode = regexOpcode.Match(InListDestination[index]);
                                 if (matchesOpcode.Groups.Count >= 2)
                                 {
                                     // нашли опкод
                                     break;
                                 }
-
-                                index++;
-                                matchesOpcode = regexOpcode.Match(InListDestination[index]);
 
                                 var matches2 = regexEndp.Matches(InListDestination[index]);
                                 if (matches2.Count <= 0)
@@ -888,8 +847,7 @@ namespace NameFinder
 
                             if (matchesOpcode.Groups.Count >= 2)
                             {
-                                if (matchesOpcode.Groups[4].ToString() != "" &&
-                                    matchesOpcode.Groups[4].ToString() != "0")
+                                if (matchesOpcode.Groups[4].ToString() != "" && matchesOpcode.Groups[4].ToString() != "0")
                                 {
                                     var matchGroup = "";
                                     switch (matchesOpcode.Groups[4].Length)
@@ -908,11 +866,10 @@ namespace NameFinder
                                             break;
                                     }
 
-                                    foundOpcode = true; // нашли Opcode
                                     ListOpcodeDestinationCS.Add(matchGroup);
+                                    foundOpcode = true; // нашли Opcode
                                 }
-                                else if (matchesOpcode.Groups[3].ToString() != "" &&
-                                         matchesOpcode.Groups[3].ToString() != "0")
+                                else if (matchesOpcode.Groups[3].ToString() != "" && matchesOpcode.Groups[3].ToString() != "0")
                                 {
                                     var matchGroup = "";
                                     switch (matchesOpcode.Groups[3].Length)
@@ -934,8 +891,7 @@ namespace NameFinder
                                     ListOpcodeDestinationCS.Add(matchGroup);
                                     foundOpcode = true; // нашли Opcode
                                 }
-                                else if (matchesOpcode.Groups[2].ToString() != "" &&
-                                         matchesOpcode.Groups[2].ToString() != "0")
+                                else if (matchesOpcode.Groups[2].ToString() != "" && matchesOpcode.Groups[2].ToString() != "0")
                                 {
                                     var matchGroup = "";
                                     switch (matchesOpcode.Groups[2].Length)
@@ -957,8 +913,7 @@ namespace NameFinder
                                     ListOpcodeDestinationCS.Add(matchGroup);
                                     foundOpcode = true; // нашли Opcode
                                 }
-                                else if (matchesOpcode.Groups[1].ToString() != "" &&
-                                         matchesOpcode.Groups[1].ToString() != "0")
+                                else if (matchesOpcode.Groups[1].ToString() != "" && matchesOpcode.Groups[1].ToString() != "0")
                                 {
                                     var matchGroup = "";
                                     switch (matchesOpcode.Groups[1].Length)
@@ -980,8 +935,7 @@ namespace NameFinder
                                     ListOpcodeDestinationCS.Add(matchGroup);
                                     foundOpcode = true; // нашли Opcode
                                 }
-                                else if (matchesOpcode.Groups[0].ToString() != "" &&
-                                         matchesOpcode.Groups[0].ToString() != "0")
+                                else if (matchesOpcode.Groups[0].ToString() != "" && matchesOpcode.Groups[0].ToString() != "0")
                                 {
                                     var matchGroup = "";
                                     switch (matchesOpcode.Groups[0].Length)
@@ -1024,37 +978,27 @@ namespace NameFinder
                     ListOpcodeDestinationCS.Add("0xfff"); // не нашли опкод
                 }
 
-                ProgressBar23.Dispatcher.Invoke(DispatcherPriority.Background,
-                    new Action(() => { ProgressBar23.Value = ListOpcodeDestinationCS.Count; }));
+                ProgressBar23.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar23.Value = ListOpcodeDestinationCS.Count; }));
             }
 
             var lnCount = ListOpcodeDestinationCS.Count;
-            TextBox16Copy1.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { TextBox16Copy1.Text = lnCount.ToString(); }));
-            TextBox17Copy1.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { TextBox17Copy1.Text = notFoundCount.ToString(); }));
+            TextBox16Copy1.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox16Copy1.Text = lnCount.ToString(); }));
+            TextBox17Copy1.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox17Copy1.Text = notFoundCount.ToString(); }));
             stopWatch.Stop();
-            TextBox19Copy1.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { TextBox19Copy1.Text = stopWatch.Elapsed.ToString(); }));
-            ListView24.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { ListView24.ItemsSource = ListOpcodeDestinationCS; }));
-            Label_Semafor2.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { Label_Semafor2.Background = Brushes.GreenYellow; }));
+            TextBox19Copy1.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox19Copy1.Text = stopWatch.Elapsed.ToString(); }));
+            ListView24.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ListView24.ItemsSource = ListOpcodeDestinationCS; }));
+            Label_Semafor2.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { Label_Semafor2.Background = Brushes.GreenYellow; }));
 
             _isOutCs = true;
             if (_isInCs && _isOutCs)
             {
-                ButtonCsCompare.Dispatcher.Invoke(DispatcherPriority.Background,
-                    new Action(() => { ButtonCsCompare.IsEnabled = true; }));
-                ButtonScCompare.Dispatcher.Invoke(DispatcherPriority.Background,
-                    new Action(() => { ButtonScCompare.IsEnabled = false; }));
+                ButtonCsCompare.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ButtonCsCompare.IsEnabled = true; }));
+                ButtonScCompare.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ButtonScCompare.IsEnabled = false; }));
             }
             else
             {
-                ButtonCsCompare.Dispatcher.Invoke(DispatcherPriority.Background,
-                    new Action(() => { ButtonCsCompare.IsEnabled = false; }));
-                ButtonScCompare.Dispatcher.Invoke(DispatcherPriority.Background,
-                    new Action(() => { ButtonScCompare.IsEnabled = false; }));
+                ButtonCsCompare.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ButtonCsCompare.IsEnabled = false; }));
+                ButtonScCompare.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ButtonScCompare.IsEnabled = false; }));
             }
         }
 
@@ -1062,54 +1006,33 @@ namespace NameFinder
         {
             var stopWatch = new Stopwatch();
             stopWatch.Start();
-            ProgressBar23.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { ProgressBar23.Value = 0; }));
-            ProgressBar23.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { ProgressBar23.Maximum = XrefsOut.Count; }));
-            TextBox16Copy1.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { TextBox16Copy1.Text = "0"; }));
-            TextBox17Copy1.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { TextBox17Copy1.Text = "0"; }));
-            TextBox19Copy1.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { TextBox19Copy1.Text = "0"; }));
-            Label_Semafor2.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { Label_Semafor2.Background = Brushes.Yellow; }));
-            ButtonSaveOut1.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { ButtonSaveOut1.IsEnabled = false; }));
-            ButtonSaveOut2.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { ButtonSaveOut2.IsEnabled = false; }));
-            BtnLoadOut.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { BtnLoadOut.IsEnabled = false; }));
+            ProgressBar23.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar23.Value = 0; }));
+            ProgressBar23.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar23.Maximum = XrefsOut.Count; }));
+            TextBox16Copy1.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox16Copy1.Text = "0"; }));
+            TextBox17Copy1.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox17Copy1.Text = "0"; }));
+            TextBox19Copy1.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox19Copy1.Text = "0"; }));
+            Label_Semafor2.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { Label_Semafor2.Background = Brushes.Yellow; }));
+            ButtonSaveOut1.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ButtonSaveOut1.IsEnabled = false; }));
+            ButtonSaveOut2.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ButtonSaveOut2.IsEnabled = false; }));
+            BtnLoadOut.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnLoadOut.IsEnabled = false; }));
             //BtnLoadIn_Copy.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnLoadIn_Copy.IsEnabled = false; }));
-            BtnCsLoadNameOut.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { BtnCsLoadNameOut.IsEnabled = false; }));
-            BtnScLoadNameOut.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { BtnScLoadNameOut.IsEnabled = false; }));
+            BtnCsLoadNameOut.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnCsLoadNameOut.IsEnabled = false; }));
+            BtnScLoadNameOut.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnScLoadNameOut.IsEnabled = false; }));
 
             _isOutSc = false;
-            ButtonCsCompare.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { ButtonCsCompare.IsEnabled = false; }));
-            ButtonScCompare.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { ButtonScCompare.IsEnabled = false; }));
+            ButtonCsCompare.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ButtonCsCompare.IsEnabled = false; }));
+            ButtonScCompare.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ButtonScCompare.IsEnabled = false; }));
 
             var notFoundCount = 0;
-            //var baseAddress = 0;
-            //var offsetAddres = 0;
             var subAddress = "";
             ListOpcodeDestinationSC = new List<string>();
 
             // здесь ищем ссылку на подпрограмму, где есть опкоды
             var found = false;
             var regexEndp = new Regex(@"\s+endp\s*", RegexOptions.Compiled); // ищем конец подпрограммы
-            var regexOffset =
-                new Regex(
-                    @"mov\s+\[\w+\+\w+\],\soffset\s|mov\s+dword\sptr\s\[\w+\],\soffset\s|mov\s+dword\sptr\s\[\w+\+\w+\],\soffset\s",
-                    RegexOptions.Compiled);
-            var regexOpcode =
-                new Regex(
-                    @"mov\s+\[\w+\+\w+\],\s+([0-9A-F]+)|mov\s+dword\sptr\s\[\w+\+\w+\],\s+([0-9A-F]+)|mov\s+dword\sptr\s\[\w+\+\w+\+\w+\],\s+([0-9A-F]+)|mov\s+dword\sptr\s\[\w+\-\w+\],\s+([0-9A-F]+)",
-                    RegexOptions.Compiled);
-            //var regexOpcode = new Regex(@"mov\s+\[\w+\+\w+\],\soffset\s|mov\s+\[\w+\+\w+\],\s([1-9]|[0-9A-F]{2,3}h)|mov\s+dword\sptr\s\[\w+\+\w+\],\s([1-9]|[0-9A-F]{2,3}h)|mov\s+dword\sptr\s\[\w+\+\w+\+\w+\],\s([1-9]|[0-9A-F]{2,3}h)|mov\s+dword\sptr\s\[\w+\],\soffset\s|mov\s+dword\sptr\s\[\w+\-\w+\],\soffset\s|mov\s+dword\sptr\s\[\w+\-\w+\],\s([1-9]|[0-9A-F]{2,3}h)", RegexOptions.Compiled);
+            var regexOffset = new Regex(@"mov\s+\[(\w+\+\w+)\],\soffset\s|mov\s+dword\sptr\s\[(\w+)\],\soffset\s|mov\s+dword\sptr\s\[(\w+\+\w+)\],\soffset\s", RegexOptions.Compiled);
+            //var regexOpcode = new Regex(@"mov\s+\[\w+\+\w+\],\s+([0-9A-F]+)|mov\s+dword\sptr\s\[\w+\+\w+\],\s+([0-9A-F]+)|mov\s+dword\sptr\s\[\w+\+\w+\+\w+\],\s+([0-9A-F]+)|mov\s+dword\sptr\s\[\w+\-\w+\],\s+([0-9A-F]+)", RegexOptions.Compiled);
+            var regexOpcode = new Regex(@"\[\w+\-(?![0-9a-f]+h+)[0-9a-fA-F]+\],\s([0-9a-fA-F]+)|\[\w+\+(?![0-9a-f]+h+)[0-9a-fA-F]+\],\s([0-9a-fA-F]+)|\[\w+\+(?![0-9a-f]+h+)\w+[0-9a-fA-F]+\],\s([0-9a-fA-F]+)|\[\w+\+(?![0-9a-f]+h)\w+[0-9a-fA-F]+\+[0-9a-fA-F]+\],\s([0-9a-fA-F]+)", RegexOptions.Compiled);
 
             for (var i = 0; i < XrefsOut.Count; i++)
             {
@@ -1117,7 +1040,6 @@ namespace NameFinder
                 var foundOpcode = false;
                 foreach (var str in list)
                 {
-                    //subAddress = "";
                     //var regex = new Regex(@"((sub_\w+\+\w{1,3}|loc_\w{8}))", RegexOptions.IgnoreCase);
                     // выделяем из "; DATA XREF: sub_39024010" -> "sub_39024010"
                     // "; DATA XREF: X2__GameClient__ClientDrivenNpc__UpdateMovementSync" -> "X2__GameClient__ClientDrivenNpc__UpdateMovementSync"
@@ -1134,11 +1056,11 @@ namespace NameFinder
                     // здесь ищем начало подпрограммы
                     // начнем с начала файла
                     found = false;
+                    var find = "";
+                    var ss = "";
                     for (var index = 0; index < InListDestination.Count; index++)
                     {
-                        var regex10 =
-                            new Regex(@"^" + subAddress,
-                                RegexOptions.IgnoreCase); // ищем начало подпрограммы, каждый раз с начала файла
+                        var regex10 = new Regex(@"^" + subAddress, RegexOptions.IgnoreCase); // ищем начало подпрограммы, каждый раз с начала файла
                         var matches = regex10.Matches(InListDestination[index]);
                         if (matches.Count <= 0)
                         {
@@ -1170,30 +1092,50 @@ namespace NameFinder
                             mov     byte ptr [eax+18h], 1
                             mov     dword ptr [eax+4], 71h
                             */
-                            var matchesOffset = regexOffset.Matches(InListDestination[index]);
-                            if (matchesOffset.Count <= 0)
+                            var matchesOffset = regexOffset.Match(InListDestination[index]);
+                            if (matchesOffset.Groups.Count <= 1)
                             {
                                 continue;
                             }
+                            //group 1 = mov\s+\[(\w+\+\w+)\],\soffset\s|
+                            if (matchesOffset.Groups[1].Length > 0)
+                            {
+                                // mov     [ebp+var_48C], offset SCDominionDataPacket_0x0b2
+                                // mov     [ebp+var_488], 0B2h
+                                ss = matchesOffset.Groups[1].ToString();
+                                find = Decrease4(ss, 4);
+                                regexOpcode = new Regex(@"" + find, RegexOptions.IgnoreCase);
+                            }
+                            //group 2 = mov\s+dword\sptr\s\[(\w+)\],\soffset\s|
+                            else if (matchesOffset.Groups[2].Length > 0)
+                            {
+                                ss = matchesOffset.Groups[2].ToString();
+                                find = Increase4(ss, 4);
+                                regexOpcode = new Regex(@"" + find, RegexOptions.IgnoreCase);
+                            }
+                            //group 3 = mov\s+dword\sptr\s\[(\w+\+\w+)\],\soffset\s
+                            else if (matchesOffset.Groups[3].Length > 0)
+                            {
+                                // mov     dword ptr [esi+10C0h], offset SCUnitDeathPacket_0x1f5
+                                // mov     dword ptr [esi+10C4h], 1F5h
+                                ss = matchesOffset.Groups[3].ToString();
+                                find = Increase4(ss, 4);
+                                regexOpcode = new Regex(@"" + find, RegexOptions.IgnoreCase);
+                            }
 
-                            index++;
-
-                            //var regexOpcode = new Regex(@"mov\s+\[\w+\+\w+\],\s([1-9][0-f]{1,}|0[0-f]{1,})h?$|mov\s+dword\sptr\s\[\w{3}\+4\],\s([1-3][0-f]{1,3}|0[0-f]{1,3}|[1-9]{1})h?$", RegexOptions.IgnoreCase);
-                            //var regexOpcode = new Regex(@"(mov\s+\[\w+\+\w+\],\s([1-9][0-f]{1,3}h?|[1-9]{1}h?|0[0-f]{1,3})h?|(mov\s+dword\sptr\s\[\w+\+\w+\],\s([0-f]{1,3})))", RegexOptions.IgnoreCase);
                             var matchesOpcode = regexOpcode.Match(InListDestination[index]);
 
                             // пропускаем строки, пока не "endp"
                             foundEndp = false;
                             do
                             {
+                                index++;
+                                matchesOpcode = regexOpcode.Match(InListDestination[index]);
                                 if (matchesOpcode.Groups.Count >= 2)
                                 {
                                     // нашли опкод
                                     break;
                                 }
-
-                                index++;
-                                matchesOpcode = regexOpcode.Match(InListDestination[index]);
 
                                 var matches2 = regexEndp.Matches(InListDestination[index]);
                                 if (matches2.Count <= 0)
@@ -1208,8 +1150,7 @@ namespace NameFinder
 
                             if (matchesOpcode.Groups.Count >= 2)
                             {
-                                if (matchesOpcode.Groups[4].ToString() != "" &&
-                                    matchesOpcode.Groups[4].ToString() != "0")
+                                if (matchesOpcode.Groups[4].ToString() != "" && matchesOpcode.Groups[4].ToString() != "0")
                                 {
                                     var matchGroup = "";
                                     switch (matchesOpcode.Groups[4].Length)
@@ -1231,8 +1172,7 @@ namespace NameFinder
                                     foundOpcode = true; // нашли Opcode
                                     ListOpcodeDestinationSC.Add(matchGroup);
                                 }
-                                else if (matchesOpcode.Groups[3].ToString() != "" &&
-                                         matchesOpcode.Groups[3].ToString() != "0")
+                                else if (matchesOpcode.Groups[3].ToString() != "" && matchesOpcode.Groups[3].ToString() != "0")
                                 {
                                     var matchGroup = "";
                                     switch (matchesOpcode.Groups[3].Length)
@@ -1254,8 +1194,7 @@ namespace NameFinder
                                     ListOpcodeDestinationSC.Add(matchGroup);
                                     foundOpcode = true; // нашли Opcode
                                 }
-                                else if (matchesOpcode.Groups[2].ToString() != "" &&
-                                         matchesOpcode.Groups[2].ToString() != "0")
+                                else if (matchesOpcode.Groups[2].ToString() != "" && matchesOpcode.Groups[2].ToString() != "0")
                                 {
                                     var matchGroup = "";
                                     switch (matchesOpcode.Groups[2].Length)
@@ -1277,8 +1216,7 @@ namespace NameFinder
                                     ListOpcodeDestinationSC.Add(matchGroup);
                                     foundOpcode = true; // нашли Opcode
                                 }
-                                else if (matchesOpcode.Groups[1].ToString() != "" &&
-                                         matchesOpcode.Groups[1].ToString() != "0")
+                                else if (matchesOpcode.Groups[1].ToString() != "" && matchesOpcode.Groups[1].ToString() != "0")
                                 {
                                     var matchGroup = "";
                                     switch (matchesOpcode.Groups[1].Length)
@@ -1300,8 +1238,7 @@ namespace NameFinder
                                     ListOpcodeDestinationSC.Add(matchGroup);
                                     foundOpcode = true; // нашли Opcode
                                 }
-                                else if (matchesOpcode.Groups[0].ToString() != "" &&
-                                         matchesOpcode.Groups[0].ToString() != "0")
+                                else if (matchesOpcode.Groups[0].ToString() != "" && matchesOpcode.Groups[0].ToString() != "0")
                                 {
                                     var matchGroup = "";
                                     switch (matchesOpcode.Groups[0].Length)
@@ -1344,47 +1281,146 @@ namespace NameFinder
                     ListOpcodeDestinationSC.Add("0xfff"); // не нашли опкод
                 }
 
-                ProgressBar23.Dispatcher.Invoke(DispatcherPriority.Background,
-                    new Action(() => { ProgressBar23.Value = ListOpcodeDestinationSC.Count; }));
+                ProgressBar23.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar23.Value = ListOpcodeDestinationSC.Count; }));
             }
 
             var lnCount = ListOpcodeDestinationSC.Count;
-            TextBox16Copy1.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { TextBox16Copy1.Text = lnCount.ToString(); }));
-            TextBox17Copy1.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { TextBox17Copy1.Text = notFoundCount.ToString(); }));
+            TextBox16Copy1.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox16Copy1.Text = lnCount.ToString(); }));
+            TextBox17Copy1.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox17Copy1.Text = notFoundCount.ToString(); }));
             stopWatch.Stop();
-            TextBox19Copy1.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { TextBox19Copy1.Text = stopWatch.Elapsed.ToString(); }));
-            ListView24.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { ListView24.ItemsSource = ListOpcodeDestinationSC; }));
-            Label_Semafor2.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { Label_Semafor2.Background = Brushes.GreenYellow; }));
-            ButtonSaveOut2.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { ButtonSaveOut2.IsEnabled = true; }));
-            BtnLoadOut.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { BtnLoadOut.IsEnabled = true; }));
+            TextBox19Copy1.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox19Copy1.Text = stopWatch.Elapsed.ToString(); }));
+            ListView24.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ListView24.ItemsSource = ListOpcodeDestinationSC; }));
+            Label_Semafor2.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { Label_Semafor2.Background = Brushes.GreenYellow; }));
+            ButtonSaveOut2.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ButtonSaveOut2.IsEnabled = true; }));
+            BtnLoadOut.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnLoadOut.IsEnabled = true; }));
             //BtnLoadIn_Copy.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnLoadIn_Copy.IsEnabled = true; }));
-            BtnCsLoadNameOut.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { BtnCsLoadNameOut.IsEnabled = true; }));
-            BtnScLoadNameOut.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { BtnScLoadNameOut.IsEnabled = true; }));
+            BtnCsLoadNameOut.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnCsLoadNameOut.IsEnabled = true; }));
+            BtnScLoadNameOut.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnScLoadNameOut.IsEnabled = true; }));
 
             _isOutSc = true;
             if (_isInSc && _isOutSc)
             {
-                ButtonCsCompare.Dispatcher.Invoke(DispatcherPriority.Background,
-                    new Action(() => { ButtonCsCompare.IsEnabled = false; }));
-                ButtonScCompare.Dispatcher.Invoke(DispatcherPriority.Background,
-                    new Action(() => { ButtonScCompare.IsEnabled = true; }));
+                ButtonCsCompare.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ButtonCsCompare.IsEnabled = false; }));
+                ButtonScCompare.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ButtonScCompare.IsEnabled = true; }));
             }
             else
             {
-                ButtonCsCompare.Dispatcher.Invoke(DispatcherPriority.Background,
-                    new Action(() => { ButtonCsCompare.IsEnabled = false; }));
-                ButtonScCompare.Dispatcher.Invoke(DispatcherPriority.Background,
-                    new Action(() => { ButtonScCompare.IsEnabled = false; }));
+                ButtonCsCompare.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ButtonCsCompare.IsEnabled = false; }));
+                ButtonScCompare.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ButtonScCompare.IsEnabled = false; }));
             }
+        }
+
+        private static string Increase4(string str, int inc)
+        {
+            // mov     dword ptr [esi+10C0h], offset SCUnitDeathPacket_0x1f5
+            // mov     dword ptr [esi+10C4h], 1F5h
+            int offset;
+            string prefix;
+            string numb;
+            int num;
+            string fstr;
+            string find;
+            string postfix;
+
+            if (str.LastIndexOf("h", StringComparison.Ordinal) > 0)
+            {
+                // esi+10C0h
+                str = str.Replace("h", ""); // сотрем h в конце строки
+                postfix = "h";
+            }
+            else
+            {
+                postfix = "";
+            }
+
+            if (str.LastIndexOf("_", StringComparison.Ordinal) > 0)
+            {
+                // esi+var_10C
+                offset = str.LastIndexOf("_", StringComparison.Ordinal) + 1;
+                prefix = str.Substring(0, offset);
+                numb = str.Substring(offset);
+                num = Convert.ToInt32(numb, 16) + inc;
+                numb = num.ToString("X");
+                fstr = prefix + numb + postfix;
+                fstr = fstr.Replace("+", "\\+");
+                find = "\\[" + fstr + "\\],\\s([0-9a-fA-F]+)";
+            }
+            else if (str.LastIndexOf("+", StringComparison.Ordinal) > 0)
+            {
+                // esi+10C0
+                offset = str.LastIndexOf("+", StringComparison.Ordinal) + 1;
+                prefix = str.Substring(0, offset);
+                numb = str.Substring(offset);
+                num = Convert.ToInt32(numb, 16) + inc;
+                numb = num.ToString("X");
+                fstr = prefix + numb + postfix;
+                fstr = fstr.Replace("+", "\\+");
+                find = "\\[" + fstr + "\\],\\s([0-9a-fA-F]+)";
+            }
+            else
+            {
+                // eax
+                fstr = str + "\\+" + inc;
+                find = "\\[" + fstr + "\\],\\s([0-9a-fA-F]+)";
+            }
+
+            return find;
+        }
+
+        private static string Decrease4(string str, int dec)
+        {
+            // mov     [ebp+var_48C], offset SCDominionDataPacket_0x0b2
+            // mov     [ebp+var_488], 0B2h
+            int offset;
+            string prefix;
+            string numb;
+            int num;
+            string fstr;
+            string find;
+            string postfix;
+
+            if (str.LastIndexOf("h", StringComparison.Ordinal) > 0)
+            {
+                str = str.Replace("h", ""); // сотрем h в конце строки
+                postfix = "h";
+            }
+            else
+            {
+                postfix = "";
+            }
+
+            if (str.LastIndexOf("_", StringComparison.Ordinal) > 0)
+            {
+                // esi+var_10C
+                offset = str.LastIndexOf("_", StringComparison.Ordinal) + 1;
+                prefix = str.Substring(0, offset);
+                numb = str.Substring(offset);
+                num = Convert.ToInt32(numb, 16) - dec;
+                numb = num.ToString("X");
+                fstr = prefix + numb + postfix;
+                fstr = fstr.Replace("+", "\\+");
+                find = "\\[" + fstr + "\\],\\s([0-9a-fA-F]+)";
+            }
+            else if (str.LastIndexOf("+", StringComparison.Ordinal) > 0)
+            {
+                // esi+10C0
+                offset = str.LastIndexOf("+", StringComparison.Ordinal) + 1;
+                prefix = str.Substring(0, offset);
+                numb = str.Substring(offset);
+                num = Convert.ToInt32(numb, 16) - dec;
+                numb = num.ToString("X");
+                fstr = prefix + numb + postfix;
+                fstr = fstr.Replace("+", "\\+");
+                find = "\\[" + fstr + "\\],\\s([0-9a-fA-F]+)";
+            }
+            else
+            {
+                // eax
+                fstr = str + "\\-" + dec;
+                find = "\\[" + fstr + "\\],\\s([0-9a-fA-F]+)";
+            }
+
+            return find;
         }
 
         private List<string> CleanSourceSub(int idx)
@@ -1397,15 +1433,12 @@ namespace NameFinder
             var regexProcNear = new Regex(@"(proc\s+near)", RegexOptions.Compiled); // ищем начало подпрограммы
             var regexEndP = new Regex(@"\s+endp\s*", RegexOptions.Compiled); // ищем конец подпрограммы
             //var regexSub = new Regex(@"push\s+offset\s|call\s+sub_\w+|mov\s+\[\w+\+\w+\],\soffset\s|mov\s+\[\w+\+\w+\],\s([1-9]|[0-9A-F]{2,3}h)|mov\s+dword\sptr\s\[\w+\+\w+\],\s([1-9]|[0-9A-F]{2,3}h)|mov\s+dword\sptr\s\[\w+\+\w+\+\w+\],\s([1-9]|[0-9A-F]{2,3}h)|mov\s+dword\sptr\s\[\w+\],\soffset\s|mov\s+dword\sptr\s\[\w+\-\w+\],\soffset\s|mov\s+dword\sptr\s\[\w+\-\w+\],\s([1-9]|[0-9A-F]{2,3}h)", RegexOptions.Compiled);
-            var regexSub = new Regex(
-                @"push\s+offset\s|call\s+sub_\w+|mov\s+\[\w+\+\w+\],\soffset\s|mov\s+dword\sptr\s\[\w+\+\w+\],\soffset\s|mov\s+\[\w+\+\w+\],\s([1-9]|[0-9A-F]{2,3}h)|mov\s+dword\sptr\s\[\w+\+\w+\],\s([1-9]|[0-9A-F]{2,3}h)|mov\s+dword\sptr\s\[\w+\+\w+\+\w+\],\s([1-9]|[0-9A-F]{2,3}h)|mov\s+dword\sptr\s\[\w+\],\soffset\s|mov\s+dword\sptr\s\[\w+\-\w+\],\soffset\s|mov\s+dword\sptr\s\[\w+\-\w+\],\s([1-9]|[0-9A-F]{2,3}h)",
-                RegexOptions.Compiled);
+            var regexSub = new Regex(@"push\s+offset\s|call\s+\w+|call\s+sub_\w+|mov\s+\[\w+\+\w+\],\soffset\s|mov\s+dword\sptr\s\[\w+\+\w+\],\soffset\s|mov\s+\[\w+\+\w+\],\s([1-9]|[0-9A-F]{2,3}h)|mov\s+dword\sptr\s\[\w+\+\w+\],\s([1-9]|[0-9A-F]{2,3}h)|mov\s+dword\sptr\s\[\w+\+\w+\+\w+\],\s([1-9]|[0-9A-F]{2,3}h)|mov\s+dword\sptr\s\[\w+\],\soffset\s|mov\s+dword\sptr\s\[\w+\-\w+\],\soffset\s|mov\s+dword\sptr\s\[\w+\-\w+\],\s([1-9]|[0-9A-F]{2,3}h)", RegexOptions.Compiled);
             for (var index = idx; index < maxCount; index++)
             {
                 if (index % progress == 0)
                 {
-                    ProgressBar11.Dispatcher.Invoke(DispatcherPriority.Background,
-                        new Action(() => { ProgressBar11.Value = index; }));
+                    ProgressBar11.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar11.Value = index; }));
                 }
 
                 var matchesProcNear = regexProcNear.Matches(InListSource[index]);
@@ -1423,8 +1456,7 @@ namespace NameFinder
                 {
                     if (index % progress == 0)
                     {
-                        ProgressBar11.Dispatcher.Invoke(DispatcherPriority.Background,
-                            new Action(() => { ProgressBar11.Value = index; }));
+                        ProgressBar11.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar11.Value = index; }));
                     }
 
                     index++;
@@ -1622,8 +1654,7 @@ namespace NameFinder
                 var matchesSpace40 = regexSpace40.Matches(InListSource[index]);
                 if (matchesSpace40.Count <= 0)
                 {
-                    tmpLst.Add(
-                        "                                        ; DATA XREF: sub_FFFFFFFF"); // добавим отсутствующую строку
+                    tmpLst.Add("                                        ; DATA XREF: sub_FFFFFFFF"); // добавим отсутствующую строку
                 }
                 else
                 {
@@ -1713,15 +1744,12 @@ namespace NameFinder
             var regexProcNear = new Regex(@"(proc\s+near)", RegexOptions.Compiled); // ищем начало подпрограммы
             var regexEndP = new Regex(@"\s+endp\s*", RegexOptions.Compiled); // ищем конец подпрограммы
             //var regexSub = new Regex(@"push\s+offset\s|call\s+sub_\w+|mov\s+\[\w+\+\w+\],\soffset\s|mov\s+\[\w+\+\w+\],\s([1-9]|[0-9A-F]{2,3}h)|mov\s+dword\sptr\s\[\w+\+\w+\],\s([1-9]|[0-9A-F]{2,3}h)|mov\s+dword\sptr\s\[\w+\+\w+\+\w+\],\s([1-9]|[0-9A-F]{2,3}h)|mov\s+dword\sptr\s\[\w+\],\soffset\s|mov\s+dword\sptr\s\[\w+\-\w+\],\soffset\s|mov\s+dword\sptr\s\[\w+\-\w+\],\s([1-9]|[0-9A-F]{2,3}h)", RegexOptions.Compiled);
-            var regexSub = new Regex(
-                @"push\s+offset\s|call\s+sub_\w+|mov\s+\[\w+\+\w+\],\soffset\s|mov\s+dword\sptr\s\[\w+\+\w+\],\soffset\s|mov\s+\[\w+\+\w+\],\s([1-9]|[0-9A-F]{2,3}h)|mov\s+dword\sptr\s\[\w+\+\w+\],\s([1-9]|[0-9A-F]{2,3}h)|mov\s+dword\sptr\s\[\w+\+\w+\+\w+\],\s([1-9]|[0-9A-F]{2,3}h)|mov\s+dword\sptr\s\[\w+\],\soffset\s|mov\s+dword\sptr\s\[\w+\-\w+\],\soffset\s|mov\s+dword\sptr\s\[\w+\-\w+\],\s([1-9]|[0-9A-F]{2,3}h)",
-                RegexOptions.Compiled);
+            var regexSub = new Regex(@"push\s+offset\s|call\s+\w+|call\s+sub_\w+|mov\s+\[\w+\+\w+\],\soffset\s|mov\s+dword\sptr\s\[\w+\+\w+\],\soffset\s|mov\s+\[\w+\+\w+\],\s([1-9]|[0-9A-F]{2,3}h)|mov\s+dword\sptr\s\[\w+\+\w+\],\s([1-9]|[0-9A-F]{2,3}h)|mov\s+dword\sptr\s\[\w+\+\w+\+\w+\],\s([1-9]|[0-9A-F]{2,3}h)|mov\s+dword\sptr\s\[\w+\],\soffset\s|mov\s+dword\sptr\s\[\w+\-\w+\],\soffset\s|mov\s+dword\sptr\s\[\w+\-\w+\],\s([1-9]|[0-9A-F]{2,3}h)", RegexOptions.Compiled);
             for (var index = idx; index < maxCount; index++)
             {
                 if (index % progress == 0)
                 {
-                    ProgressBar21.Dispatcher.Invoke(DispatcherPriority.Background,
-                        new Action(() => { ProgressBar21.Value = index; }));
+                    ProgressBar21.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar21.Value = index; }));
                 }
 
                 var matchesProcNear = regexProcNear.Matches(InListDestination[index]);
@@ -1739,8 +1767,7 @@ namespace NameFinder
                 {
                     if (index % progress == 0)
                     {
-                        ProgressBar21.Dispatcher.Invoke(DispatcherPriority.Background,
-                            new Action(() => { ProgressBar21.Value = index; }));
+                        ProgressBar21.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar21.Value = index; }));
                     }
 
                     index++;
@@ -1828,8 +1855,7 @@ namespace NameFinder
             {
                 if (index % progress == 0)
                 {
-                    ProgressBar21.Dispatcher.Invoke(DispatcherPriority.Background,
-                        new Action(() => { ProgressBar21.Value = index; }));
+                    ProgressBar21.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar21.Value = index; }));
                 }
 
                 // ??_7X2ClientToWorldPacket@@6B@ dd offset CS_PACKETS_return_0
@@ -1846,8 +1872,7 @@ namespace NameFinder
                 var matchesSpace40 = regexSpace40.Matches(InListDestination[index]);
                 if (matchesSpace40.Count <= 0)
                 {
-                    tmpLst.Add(
-                        "                                        ; DATA XREF: sub_FFFFFFFF"); // добавим отсутствующую строку
+                    tmpLst.Add("                                        ; DATA XREF: sub_FFFFFFFF"); // добавим отсутствующую строку
                 }
                 else
                 {
@@ -1920,8 +1945,7 @@ namespace NameFinder
             {
                 if (index % progress == 0)
                 {
-                    ProgressBar21.Dispatcher.Invoke(DispatcherPriority.Background,
-                        new Action(() => { ProgressBar21.Value = index; }));
+                    ProgressBar21.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar21.Value = index; }));
                 }
 
                 var matches = regex.Matches(InListDestination[index]);
@@ -1938,8 +1962,7 @@ namespace NameFinder
                 var matchesSpace40 = regexSpace40.Matches(InListDestination[index]);
                 if (matchesSpace40.Count <= 0)
                 {
-                    tmpLst.Add(
-                        "                                        ; DATA XREF: sub_FFFFFFFF"); // добавим отсутствующую строку
+                    tmpLst.Add("                                        ; DATA XREF: sub_FFFFFFFF"); // добавим отсутствующую строку
                 }
                 else
                 {
@@ -1996,19 +2019,15 @@ namespace NameFinder
 
             InListSource = new List<string>();
             string s;
-            var regexClr = new Regex(
-                @"\;\ssub_\d+|\;\sDATA\sXREF\:|proc\s+near|\s+endp\s*|\soffset\s|call\s+sub_\w+|mov\s+\[\w+\+\w+\],\s([1-9]|[0-9A-F]{2,3}h)|mov\s+dword\sptr\s\[\w+\+\w+\],\s([1-9]|[0-9A-F]{2,3}h)|mov\s+dword\sptr\s\[\w+\+\w+\+\w+\],\s([1-9]|[0-9A-F]{2,3}h)|mov\s+dword\sptr\s\[\w+\-\w+\],\s([1-9]|[0-9A-F]{2,3}h)",
-                RegexOptions.Compiled);
+            var regexClr = new Regex(@"\;\ssub_\d+|\;\sDATA\sXREF\:|proc\s+near|\s+endp\s*|\soffset\s|call\s+\w+|call\s+sub_\w+|mov\s+\[\w+\+\w+\],\s([1-9]|[0-9A-F]{2,3}h)|mov\s+dword\sptr\s\[\w+\+\w+\],\s([1-9]|[0-9A-F]{2,3}h)|mov\s+dword\sptr\s\[\w+\+\w+\+\w+\],\s([1-9]|[0-9A-F]{2,3}h)|mov\s+dword\sptr\s\[\w+\-\w+\],\s([1-9]|[0-9A-F]{2,3}h)", RegexOptions.Compiled);
             //var regexClr = new Regex(@"proc\s+near|\s+endp\s*|\sdd\soffset\s|push\s+offset\s|call\s+sub_\w+|mov\s+\[\w+\+\w+\],\soffset\s|mov\s+\[\w+\+\w+\],\s([1-9]|[0-9A-F]{2,3}h)|mov\s+dword\sptr\s\[\w+\+\w+\],\s([1-9]|[0-9A-F]{2,3}h)|mov\s+dword\sptr\s\[\w+\],\soffset\s|mov\s+dword\sptr\s\[\w+\-\w+\],\soffset\s|mov\s+dword\sptr\s\[\w+\-\w+\],\s([1-9]|[0-9A-F]{2,3}h)", RegexOptions.Compiled);
             //var regexClr = new Regex(@"(^(\s+\w+\s+\d+)|^\s*$)", RegexOptions.IgnoreCase); // ищем мусорные строки 
             // узнаем количество строк в файле
             var maxCount = File.ReadLines(FilePathIn1).Count();
             var progress = CalcProgress(maxCount);
 
-            ProgressBar11.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { ProgressBar11.Value = 0; }));
-            ProgressBar11.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { ProgressBar11.Maximum = maxCount; }));
+            ProgressBar11.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar11.Value = 0; }));
+            ProgressBar11.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar11.Maximum = maxCount; }));
 
             // считываем по одной строке, отбрасываем не нужные и сохраняем нужные в InListSource
             var index = 0;
@@ -2018,8 +2037,7 @@ namespace NameFinder
                 {
                     if (index % progress == 0)
                     {
-                        ProgressBar11.Dispatcher.Invoke(DispatcherPriority.Background,
-                            new Action(() => { ProgressBar11.Value = index; }));
+                        ProgressBar11.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar11.Value = index; }));
                     }
 
                     index++;
@@ -2037,25 +2055,18 @@ namespace NameFinder
             // сохраним в файл
             File.WriteAllLines(FilePathIn1, InListSource);
             // заполним ListView
-            ListView11.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { ListView11.ItemsSource = InListSource; }));
-            BtnLoadIn_Copy.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { BtnLoadIn_Copy.IsEnabled = true; }));
-            BtnLoadIn.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { BtnLoadIn.IsEnabled = true; }));
-            Label_Semafor1.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { Label_Semafor1.Background = Brushes.GreenYellow; }));
+            ListView11.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ListView11.ItemsSource = InListSource; }));
+            BtnLoadIn_Copy.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnLoadIn_Copy.IsEnabled = true; }));
+            BtnLoadIn.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnLoadIn.IsEnabled = true; }));
+            Label_Semafor1.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { Label_Semafor1.Background = Brushes.GreenYellow; }));
             stopWatch.Stop();
-            TextBox15.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { TextBox15.Text = stopWatch.Elapsed.ToString(); }));
+            TextBox15.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox15.Text = stopWatch.Elapsed.ToString(); }));
         }
 
         private void CleanSource0()
         {
-            ProgressBar11.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { ProgressBar11.Value = 0; }));
-            ProgressBar11.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { ProgressBar11.Maximum = InListSource.Count; }));
+            ProgressBar11.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar11.Value = 0; }));
+            ProgressBar11.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar11.Maximum = InListSource.Count; }));
 
             var tmp = new List<string>();
 
@@ -2065,15 +2076,11 @@ namespace NameFinder
 
             InListSource = new List<string>(tmp);
 
-            ProgressBar11.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { ProgressBar11.Value = InListSource.Count; }));
-            ListView11.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { ListView11.ItemsSource = InListSource; }));
+            ProgressBar11.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar11.Value = InListSource.Count; }));
+            ListView11.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ListView11.ItemsSource = InListSource; }));
             File.WriteAllLines(FilePathIn1, InListSource);
-            CheckBoxCleaningIn.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { CheckBoxCleaningIn.IsChecked = false; }));
-            Label_Semafor1.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { Label_Semafor1.Background = Brushes.Yellow; }));
+            CheckBoxCleaningIn.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { CheckBoxCleaningIn.IsChecked = false; }));
+            Label_Semafor1.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { Label_Semafor1.Background = Brushes.Yellow; }));
         }
 
         private void CleanSource()
@@ -2081,10 +2088,8 @@ namespace NameFinder
             var stopWatch = new Stopwatch();
             stopWatch.Start();
 
-            ProgressBar11.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { ProgressBar11.Value = 0; }));
-            ProgressBar11.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { ProgressBar11.Maximum = InListSource.Count; }));
+            ProgressBar11.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar11.Value = 0; }));
+            ProgressBar11.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar11.Maximum = InListSource.Count; }));
 
             var tmp = new List<string>();
 
@@ -2102,27 +2107,18 @@ namespace NameFinder
 
             InListSource = new List<string>(tmp);
 
-            ProgressBar11.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { ProgressBar11.Value = InListSource.Count; }));
-            ListView11.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { ListView11.ItemsSource = InListSource; }));
+            ProgressBar11.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar11.Value = InListSource.Count; }));
+            ListView11.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ListView11.ItemsSource = InListSource; }));
             File.WriteAllLines(FilePathIn1, InListSource);
-            CheckBoxCleaningIn.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { CheckBoxCleaningIn.IsChecked = false; }));
+            CheckBoxCleaningIn.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { CheckBoxCleaningIn.IsChecked = false; }));
 
             stopWatch.Stop();
-            TextBox15.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { TextBox15.Text = stopWatch.Elapsed.ToString(); }));
-            Label_Semafor1.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { Label_Semafor1.Background = Brushes.GreenYellow; }));
-            BtnCsLoadNameIn.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { BtnCsLoadNameIn.IsEnabled = true; }));
-            BtnScLoadNameIn.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { BtnScLoadNameIn.IsEnabled = true; }));
-            BtnLoadIn_Copy.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { BtnLoadIn_Copy.IsEnabled = true; }));
-            BtnLoadIn.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { BtnLoadIn.IsEnabled = true; }));
+            TextBox15.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox15.Text = stopWatch.Elapsed.ToString(); }));
+            Label_Semafor1.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { Label_Semafor1.Background = Brushes.GreenYellow; }));
+            BtnCsLoadNameIn.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnCsLoadNameIn.IsEnabled = true; }));
+            BtnScLoadNameIn.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnScLoadNameIn.IsEnabled = true; }));
+            BtnLoadIn_Copy.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnLoadIn_Copy.IsEnabled = true; }));
+            BtnLoadIn.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnLoadIn.IsEnabled = true; }));
         }
 
         private void CleanDestination()
@@ -2130,10 +2126,8 @@ namespace NameFinder
             var stopWatch = new Stopwatch();
             stopWatch.Start();
 
-            ProgressBar21.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { ProgressBar21.Value = 0; }));
-            ProgressBar21.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { ProgressBar21.Maximum = InListDestination.Count; }));
+            ProgressBar21.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar21.Value = 0; }));
+            ProgressBar21.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar21.Maximum = InListDestination.Count; }));
 
             var tmp = new List<string>();
 
@@ -2151,26 +2145,18 @@ namespace NameFinder
 
             InListDestination = new List<string>(tmp);
 
-            ProgressBar21.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { ProgressBar21.Value = InListDestination.Count; }));
-            ListView21.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { ListView21.ItemsSource = InListDestination; }));
+            ProgressBar21.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar21.Value = InListDestination.Count; }));
+            ListView21.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ListView21.ItemsSource = InListDestination; }));
             File.WriteAllLines(FilePathIn2, InListDestination);
-            CheckBoxCleaningOut.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { CheckBoxCleaningOut.IsChecked = false; }));
+            CheckBoxCleaningOut.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { CheckBoxCleaningOut.IsChecked = false; }));
 
             stopWatch.Stop();
-            TextBox25.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { TextBox25.Text = stopWatch.Elapsed.ToString(); }));
-            Label_Semafor2.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { Label_Semafor1.Background = Brushes.GreenYellow; }));
-            BtnCsLoadNameOut.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { BtnCsLoadNameOut.IsEnabled = true; }));
-            BtnScLoadNameOut.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { BtnScLoadNameOut.IsEnabled = true; }));
+            TextBox25.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox25.Text = stopWatch.Elapsed.ToString(); }));
+            Label_Semafor2.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { Label_Semafor2.Background = Brushes.GreenYellow; }));
+            BtnCsLoadNameOut.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnCsLoadNameOut.IsEnabled = true; }));
+            BtnScLoadNameOut.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnScLoadNameOut.IsEnabled = true; }));
             //BtnLoadIn_Copy.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnLoadIn_Copy.IsEnabled = true; }));
-            BtnLoadOut.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { BtnLoadOut.IsEnabled = true; }));
+            BtnLoadOut.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnLoadOut.IsEnabled = true; }));
         }
 
         private List<string> FindStructureIn(string address)
@@ -2187,10 +2173,8 @@ namespace NameFinder
             //
             // начнем с начала файла
             var found = false;
-            var regexSub =
-                new Regex(@"^" + address, RegexOptions.Compiled); // ищем начало подпрограммы, каждый раз с начала файла
-            var regexCall = new Regex(@"(\x22[0-z._]+\x22)|(call\s{4}(sub_\w+)|(call\s{4}(\w+)))",
-                RegexOptions.Compiled);
+            var regexSub = new Regex(@"^" + address, RegexOptions.Compiled); // ищем начало подпрограммы, каждый раз с начала файла
+            var regexCall = new Regex(@"(\x22[0-z._]+\x22)|(call\s{4}(sub_\w+)|(call\s{4}(\w+)))", RegexOptions.Compiled);
             for (var index = 0; index < InListSource.Count; index++)
             {
                 var matches4 = regexSub.Matches(InListSource[index]);
@@ -2362,22 +2346,14 @@ namespace NameFinder
             TextBox13.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox13.Text = "0"; }));
             TextBox14.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox14.Text = "0"; }));
             TextBox18.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox18.Text = "0"; }));
-            ProgressBar12.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { ProgressBar12.Value = 0; }));
-            Label_Semafor1.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { Label_Semafor1.Background = Brushes.Yellow; }));
-            ButtonSaveIn1.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { ButtonSaveIn1.IsEnabled = false; }));
-            ButtonSaveIn2.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { ButtonSaveIn2.IsEnabled = false; }));
-            BtnLoadIn.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { BtnLoadIn.IsEnabled = false; }));
-            BtnLoadIn_Copy.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { BtnLoadIn_Copy.IsEnabled = false; }));
-            BtnCsLoadNameIn.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { BtnCsLoadNameIn.IsEnabled = false; }));
-            BtnScLoadNameIn.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { BtnScLoadNameIn.IsEnabled = false; }));
+            ProgressBar12.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar12.Value = 0; }));
+            Label_Semafor1.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { Label_Semafor1.Background = Brushes.Yellow; }));
+            ButtonSaveIn1.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ButtonSaveIn1.IsEnabled = false; }));
+            ButtonSaveIn2.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ButtonSaveIn2.IsEnabled = false; }));
+            BtnLoadIn.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnLoadIn.IsEnabled = false; }));
+            BtnLoadIn_Copy.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnLoadIn_Copy.IsEnabled = false; }));
+            BtnCsLoadNameIn.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnCsLoadNameIn.IsEnabled = false; }));
+            BtnScLoadNameIn.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnScLoadNameIn.IsEnabled = false; }));
 
             //
             // начали предварительную работу по поиску имен и ссылок на подпрограммы со структурами
@@ -2391,7 +2367,8 @@ namespace NameFinder
             lock (lockObj)
             {
                 var regex = new Regex(@"^[a-zA-Z0-9_?@]+\s+dd\soffset\s" + str, RegexOptions.Compiled);
-                var regexXREF = new Regex(@"(^\s+;[a-zA-Z:\s]*\s(sub_\w+|X2\w+))", RegexOptions.Compiled);
+                //var regexXREF = new Regex(@"(^\s+;[a-zA-Z:\s]*\s(sub_\w+|X2\w+))", RegexOptions.Compiled);
+                var regexXREF = new Regex(@"(^\s+;[a-zA-Z:\s]*\s(sub_\w+|X2\w+|w+))", RegexOptions.Compiled);
                 for (var index = 0; index < InListSource.Count; index++)
                 {
                     var foundName = false;
@@ -2469,18 +2446,13 @@ namespace NameFinder
 
                 // закончили предварительную работу по поиску имен и ссылок на подпрограммы со структурами
                 var lnCount = ListNameSourceCS.Count;
-                TextBox13.Dispatcher.Invoke(DispatcherPriority.Background,
-                    new Action(() => { TextBox13.Text = lnCount.ToString(); }));
+                TextBox13.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox13.Text = lnCount.ToString(); }));
                 var lsCount = ListSubSourceCS.Count;
-                TextBox14.Dispatcher.Invoke(DispatcherPriority.Background,
-                    new Action(() => { TextBox14.Text = lsCount.ToString(); }));
-                ListView12.Dispatcher.Invoke(DispatcherPriority.Background,
-                    new Action(() => { ListView12.ItemsSource = ListNameSourceCS; }));
-                ListView13.Dispatcher.Invoke(DispatcherPriority.Background,
-                    new Action(() => { ListView13.ItemsSource = ListSubSourceCS; }));
+                TextBox14.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox14.Text = lsCount.ToString(); }));
+                ListView12.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ListView12.ItemsSource = ListNameSourceCS; }));
+                ListView13.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ListView13.ItemsSource = ListSubSourceCS; }));
 
-                ProgressBar12.Dispatcher.Invoke(DispatcherPriority.Background,
-                    new Action(() => { ProgressBar12.Maximum = ListNameSourceCS.Count; }));
+                ProgressBar12.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar12.Maximum = ListNameSourceCS.Count; }));
                 if (FindStructIn)
                 {
                     //
@@ -2488,7 +2460,7 @@ namespace NameFinder
                     //
                     // начнем с начала файла
                     var regexEndP = new Regex(@"\s+endp\s*", RegexOptions.Compiled); // ищем конец подпрограммы
-                    var regexCall = new Regex(@"(\x22[0-z._]+\x22)|(call\s{4}(sub_\w+)|(call\s{4}(\w+)))",
+                    var regexCall = new Regex(@"(\x22[0-z._]+\x22)|(call\s+(sub_\w+)|(call\s+(\w+)))",
                         RegexOptions.Compiled);
                     /*
                        sub_395D3050    proc near               ; CODE XREF: sub_391DE5C0+47↑p
@@ -2584,44 +2556,32 @@ namespace NameFinder
                             StructureSourceCS.Add(i, lst); // сохраним пустой список, так как ничего не нашли 
                         }
 
-                        ProgressBar12.Dispatcher.Invoke(DispatcherPriority.Background,
-                            new Action(() => { ProgressBar12.Value = StructureSourceCS.Count; }));
+                        ProgressBar12.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar12.Value = StructureSourceCS.Count; }));
                     }
                 }
             }
 
-            BtnCsLoadNameIn.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { BtnCsLoadNameIn.IsEnabled = true; }));
-            BtnScLoadNameIn.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { BtnScLoadNameIn.IsEnabled = true; }));
-            BtnLoadIn.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { BtnLoadIn.IsEnabled = true; }));
-            BtnLoadIn_Copy.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { BtnLoadIn_Copy.IsEnabled = true; }));
+            BtnCsLoadNameIn.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnCsLoadNameIn.IsEnabled = true; }));
+            BtnScLoadNameIn.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnScLoadNameIn.IsEnabled = true; }));
+            BtnLoadIn.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnLoadIn.IsEnabled = true; }));
+            BtnLoadIn_Copy.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnLoadIn_Copy.IsEnabled = true; }));
 
             _isInCs = true;
             if (_isInCs && _isOutCs)
             {
-                ButtonCsCompare.Dispatcher.Invoke(DispatcherPriority.Background,
-                    new Action(() => { ButtonCsCompare.IsEnabled = true; }));
-                ButtonScCompare.Dispatcher.Invoke(DispatcherPriority.Background,
-                    new Action(() => { ButtonScCompare.IsEnabled = false; }));
+                ButtonCsCompare.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ButtonCsCompare.IsEnabled = true; }));
+                ButtonScCompare.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ButtonScCompare.IsEnabled = false; }));
             }
             else
             {
-                ButtonCsCompare.Dispatcher.Invoke(DispatcherPriority.Background,
-                    new Action(() => { ButtonCsCompare.IsEnabled = false; }));
-                ButtonScCompare.Dispatcher.Invoke(DispatcherPriority.Background,
-                    new Action(() => { ButtonScCompare.IsEnabled = false; }));
+                ButtonCsCompare.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ButtonCsCompare.IsEnabled = false; }));
+                ButtonScCompare.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ButtonScCompare.IsEnabled = false; }));
             }
 
-            ButtonSaveIn1.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { ButtonSaveIn1.IsEnabled = true; }));
+            ButtonSaveIn1.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ButtonSaveIn1.IsEnabled = true; }));
             stopWatch.Stop();
-            TextBox18.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { TextBox18.Text = stopWatch.Elapsed.ToString(); }));
-            Label_Semafor1.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { Label_Semafor1.Background = Brushes.GreenYellow; }));
+            TextBox18.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox18.Text = stopWatch.Elapsed.ToString(); }));
+            Label_Semafor1.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { Label_Semafor1.Background = Brushes.GreenYellow; }));
         }
 
         private void FindSourceStructuresSC(string str)
@@ -2637,22 +2597,14 @@ namespace NameFinder
             TextBox16.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox16.Text = "0"; }));
             TextBox17.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox17.Text = "0"; }));
             TextBox19.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox19.Text = "0"; }));
-            ProgressBar12.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { ProgressBar12.Value = 0; }));
-            Label_Semafor1.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { Label_Semafor1.Background = Brushes.Yellow; }));
-            ButtonSaveIn1.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { ButtonSaveIn1.IsEnabled = false; }));
-            ButtonSaveIn2.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { ButtonSaveIn2.IsEnabled = false; }));
-            BtnLoadIn.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { BtnLoadIn.IsEnabled = false; }));
-            BtnLoadIn_Copy.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { BtnLoadIn_Copy.IsEnabled = false; }));
-            BtnCsLoadNameIn.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { BtnCsLoadNameIn.IsEnabled = false; }));
-            BtnScLoadNameIn.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { BtnScLoadNameIn.IsEnabled = false; }));
+            ProgressBar12.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar12.Value = 0; }));
+            Label_Semafor1.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { Label_Semafor1.Background = Brushes.Yellow; }));
+            ButtonSaveIn1.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ButtonSaveIn1.IsEnabled = false; }));
+            ButtonSaveIn2.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ButtonSaveIn2.IsEnabled = false; }));
+            BtnLoadIn.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnLoadIn.IsEnabled = false; }));
+            BtnLoadIn_Copy.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnLoadIn_Copy.IsEnabled = false; }));
+            BtnCsLoadNameIn.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnCsLoadNameIn.IsEnabled = false; }));
+            BtnScLoadNameIn.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnScLoadNameIn.IsEnabled = false; }));
 
             //
             // начали предварительную работу по поиску имен и ссылок на подпрограммы со структурами
@@ -2666,7 +2618,7 @@ namespace NameFinder
             lock (lockObj)
             {
                 var regex = new Regex(@"^[a-zA-Z0-9_?@]+\s+dd\soffset\s" + str, RegexOptions.Compiled);
-                var regexXREF = new Regex(@"(^\s+;[a-zA-Z:\s]*\s(sub_\w+|X2\w+))", RegexOptions.Compiled);
+                var regexXREF = new Regex(@"(^\s+;[a-zA-Z:\s]*\s(sub_\w+|X2\w+|w+))", RegexOptions.Compiled);
                 for (var index = 0; index < InListSource.Count; index++)
                 {
                     var foundName = false;
@@ -2744,18 +2696,13 @@ namespace NameFinder
 
                 // закончили предварительную работу по поиску имен и ссылок на подпрограммы со структурами
                 var lnCount = ListNameSourceSC.Count;
-                TextBox16.Dispatcher.Invoke(DispatcherPriority.Background,
-                    new Action(() => { TextBox16.Text = lnCount.ToString(); }));
+                TextBox16.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox16.Text = lnCount.ToString(); }));
                 var lsCount = ListSubSourceSC.Count;
-                TextBox17.Dispatcher.Invoke(DispatcherPriority.Background,
-                    new Action(() => { TextBox17.Text = lsCount.ToString(); }));
-                ListView12.Dispatcher.Invoke(DispatcherPriority.Background,
-                    new Action(() => { ListView12.ItemsSource = ListNameSourceSC; }));
-                ListView13.Dispatcher.Invoke(DispatcherPriority.Background,
-                    new Action(() => { ListView13.ItemsSource = ListSubSourceSC; }));
+                TextBox17.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox17.Text = lsCount.ToString(); }));
+                ListView12.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ListView12.ItemsSource = ListNameSourceSC; }));
+                ListView13.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ListView13.ItemsSource = ListSubSourceSC; }));
 
-                ProgressBar12.Dispatcher.Invoke(DispatcherPriority.Background,
-                    new Action(() => { ProgressBar12.Maximum = ListNameSourceSC.Count; }));
+                ProgressBar12.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar12.Maximum = ListNameSourceSC.Count; }));
                 if (FindStructIn)
                 {
                     //
@@ -2763,7 +2710,7 @@ namespace NameFinder
                     //
                     // начнем с начала файла
                     var regexEndP = new Regex(@"\s+endp\s*", RegexOptions.Compiled); // ищем конец подпрограммы
-                    var regexCall = new Regex(@"(\x22[0-z._]+\x22)|(call\s{4}(sub_\w+)|(call\s{4}(\w+)))",
+                    var regexCall = new Regex(@"(\x22[0-z._]+\x22)|(call\s+(sub_\w+)|(call\s+(\w+)))",
                         RegexOptions.Compiled);
                     /*
                        sub_395D3050    proc near               ; CODE XREF: sub_391DE5C0+47↑p
@@ -2802,9 +2749,7 @@ namespace NameFinder
                     for (var i = 0; i < ListSubSourceSC.Count; i++)
                     {
                         var found = false;
-                        var regexSub =
-                            new Regex(@"^" + ListSubSourceSC[i],
-                                RegexOptions.Compiled); // ищем начало подпрограммы, каждый раз с начала файла
+                        var regexSub = new Regex(@"^" + ListSubSourceSC[i], RegexOptions.Compiled); // ищем начало подпрограммы, каждый раз с начала файла
                         for (var index = 0; index < InListSource.Count; index++)
                         {
                             var matchesSub = regexSub.Matches(InListSource[index]);
@@ -2859,48 +2804,34 @@ namespace NameFinder
                             StructureSourceSC.Add(i, lst); // сохраним пустой список, так как ничего не нашли 
                         }
 
-                        ProgressBar12.Dispatcher.Invoke(DispatcherPriority.Background,
-                            new Action(() => { ProgressBar12.Value = StructureSourceSC.Count; }));
+                        ProgressBar12.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar12.Value = StructureSourceSC.Count; }));
                     }
                 }
             }
 
-            BtnCsLoadNameIn.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { BtnCsLoadNameIn.IsEnabled = true; }));
-            BtnScLoadNameIn.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { BtnScLoadNameIn.IsEnabled = true; }));
-            BtnLoadIn.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { BtnLoadIn.IsEnabled = true; }));
-            BtnLoadIn_Copy.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { BtnLoadIn_Copy.IsEnabled = true; }));
+            BtnCsLoadNameIn.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnCsLoadNameIn.IsEnabled = true; }));
+            BtnScLoadNameIn.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnScLoadNameIn.IsEnabled = true; }));
+            BtnLoadIn.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnLoadIn.IsEnabled = true; }));
+            BtnLoadIn_Copy.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnLoadIn_Copy.IsEnabled = true; }));
 
             _isInSc = true;
             if (_isInSc && _isOutSc)
             {
-                ButtonCsCompare.Dispatcher.Invoke(DispatcherPriority.Background,
-                    new Action(() => { ButtonCsCompare.IsEnabled = false; }));
-                ButtonScCompare.Dispatcher.Invoke(DispatcherPriority.Background,
-                    new Action(() => { ButtonScCompare.IsEnabled = true; }));
+                ButtonCsCompare.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ButtonCsCompare.IsEnabled = false; }));
+                ButtonScCompare.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ButtonScCompare.IsEnabled = true; }));
             }
             else
             {
-                ButtonCsCompare.Dispatcher.Invoke(DispatcherPriority.Background,
-                    new Action(() => { ButtonCsCompare.IsEnabled = false; }));
-                ButtonScCompare.Dispatcher.Invoke(DispatcherPriority.Background,
-                    new Action(() => { ButtonScCompare.IsEnabled = false; }));
+                ButtonCsCompare.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ButtonCsCompare.IsEnabled = false; }));
+                ButtonScCompare.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ButtonScCompare.IsEnabled = false; }));
             }
 
-            ButtonSaveIn2.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { ButtonSaveIn2.IsEnabled = true; }));
+            ButtonSaveIn2.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ButtonSaveIn2.IsEnabled = true; }));
             stopWatch.Stop();
-            TextBox19.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { TextBox19.Text = stopWatch.Elapsed.ToString(); }));
-            Label_Semafor1.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { Label_Semafor1.Background = Brushes.GreenYellow; }));
-            BtnCsLoadNameIn.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { BtnCsLoadNameIn.IsEnabled = true; }));
-            BtnScLoadNameIn.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { BtnScLoadNameIn.IsEnabled = true; }));
+            TextBox19.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox19.Text = stopWatch.Elapsed.ToString(); }));
+            Label_Semafor1.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { Label_Semafor1.Background = Brushes.GreenYellow; }));
+            BtnCsLoadNameIn.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnCsLoadNameIn.IsEnabled = true; }));
+            BtnScLoadNameIn.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnScLoadNameIn.IsEnabled = true; }));
         }
 
         private void FindDestinationStructuresCS(string str)
@@ -2916,10 +2847,8 @@ namespace NameFinder
             TextBox23.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox23.Text = "0"; }));
             TextBox24.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox24.Text = "0"; }));
             TextBox28.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox28.Text = "0"; }));
-            ProgressBar22.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { ProgressBar22.Value = 0; }));
-            Label_Semafor2.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { Label_Semafor2.Background = Brushes.Yellow; }));
+            ProgressBar22.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar22.Value = 0; }));
+            Label_Semafor2.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { Label_Semafor2.Background = Brushes.Yellow; }));
 
             //
             // начали предварительную работу по поиску имен и ссылок на подпрограммы со структурами
@@ -3011,18 +2940,13 @@ namespace NameFinder
 
                 // закончили предварительную работу по поиску имен и ссылок на подпрограммы со структурами
                 var lnCount = ListNameDestinationCS.Count;
-                TextBox23.Dispatcher.Invoke(DispatcherPriority.Background,
-                    new Action(() => { TextBox23.Text = lnCount.ToString(); }));
+                TextBox23.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox23.Text = lnCount.ToString(); }));
                 var lsCount = ListSubDestinationCS.Count;
-                TextBox24.Dispatcher.Invoke(DispatcherPriority.Background,
-                    new Action(() => { TextBox24.Text = lsCount.ToString(); }));
-                ListView22.Dispatcher.Invoke(DispatcherPriority.Background,
-                    new Action(() => { ListView22.ItemsSource = ListNameDestinationCS; }));
-                ListView23.Dispatcher.Invoke(DispatcherPriority.Background,
-                    new Action(() => { ListView23.ItemsSource = ListSubDestinationCS; }));
+                TextBox24.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox24.Text = lsCount.ToString(); }));
+                ListView22.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ListView22.ItemsSource = ListNameDestinationCS; }));
+                ListView23.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ListView23.ItemsSource = ListSubDestinationCS; }));
 
-                ProgressBar22.Dispatcher.Invoke(DispatcherPriority.Background,
-                    new Action(() => { ProgressBar22.Maximum = ListNameDestinationCS.Count; }));
+                ProgressBar22.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar22.Maximum = ListNameDestinationCS.Count; }));
                 if (FindStructOut)
                 {
                     //
@@ -3069,9 +2993,7 @@ namespace NameFinder
                     for (var i = 0; i < ListSubDestinationCS.Count; i++)
                     {
                         var found = false;
-                        var regexSub =
-                            new Regex(@"^" + ListSubDestinationCS[i],
-                                RegexOptions.Compiled); // ищем начало подпрограммы, каждый раз с начала файла
+                        var regexSub = new Regex(@"^" + ListSubDestinationCS[i], RegexOptions.Compiled); // ищем начало подпрограммы, каждый раз с начала файла
                         for (var index = 0; index < InListDestination.Count; index++)
                         {
                             var matchesSub = regexSub.Matches(InListDestination[index]);
@@ -3126,43 +3048,32 @@ namespace NameFinder
                             StructureDestinationCS.Add(i, lst); // сохраним пустой список, так как ничего не нашли 
                         }
 
-                        ProgressBar22.Dispatcher.Invoke(DispatcherPriority.Background,
-                            new Action(() => { ProgressBar22.Value = StructureDestinationCS.Count; }));
+                        ProgressBar22.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar22.Value = StructureDestinationCS.Count; }));
                     }
                 }
             }
 
-            BtnCsLoadNameOut.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { BtnCsLoadNameOut.IsEnabled = true; }));
-            BtnScLoadNameOut.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { BtnScLoadNameOut.IsEnabled = true; }));
-            BtnLoadOut.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { BtnLoadOut.IsEnabled = true; }));
+            BtnCsLoadNameOut.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnCsLoadNameOut.IsEnabled = true; }));
+            BtnScLoadNameOut.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnScLoadNameOut.IsEnabled = true; }));
+            BtnLoadOut.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnLoadOut.IsEnabled = true; }));
             //BtnLoadIn_Copy.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnLoadIn_Copy.IsEnabled = true; }));
 
             _isOutCs = true;
             if (_isInCs && _isOutCs)
             {
-                ButtonCsCompare.Dispatcher.Invoke(DispatcherPriority.Background,
-                    new Action(() => { ButtonCsCompare.IsEnabled = true; }));
-                ButtonScCompare.Dispatcher.Invoke(DispatcherPriority.Background,
-                    new Action(() => { ButtonScCompare.IsEnabled = false; }));
+                ButtonCsCompare.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ButtonCsCompare.IsEnabled = true; }));
+                ButtonScCompare.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ButtonScCompare.IsEnabled = false; }));
             }
             else
             {
-                ButtonCsCompare.Dispatcher.Invoke(DispatcherPriority.Background,
-                    new Action(() => { ButtonCsCompare.IsEnabled = false; }));
-                ButtonScCompare.Dispatcher.Invoke(DispatcherPriority.Background,
-                    new Action(() => { ButtonScCompare.IsEnabled = false; }));
+                ButtonCsCompare.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ButtonCsCompare.IsEnabled = false; }));
+                ButtonScCompare.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ButtonScCompare.IsEnabled = false; }));
             }
 
-            ButtonSaveOut1.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { ButtonSaveOut1.IsEnabled = true; }));
+            ButtonSaveOut1.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ButtonSaveOut1.IsEnabled = true; }));
             stopWatch.Stop();
-            TextBox28.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { TextBox28.Text = stopWatch.Elapsed.ToString(); }));
-            Label_Semafor2.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { Label_Semafor2.Background = Brushes.GreenYellow; }));
+            TextBox28.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox28.Text = stopWatch.Elapsed.ToString(); }));
+            Label_Semafor2.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { Label_Semafor2.Background = Brushes.GreenYellow; }));
         }
 
         private void FindDestinationStructuresSC(string str)
@@ -3178,21 +3089,14 @@ namespace NameFinder
             TextBox26.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox26.Text = "0"; }));
             TextBox27.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox27.Text = "0"; }));
             TextBox29.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox29.Text = "0"; }));
-            ProgressBar22.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { ProgressBar22.Value = 0; }));
-            Label_Semafor2.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { Label_Semafor2.Background = Brushes.Yellow; }));
-            ButtonSaveOut1.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { ButtonSaveOut1.IsEnabled = false; }));
-            ButtonSaveOut2.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { ButtonSaveOut2.IsEnabled = false; }));
-            BtnLoadOut.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { BtnLoadOut.IsEnabled = false; }));
+            ProgressBar22.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar22.Value = 0; }));
+            Label_Semafor2.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { Label_Semafor2.Background = Brushes.Yellow; }));
+            ButtonSaveOut1.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ButtonSaveOut1.IsEnabled = false; }));
+            ButtonSaveOut2.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ButtonSaveOut2.IsEnabled = false; }));
+            BtnLoadOut.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnLoadOut.IsEnabled = false; }));
             //BtnLoadIn_Copy.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnLoadIn_Copy.IsEnabled = false; }));
-            BtnCsLoadNameOut.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { BtnCsLoadNameOut.IsEnabled = false; }));
-            BtnScLoadNameOut.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { BtnScLoadNameOut.IsEnabled = false; }));
+            BtnCsLoadNameOut.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnCsLoadNameOut.IsEnabled = false; }));
+            BtnScLoadNameOut.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnScLoadNameOut.IsEnabled = false; }));
 
             //
             // начали предварительную работу по поиску имен и ссылок на подпрограммы со структурами
@@ -3206,7 +3110,7 @@ namespace NameFinder
             lock (lockObj)
             {
                 var regex = new Regex(@"^[a-zA-Z0-9_?@]+\s+dd\soffset\s" + str, RegexOptions.Compiled);
-                var regexXREF = new Regex(@"(^\s+;[a-zA-Z:\s]*\s(sub_\w+|X2\w+))", RegexOptions.Compiled);
+                var regexXREF = new Regex(@"(^\s+;[a-zA-Z:\s]*\s(sub_\w+|X2\w+|w+))", RegexOptions.Compiled);
                 for (var index = 0; index < InListDestination.Count; index++)
                 {
                     var foundName = false;
@@ -3284,18 +3188,13 @@ namespace NameFinder
 
                 // закончили предварительную работу по поиску имен и ссылок на подпрограммы со структурами
                 var lnCount = ListNameDestinationSC.Count;
-                TextBox26.Dispatcher.Invoke(DispatcherPriority.Background,
-                    new Action(() => { TextBox26.Text = lnCount.ToString(); }));
+                TextBox26.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox26.Text = lnCount.ToString(); }));
                 var lsCount = ListSubDestinationSC.Count;
-                TextBox27.Dispatcher.Invoke(DispatcherPriority.Background,
-                    new Action(() => { TextBox27.Text = lsCount.ToString(); }));
-                ListView22.Dispatcher.Invoke(DispatcherPriority.Background,
-                    new Action(() => { ListView22.ItemsSource = ListNameDestinationSC; }));
-                ListView23.Dispatcher.Invoke(DispatcherPriority.Background,
-                    new Action(() => { ListView23.ItemsSource = ListSubDestinationSC; }));
+                TextBox27.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox27.Text = lsCount.ToString(); }));
+                ListView22.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ListView22.ItemsSource = ListNameDestinationSC; }));
+                ListView23.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ListView23.ItemsSource = ListSubDestinationSC; }));
 
-                ProgressBar22.Dispatcher.Invoke(DispatcherPriority.Background,
-                    new Action(() => { ProgressBar22.Maximum = ListNameDestinationSC.Count; }));
+                ProgressBar22.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar22.Maximum = ListNameDestinationSC.Count; }));
 
                 if (FindStructOut)
                 {
@@ -3304,7 +3203,7 @@ namespace NameFinder
                     //
                     // начнем с начала файла
                     var regexEndP = new Regex(@"\s+endp\s*", RegexOptions.Compiled); // ищем конец подпрограммы
-                    var regexCall = new Regex(@"(\x22[0-z._]+\x22)|(call\s{4}(sub_\w+)|(call\s{4}(\w+)))",
+                    var regexCall = new Regex(@"(\x22[0-z._]+\x22)|(call\s+(sub_\w+)|(call\s+(\w+)))",
                         RegexOptions.Compiled);
                     /*
                        sub_395D3050    proc near               ; CODE XREF: sub_391DE5C0+47↑p
@@ -3343,9 +3242,7 @@ namespace NameFinder
                     for (var i = 0; i < ListSubDestinationSC.Count; i++)
                     {
                         var found = false;
-                        var regexSub =
-                            new Regex(@"^" + ListSubDestinationSC[i],
-                                RegexOptions.Compiled); // ищем начало подпрограммы, каждый раз с начала файла
+                        var regexSub = new Regex(@"^" + ListSubDestinationSC[i], RegexOptions.Compiled); // ищем начало подпрограммы, каждый раз с начала файла
                         for (var index = 0; index < InListDestination.Count; index++)
                         {
                             var matchesSub = regexSub.Matches(InListDestination[index]);
@@ -3400,47 +3297,34 @@ namespace NameFinder
                             StructureDestinationSC.Add(i, lst); // сохраним пустой список, так как ничего не нашли 
                         }
 
-                        ProgressBar22.Dispatcher.Invoke(DispatcherPriority.Background,
-                            new Action(() => { ProgressBar22.Value = StructureDestinationSC.Count; }));
+                        ProgressBar22.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar22.Value = StructureDestinationSC.Count; }));
                     }
                 }
             }
 
-            BtnCsLoadNameOut.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { BtnCsLoadNameOut.IsEnabled = true; }));
-            BtnScLoadNameOut.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { BtnScLoadNameOut.IsEnabled = true; }));
-            BtnLoadOut.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { BtnLoadOut.IsEnabled = true; }));
+            BtnCsLoadNameOut.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnCsLoadNameOut.IsEnabled = true; }));
+            BtnScLoadNameOut.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnScLoadNameOut.IsEnabled = true; }));
+            BtnLoadOut.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnLoadOut.IsEnabled = true; }));
             //BtnLoadIn_Copy.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnLoadIn_Copy.IsEnabled = true; }));
 
             _isOutSc = true;
             if (_isInSc && _isOutSc)
             {
-                ButtonCsCompare.Dispatcher.Invoke(DispatcherPriority.Background,
-                    new Action(() => { ButtonCsCompare.IsEnabled = false; }));
-                ButtonScCompare.Dispatcher.Invoke(DispatcherPriority.Background,
-                    new Action(() => { ButtonScCompare.IsEnabled = true; }));
+                ButtonCsCompare.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ButtonCsCompare.IsEnabled = false; }));
+                ButtonScCompare.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ButtonScCompare.IsEnabled = true; }));
             }
             else
             {
-                ButtonCsCompare.Dispatcher.Invoke(DispatcherPriority.Background,
-                    new Action(() => { ButtonCsCompare.IsEnabled = false; }));
-                ButtonScCompare.Dispatcher.Invoke(DispatcherPriority.Background,
-                    new Action(() => { ButtonScCompare.IsEnabled = false; }));
+                ButtonCsCompare.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ButtonCsCompare.IsEnabled = false; }));
+                ButtonScCompare.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ButtonScCompare.IsEnabled = false; }));
             }
 
-            ButtonSaveOut2.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { ButtonSaveOut2.IsEnabled = true; }));
+            ButtonSaveOut2.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ButtonSaveOut2.IsEnabled = true; }));
             stopWatch.Stop();
-            TextBox29.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { TextBox29.Text = stopWatch.Elapsed.ToString(); }));
-            Label_Semafor2.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { Label_Semafor2.Background = Brushes.GreenYellow; }));
-            BtnCsLoadNameOut.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { BtnCsLoadNameOut.IsEnabled = true; }));
-            BtnScLoadNameOut.Dispatcher.Invoke(DispatcherPriority.Background,
-                new Action(() => { BtnScLoadNameOut.IsEnabled = true; }));
+            TextBox29.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox29.Text = stopWatch.Elapsed.ToString(); }));
+            Label_Semafor2.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { Label_Semafor2.Background = Brushes.GreenYellow; }));
+            BtnCsLoadNameOut.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnCsLoadNameOut.IsEnabled = true; }));
+            BtnScLoadNameOut.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnScLoadNameOut.IsEnabled = true; }));
         }
 
         private void btn_Load_In_Click(object sender, RoutedEventArgs e)
@@ -3479,7 +3363,10 @@ namespace NameFinder
                 isCleaningIn = CheckBoxCleaningIn.IsChecked == true;
                 if (isCleaningIn)
                 {
-                    new Thread(() => { CleanSource(); }).Start();
+                    new Thread(() =>
+                    {
+                        CleanSource();
+                    }).Start();
                 }
                 else
                 {
@@ -3546,7 +3433,10 @@ namespace NameFinder
                 var lockObj = new object();
                 lock (lockObj)
                 {
-                    new Thread(() => { PreCleanSource(); }).Start();
+                    new Thread(() =>
+                    {
+                        PreCleanSource();
+                    }).Start();
                 }
 
                 stopWatch.Stop();
@@ -3625,7 +3515,10 @@ namespace NameFinder
                 isCleaningOut = CheckBoxCleaningOut.IsChecked == true;
                 if (isCleaningOut)
                 {
-                    new Thread(() => { CleanDestination(); }).Start();
+                    new Thread(() =>
+                    {
+                        CleanDestination();
+                    }).Start();
                 }
                 else
                 {
@@ -3772,14 +3665,14 @@ namespace NameFinder
                             {
                                 if (ddList.Count == 0 && dsList.Count == 0)
                                 {
-                                    //foundName = true; // делаем пустые структуры похожими
-                                    foundName = false; // делаем пустые структуры непохожими
+                                    foundName = true; // делаем пустые структуры похожими
+                                    //foundName = false; // делаем пустые структуры непохожими
                                 }
-                                else if (ddList.Count == 1 && dsList.Count == 1 && ddList[0] == dsList[0] &&
-                                         (ddList[0] == "\"type\"" || ddList[0] == "\"bc\""))
-                                {
-                                    foundName = false; // делаем структуры с одним полем "type" - непохожими
-                                }
+                                //else if (ddList.Count == 1 && dsList.Count == 1 && ddList[0] == dsList[0] &&
+                                //         (ddList[0] == "\"type\"" || ddList[0] == "\"bc\""))
+                                //{
+                                //    foundName = false; // делаем структуры с одним полем "type" - непохожими
+                                //}
                                 else
                                 {
                                     // количество строк в структурах совпадает
@@ -3915,8 +3808,14 @@ namespace NameFinder
                             {
                                 if (ddList.Count == 0 && dsList.Count == 0)
                                 {
-                                    foundName = true;
+                                    foundName = true; // делаем пустые структуры похожими
+                                    //foundName = false; // делаем пустые структуры непохожими
                                 }
+                                //else if (ddList.Count == 1 && dsList.Count == 1 && ddList[0] == dsList[0] &&
+                                //         (ddList[0] == "\"type\"" || ddList[0] == "\"bc\""))
+                                //{
+                                //    foundName = false; // делаем структуры с одним полем "type" - непохожими
+                                //}
                                 else
                                 {
                                     // количество строк в структурах совпадает
@@ -4038,8 +3937,7 @@ namespace NameFinder
             if (!isCompareSC)
             {
                 // результат работы метода в ListNameCompareSC
-                CompareSourceStructuresSC(ref ListNameSourceSC, ref ListNameDestinationSC, ref ListSubDestinationSC,
-                    ref StructureSourceSC, ref StructureDestinationSC, ListOpcodeDestinationSC);
+                CompareSourceStructuresSC(ref ListNameSourceSC, ref ListNameDestinationSC, ref ListSubDestinationSC, ref StructureSourceSC, ref StructureDestinationSC, ListOpcodeDestinationSC);
                 // сравнение пакетов проведено
                 isCompareSC = true;
             }
@@ -4054,9 +3952,7 @@ namespace NameFinder
             {
                 var compareWindow = new CompareWindow();
                 compareWindow.Show();
-                compareWindow.CompareSourceStructures(ref ListNameSourceSC, ref ListNameDestinationSC,
-                    ref ListNameCompareSC, ref ListSubDestinationSC, ref StructureSourceSC, ref StructureDestinationSC,
-                    ListOpcodeDestinationSC);
+                compareWindow.CompareSourceStructures(ref ListNameSourceSC, ref ListNameDestinationSC, ref ListNameCompareSC, ref ListSubDestinationSC, ref StructureSourceSC, ref StructureDestinationSC, ListOpcodeDestinationSC);
             }
 
             ListNameCompareOutSC = new List<string>();
@@ -4089,14 +3985,12 @@ namespace NameFinder
             {
                 if (ListOpcodeDestinationCS.Count > 0)
                 {
-                    var lst = "Packet name: " + ListNameCompareCS[i] + ", PacketBodyReader: " +
-                              ListSubDestinationCS[i] + ", Opcode: " + ListOpcodeDestinationCS[i];
+                    var lst = "Packet name: " + ListNameCompareCS[i] + ", PacketBodyReader: " + ListSubDestinationCS[i] + ", Opcode: " + ListOpcodeDestinationCS[i];
                     tmp.Add(lst);
                 }
                 else
                 {
-                    var lst = "Packet name: " + ListNameCompareCS[i] + ", PacketBodyReader: " +
-                              ListSubDestinationCS[i] + ", Opcode: 0xfff";
+                    var lst = "Packet name: " + ListNameCompareCS[i] + ", PacketBodyReader: " + ListSubDestinationCS[i] + ", Opcode: 0xfff";
                     tmp.Add(lst);
                 }
             }
@@ -4105,10 +3999,6 @@ namespace NameFinder
             {
                 File.WriteAllLines(FilePathOut3, tmp);
             }
-            //if (_isIn && _isOut)
-            //{
-            //    BtnLoadIn.IsEnabled = true;
-            //}
         }
 
         private string FilePathOut4 = "";
@@ -4120,14 +4010,12 @@ namespace NameFinder
             {
                 if (ListOpcodeDestinationSC.Count > 0)
                 {
-                    var lst = "Packet name: " + ListNameCompareSC[i] + ", PacketBodyReader: " +
-                              ListSubDestinationSC[i] + ", Opcode: " + ListOpcodeDestinationSC[i];
+                    var lst = "Packet name: " + ListNameCompareSC[i] + ", PacketBodyReader: " + ListSubDestinationSC[i] + ", Opcode: " + ListOpcodeDestinationSC[i];
                     tmp.Add(lst);
                 }
                 else
                 {
-                    var lst = "Packet name: " + ListNameCompareSC[i] + ", PacketBodyReader: " +
-                              ListSubDestinationSC[i] + ", Opcode: 0xfff";
+                    var lst = "Packet name: " + ListNameCompareSC[i] + ", PacketBodyReader: " + ListSubDestinationSC[i] + ", Opcode: 0xfff";
                     tmp.Add(lst);
                 }
             }
@@ -4136,10 +4024,6 @@ namespace NameFinder
             {
                 File.WriteAllLines(FilePathOut4, tmp);
             }
-            //if (_isIn && _isOut)
-            //{
-            //    BtnLoadIn.IsEnabled = true;
-            //}
         }
 
         private string FilePathOut7 = "";
@@ -4159,13 +4043,11 @@ namespace NameFinder
                 dd = 0;
                 if (ListOpcodeDestinationCS.Count > 0)
                 {
-                    lst = i + 1 + ": Packet name: " + ListNameCompareCS[i] + ", PacketBodyReader: " +
-                          ListSubDestinationCS[i] + ", Opcode: " + ListOpcodeDestinationCS[i];
+                    lst = i + 1 + ": Packet name: " + ListNameCompareCS[i] + ", PacketBodyReader: " + ListSubDestinationCS[i] + ", Opcode: " + ListOpcodeDestinationCS[i];
                 }
                 else
                 {
-                    lst = i + 1 + ": Packet name: " + ListNameCompareCS[i] + ", PacketBodyReader: " +
-                          ListSubDestinationCS[i] + ", Opcode: 0xfff";
+                    lst = i + 1 + ": Packet name: " + ListNameCompareCS[i] + ", PacketBodyReader: " + ListSubDestinationCS[i] + ", Opcode: 0xfff";
                 }
 
                 tmp.Add(lst);
@@ -4190,43 +4072,10 @@ namespace NameFinder
                 tmp.Add(
                     "--------------------------------------------------------------------------------------------------------------------------------------------");
             }
-            //foreach (var lsts in InUseIn)
-            //{
-            //    var lst = "Packet name: " + ListNameCompare[i] + ", PacketBodyReader: " + ListSubDestinationCS[i] + ", Opcode: " + ListOpcodeDestinationCS[i];
-            //    tmp.Add(lst);
-
-            //    var src = StructureSourceCS[lsts.Key];
-            //    var dst = StructureDestinationCS[lsts.Value];
-
-            //    var ss = 0;
-            //    var dd = 0;
-            //    var str1 = "";
-            //    var str2 = "";
-            //    var count = Math.Max(src.Count, dst.Count);
-            //    // проходим по самому длинному списку
-            //    do
-            //    {
-            //        str1 = ss < src.Count ? src[ss] : "";
-            //        str2 = dd < dst.Count ? dst[dd] : "";
-
-            //        lst = ss + ": " + str1 + "\t\t" + ss + ": " + str2;
-            //        tmp.Add(lst);
-
-            //        ss++;
-            //        dd++;
-            //    } while (ss < count);
-
-            //    tmp.Add("");
-            //    i++;
-            //}
             if (SaveFileDialog7())
             {
                 File.WriteAllLines(FilePathOut7, tmp);
             }
-            //if (_isIn && _isOut)
-            //{
-            //    BtnLoadIn.IsEnabled = true;
-            //}
         }
 
         private string FilePathOut8 = "";
@@ -4246,13 +4095,11 @@ namespace NameFinder
                 dd = 0;
                 if (ListOpcodeDestinationSC.Count > 0)
                 {
-                    lst = i + 1 + ": Packet name: " + ListNameCompareSC[i] + ", PacketBodyReader: " +
-                          ListSubDestinationSC[i] + ", Opcode: " + ListOpcodeDestinationSC[i];
+                    lst = i + 1 + ": Packet name: " + ListNameCompareSC[i] + ", PacketBodyReader: " + ListSubDestinationSC[i] + ", Opcode: " + ListOpcodeDestinationSC[i];
                 }
                 else
                 {
-                    lst = i + 1 + ": Packet name: " + ListNameCompareSC[i] + ", PacketBodyReader: " +
-                          ListSubDestinationSC[i] + ", Opcode: 0xfff";
+                    lst = i + 1 + ": Packet name: " + ListNameCompareSC[i] + ", PacketBodyReader: " + ListSubDestinationSC[i] + ", Opcode: 0xfff";
                 }
 
                 tmp.Add(lst);
@@ -4277,43 +4124,10 @@ namespace NameFinder
                 tmp.Add(
                     "--------------------------------------------------------------------------------------------------------------------------------------------");
             }
-            //foreach (var lsts in InUseIn)
-            //{
-            //    var lst = "Packet name: " + ListNameCompare[i] + ", PacketBodyReader: " + ListSubDestinationSC[i] + ", Opcode: " + ListOpcodeDestinationSC[i];
-            //    tmp.Add(lst);
-
-            //    var src = StructureSourceSC[lsts.Key];
-            //    var dst = StructureDestinationSC[lsts.Value];
-
-            //    var ss = 0;
-            //    var dd = 0;
-            //    var str1 = "";
-            //    var str2 = "";
-            //    var count = Math.Max(src.Count, dst.Count);
-            //    // проходим по самому длинному списку
-            //    do
-            //    {
-            //        str1 = ss < src.Count ? src[ss] : "";
-            //        str2 = dd < dst.Count ? dst[dd] : "";
-
-            //        lst = ss + ": " + str1 + "\t\t" + ss + ": " + str2;
-            //        tmp.Add(lst);
-
-            //        ss++;
-            //        dd++;
-            //    } while (ss < count);
-
-            //    tmp.Add("");
-            //    i++;
-            //}
             if (SaveFileDialog8())
             {
                 File.WriteAllLines(FilePathOut8, tmp);
             }
-            //if (_isIn && _isOut)
-            //{
-            //    BtnLoadIn.IsEnabled = true;
-            //}
         }
 
         private string FilePathOut51 = "";
@@ -4325,13 +4139,11 @@ namespace NameFinder
             {
                 if (ListOpcodeDestinationCS.Count > 0)
                 {
-                    lst.Add("Packet name: " + ListNameDestinationCS[i] + ", PacketBodyReader: " +
-                            ListSubDestinationCS[i] + ", Opcode: " + ListOpcodeDestinationCS[i]);
+                    lst.Add("Packet name: " + ListNameDestinationCS[i] + ", PacketBodyReader: " + ListSubDestinationCS[i] + ", Opcode: " + ListOpcodeDestinationCS[i]);
                 }
                 else
                 {
-                    lst.Add("Packet name: " + ListNameDestinationCS[i] + ", PacketBodyReader: " +
-                            ListSubDestinationCS[i] + ", Opcode: " + "0xfff");
+                    lst.Add("Packet name: " + ListNameDestinationCS[i] + ", PacketBodyReader: " + ListSubDestinationCS[i] + ", Opcode: " + "0xfff");
                 }
             }
 
@@ -4339,10 +4151,6 @@ namespace NameFinder
             {
                 File.WriteAllLines(FilePathOut51, lst);
             }
-            //if (_isIn && _isOut)
-            //{
-            //    BtnLoadIn.IsEnabled = true;
-            //}
         }
 
         private string FilePathOut61 = "";
@@ -4355,13 +4163,11 @@ namespace NameFinder
             {
                 if (ListOpcodeDestinationSC.Count > 0)
                 {
-                    lst.Add("Packet name: " + ListNameDestinationSC[i] + ", PacketBodyReader: " +
-                            ListSubDestinationSC[i] + ", Opcode: " + ListOpcodeDestinationSC[i]);
+                    lst.Add("Packet name: " + ListNameDestinationSC[i] + ", PacketBodyReader: " + ListSubDestinationSC[i] + ", Opcode: " + ListOpcodeDestinationSC[i]);
                 }
                 else
                 {
-                    lst.Add("Packet name: " + ListNameDestinationSC[i] + ", PacketBodyReader: " +
-                            ListSubDestinationSC[i] + ", Opcode: " + "0xfff");
+                    lst.Add("Packet name: " + ListNameDestinationSC[i] + ", PacketBodyReader: " + ListSubDestinationSC[i] + ", Opcode: " + "0xfff");
                 }
             }
 
@@ -4369,10 +4175,6 @@ namespace NameFinder
             {
                 File.WriteAllLines(FilePathOut61, lst);
             }
-            //if (_isIn && _isOut)
-            //{
-            //    BtnLoadIn.IsEnabled = true;
-            //}
         }
 
         private string FilePathIn5 = "";
@@ -4385,13 +4187,11 @@ namespace NameFinder
             {
                 if (ListOpcodeSourceCS.Count > 0)
                 {
-                    lst.Add("Packet name: " + ListNameSourceCS[i] + ", PacketBodyReader: " + ListSubSourceCS[i] +
-                            ", Opcode: " + ListOpcodeSourceCS[i]);
+                    lst.Add("Packet name: " + ListNameSourceCS[i] + ", PacketBodyReader: " + ListSubSourceCS[i] + ", Opcode: " + ListOpcodeSourceCS[i]);
                 }
                 else
                 {
-                    lst.Add("Packet name: " + ListNameSourceCS[i] + ", PacketBodyReader: " + ListSubSourceCS[i] +
-                            ", Opcode: " + "0xfff");
+                    lst.Add("Packet name: " + ListNameSourceCS[i] + ", PacketBodyReader: " + ListSubSourceCS[i] + ", Opcode: " + "0xfff");
                 }
             }
 
@@ -4399,10 +4199,6 @@ namespace NameFinder
             {
                 File.WriteAllLines(FilePathIn5, lst);
             }
-            //if (_isIn && _isOut)
-            //{
-            //    BtnLoadIn.IsEnabled = true;
-            //}
         }
 
         private string FilePathIn6 = "";
@@ -4414,13 +4210,11 @@ namespace NameFinder
             {
                 if (ListOpcodeSourceSC.Count > 0)
                 {
-                    lst.Add("Packet name: " + ListNameSourceSC[i] + ", PacketBodyReader: " + ListSubSourceSC[i] +
-                            ", Opcode: " + ListOpcodeSourceSC[i]);
+                    lst.Add("Packet name: " + ListNameSourceSC[i] + ", PacketBodyReader: " + ListSubSourceSC[i] + ", Opcode: " + ListOpcodeSourceSC[i]);
                 }
                 else
                 {
-                    lst.Add("Packet name: " + ListNameSourceSC[i] + ", PacketBodyReader: " + ListSubSourceSC[i] +
-                            ", Opcode: " + "0xfff");
+                    lst.Add("Packet name: " + ListNameSourceSC[i] + ", PacketBodyReader: " + ListSubSourceSC[i] + ", Opcode: " + "0xfff");
                 }
             }
 
@@ -4428,10 +4222,6 @@ namespace NameFinder
             {
                 File.WriteAllLines(FilePathIn6, lst);
             }
-            //if (_isIn && _isOut)
-            //{
-            //    BtnLoadIn.IsEnabled = true;
-            //}
         }
 
         private string FilePathIn1 = "";
@@ -4618,6 +4408,14 @@ namespace NameFinder
             return false;
         }
 
+        public static byte[] StringToByteArray(string hex)
+        {
+            return Enumerable.Range(0, hex.Length)
+                .Where(x => x % 2 == 0)
+                .Select(x => Convert.ToByte(hex.Substring(x, 2), 16))
+                .ToArray();
+        }
+        
         /*
         * Which works out about 30% faster than PZahras (not that you'd notice with small amounts of data).
         * The BitConverter method itself is pretty quick, it's just having to do the replace which slows it down, so if you can live with the dashes then it's perfectly good.
@@ -4660,85 +4458,118 @@ namespace NameFinder
             var lockObj = new object();
             lock (lockObj)
             {
-                File.WriteAllLines(DirPath + "\\TextBoxPathIn", new List<string> { TextBoxPathIn.Text });
-                File.WriteAllLines(DirPath + "\\TextBoxPathOut", new List<string> { TextBoxPathOut.Text });
                 if (ButtonSaveIn1.IsEnabled)
                 {
+                    File.WriteAllLines(DirPathCS + "\\TextBoxPathIn", new List<string> { TextBoxPathIn.Text });
+                    File.WriteAllLines(DirPathCS + "\\TextBoxPathOut", new List<string> { TextBoxPathOut.Text });
+
                     File.WriteAllLines(DirPath + "\\InListSource", InListSource);
-                    File.WriteAllLines(DirPath + "\\ListNameSourceCS", ListNameSourceCS);
-                    File.WriteAllLines(DirPath + "\\ListNameSourceSC", new List<string>());
-                    File.WriteAllLines(DirPath + "\\ListSubSourceCS", ListSubSourceCS);
-                    File.WriteAllLines(DirPath + "\\ListSubSourceSC", new List<string>());
-                    File.WriteAllLines(DirPath + "\\ListOpcodeSourceCS", ListOpcodeSourceCS);
-                    File.WriteAllLines(DirPath + "\\ListOpcodeSourceSC", new List<string>());
-
                     File.WriteAllLines(DirPath + "\\InListDestination", InListDestination);
-                    File.WriteAllLines(DirPath + "\\ListNameDestinationCS", ListNameDestinationCS);
-                    File.WriteAllLines(DirPath + "\\ListNameDestinationSC", new List<string>());
-                    File.WriteAllLines(DirPath + "\\ListSubDestinationCS", ListSubDestinationCS);
-                    File.WriteAllLines(DirPath + "\\ListSubDestinationSC", new List<string>());
-                    File.WriteAllLines(DirPath + "\\ListOpcodeDestinationCS", ListOpcodeDestinationCS);
-                    File.WriteAllLines(DirPath + "\\ListOpcodeDestinationSC", new List<string>());
+                    
+                    File.WriteAllLines(DirPathCS + "\\ListNameSourceCS", ListNameSourceCS);
+                    File.WriteAllLines(DirPathCS + "\\ListNameSourceSC", new List<string>());
+                    File.WriteAllLines(DirPathCS + "\\ListSubSourceCS", ListSubSourceCS);
+                    File.WriteAllLines(DirPathCS + "\\ListSubSourceSC", new List<string>());
+                    File.WriteAllLines(DirPathCS + "\\ListOpcodeSourceCS", ListOpcodeSourceCS);
+                    File.WriteAllLines(DirPathCS + "\\ListOpcodeSourceSC", new List<string>());
 
-                    File.WriteAllLines(DirPath + "\\ListNameCompareCS", ListNameCompareCS);
-                    File.WriteAllLines(DirPath + "\\ListNameCompareSC", new List<string>());
+                    File.WriteAllLines(DirPathCS + "\\ListNameDestinationCS", ListNameDestinationCS);
+                    File.WriteAllLines(DirPathCS + "\\ListNameDestinationSC", new List<string>());
+                    File.WriteAllLines(DirPathCS + "\\ListSubDestinationCS", ListSubDestinationCS);
+                    File.WriteAllLines(DirPathCS + "\\ListSubDestinationSC", new List<string>());
+                    File.WriteAllLines(DirPathCS + "\\ListOpcodeDestinationCS", ListOpcodeDestinationCS);
+                    File.WriteAllLines(DirPathCS + "\\ListOpcodeDestinationSC", new List<string>());
 
-                    File.WriteAllLines(DirPath + "\\ListNameCompareOutCS", ListNameCompareOutCS);
-                    File.WriteAllLines(DirPath + "\\ListNameCompareOutSC", new List<string>());
+                    File.WriteAllLines(DirPathCS + "\\ListNameCompareCS", ListNameCompareCS);
+                    File.WriteAllLines(DirPathCS + "\\ListNameCompareSC", new List<string>());
+
+                    File.WriteAllLines(DirPathCS + "\\ListNameCompareOutCS", ListNameCompareOutCS);
+                    File.WriteAllLines(DirPathCS + "\\ListNameCompareOutSC", new List<string>());
+                    File.WriteAllLines(DirPathCS + "\\ListNameCompare", ListNameCompare);
+
+                    string json = JsonConvert.SerializeObject(InUseIn, Formatting.Indented);
+                    File.WriteAllText(DirPathCS + "\\InUseIn.json", json);
+
+                    json = JsonConvert.SerializeObject(InUseOut, Formatting.Indented);
+                    File.WriteAllText(DirPathCS + "\\InUseOut.json", json);
+
+                    json = JsonConvert.SerializeObject(IsRenameDestination, Formatting.Indented);
+                    File.WriteAllText(DirPathCS + "\\IsRenameDestination.json", json);
+
+                    json = JsonConvert.SerializeObject(StructureSourceCS, Formatting.Indented);
+                    File.WriteAllText(DirPathCS + "\\StructureSourceCS.json", json);
+
+                    json = JsonConvert.SerializeObject(StructureSourceSC, Formatting.Indented);
+                    File.WriteAllText(DirPathCS + "\\StructureSourceSC.json", json);
+
+                    json = JsonConvert.SerializeObject(StructureDestinationCS, Formatting.Indented);
+                    File.WriteAllText(DirPathCS + "\\StructureDestinationCS.json", json);
+
+                    json = JsonConvert.SerializeObject(StructureDestinationSC, Formatting.Indented);
+                    File.WriteAllText(DirPathCS + "\\StructureDestinationSC.json", json);
+
+                    json = JsonConvert.SerializeObject(XrefsIn, Formatting.Indented);
+                    File.WriteAllText(DirPathCS + "\\XrefsIn.json", json);
+
+                    json = JsonConvert.SerializeObject(XrefsOut, Formatting.Indented);
+                    File.WriteAllText(DirPathCS + "\\XrefsOut.json", json);
                 }
                 else
                 {
+                    File.WriteAllLines(DirPathSC + "\\TextBoxPathIn", new List<string> { TextBoxPathIn.Text });
+                    File.WriteAllLines(DirPathSC + "\\TextBoxPathOut", new List<string> { TextBoxPathOut.Text });
+
                     File.WriteAllLines(DirPath + "\\InListSource", InListSource);
-                    File.WriteAllLines(DirPath + "\\ListNameSourceCS", new List<string>());
-                    File.WriteAllLines(DirPath + "\\ListNameSourceSC", ListNameSourceSC);
-                    File.WriteAllLines(DirPath + "\\ListSubSourceCS", new List<string>());
-                    File.WriteAllLines(DirPath + "\\ListSubSourceSC", ListSubSourceSC);
-                    File.WriteAllLines(DirPath + "\\ListOpcodeSourceCS", new List<string>());
-                    File.WriteAllLines(DirPath + "\\ListOpcodeSourceSC", ListOpcodeSourceSC);
-
                     File.WriteAllLines(DirPath + "\\InListDestination", InListDestination);
-                    File.WriteAllLines(DirPath + "\\ListNameDestinationCS", new List<string>());
-                    File.WriteAllLines(DirPath + "\\ListNameDestinationSC", ListNameDestinationSC);
-                    File.WriteAllLines(DirPath + "\\ListSubDestinationCS", new List<string>());
-                    File.WriteAllLines(DirPath + "\\ListSubDestinationSC", ListSubDestinationSC);
-                    File.WriteAllLines(DirPath + "\\ListOpcodeDestinationCS", new List<string>());
-                    File.WriteAllLines(DirPath + "\\ListOpcodeDestinationSC", ListOpcodeDestinationSC);
 
-                    File.WriteAllLines(DirPath + "\\ListNameCompareCS", new List<string>());
-                    File.WriteAllLines(DirPath + "\\ListNameCompareSC", ListNameCompareSC);
+                    File.WriteAllLines(DirPathSC + "\\ListNameSourceCS", new List<string>());
+                    File.WriteAllLines(DirPathSC + "\\ListNameSourceSC", ListNameSourceSC);
+                    File.WriteAllLines(DirPathSC + "\\ListSubSourceCS", new List<string>());
+                    File.WriteAllLines(DirPathSC + "\\ListSubSourceSC", ListSubSourceSC);
+                    File.WriteAllLines(DirPathSC + "\\ListOpcodeSourceCS", new List<string>());
+                    File.WriteAllLines(DirPathSC + "\\ListOpcodeSourceSC", ListOpcodeSourceSC);
 
-                    File.WriteAllLines(DirPath + "\\ListNameCompareOutCS", new List<string>());
-                    File.WriteAllLines(DirPath + "\\ListNameCompareOutSC", ListNameCompareOutSC);
+                    File.WriteAllLines(DirPathSC + "\\ListNameDestinationCS", new List<string>());
+                    File.WriteAllLines(DirPathSC + "\\ListNameDestinationSC", ListNameDestinationSC);
+                    File.WriteAllLines(DirPathSC + "\\ListSubDestinationCS", new List<string>());
+                    File.WriteAllLines(DirPathSC + "\\ListSubDestinationSC", ListSubDestinationSC);
+                    File.WriteAllLines(DirPathSC + "\\ListOpcodeDestinationCS", new List<string>());
+                    File.WriteAllLines(DirPathSC + "\\ListOpcodeDestinationSC", ListOpcodeDestinationSC);
+
+                    File.WriteAllLines(DirPathSC + "\\ListNameCompareCS", new List<string>());
+                    File.WriteAllLines(DirPathSC + "\\ListNameCompareSC", ListNameCompareSC);
+
+                    File.WriteAllLines(DirPathSC + "\\ListNameCompareOutCS", new List<string>());
+                    File.WriteAllLines(DirPathSC + "\\ListNameCompareOutSC", ListNameCompareOutSC);
+                    File.WriteAllLines(DirPathSC + "\\ListNameCompare", ListNameCompare);
+
+                    string json = JsonConvert.SerializeObject(InUseIn, Formatting.Indented);
+                    File.WriteAllText(DirPathSC + "\\InUseIn.json", json);
+
+                    json = JsonConvert.SerializeObject(InUseOut, Formatting.Indented);
+                    File.WriteAllText(DirPathSC + "\\InUseOut.json", json);
+
+                    json = JsonConvert.SerializeObject(IsRenameDestination, Formatting.Indented);
+                    File.WriteAllText(DirPathSC + "\\IsRenameDestination.json", json);
+
+                    json = JsonConvert.SerializeObject(StructureSourceCS, Formatting.Indented);
+                    File.WriteAllText(DirPathSC + "\\StructureSourceCS.json", json);
+
+                    json = JsonConvert.SerializeObject(StructureSourceSC, Formatting.Indented);
+                    File.WriteAllText(DirPathSC + "\\StructureSourceSC.json", json);
+
+                    json = JsonConvert.SerializeObject(StructureDestinationCS, Formatting.Indented);
+                    File.WriteAllText(DirPathSC + "\\StructureDestinationCS.json", json);
+
+                    json = JsonConvert.SerializeObject(StructureDestinationSC, Formatting.Indented);
+                    File.WriteAllText(DirPathSC + "\\StructureDestinationSC.json", json);
+
+                    json = JsonConvert.SerializeObject(XrefsIn, Formatting.Indented);
+                    File.WriteAllText(DirPathSC + "\\XrefsIn.json", json);
+
+                    json = JsonConvert.SerializeObject(XrefsOut, Formatting.Indented);
+                    File.WriteAllText(DirPathSC + "\\XrefsOut.json", json);
                 }
-
-                File.WriteAllLines(DirPath + "\\ListNameCompare", ListNameCompare);
-
-                string json = JsonConvert.SerializeObject(InUseIn, Formatting.Indented);
-                File.WriteAllText(DirPath + "\\InUseIn.json", json);
-
-                json = JsonConvert.SerializeObject(InUseOut, Formatting.Indented);
-                File.WriteAllText(DirPath + "\\InUseOut.json", json);
-
-                json = JsonConvert.SerializeObject(IsRenameDestination, Formatting.Indented);
-                File.WriteAllText(DirPath + "\\IsRenameDestination.json", json);
-
-                json = JsonConvert.SerializeObject(StructureSourceCS, Formatting.Indented);
-                File.WriteAllText(DirPath + "\\StructureSourceCS.json", json);
-
-                json = JsonConvert.SerializeObject(StructureSourceSC, Formatting.Indented);
-                File.WriteAllText(DirPath + "\\StructureSourceSC.json", json);
-
-                json = JsonConvert.SerializeObject(StructureDestinationCS, Formatting.Indented);
-                File.WriteAllText(DirPath + "\\StructureDestinationCS.json", json);
-
-                json = JsonConvert.SerializeObject(StructureDestinationSC, Formatting.Indented);
-                File.WriteAllText(DirPath + "\\StructureDestinationSC.json", json);
-
-                json = JsonConvert.SerializeObject(XrefsIn, Formatting.Indented);
-                File.WriteAllText(DirPath + "\\XrefsIn.json", json);
-
-                json = JsonConvert.SerializeObject(XrefsOut, Formatting.Indented);
-                File.WriteAllText(DirPath + "\\XrefsOut.json", json);
             }
 
             stopWatch.Stop();
@@ -4749,9 +4580,143 @@ namespace NameFinder
             Label_Semafor2.Background = Brushes.GreenYellow;
         }
 
-        private string DirPath = Environment.CurrentDirectory + "\\data\\";
+        private string DirPath = ".\\data";
+        private string DirPathCS = ".\\data\\cs";
+        private string DirPathSC = ".\\data\\sc";
 
-        private void btn_LoadSnapshot_Click(object sender, RoutedEventArgs e)
+        private void btn_LoadSnapshotCS_Click(object sender, RoutedEventArgs e)
+        {
+            Label_Semafor1.Background = Brushes.Red;
+            Label_Semafor2.Background = Brushes.Red;
+
+            // Создаем объект для блокировки.
+            var lockObj = new object();
+            lock (lockObj)
+            {
+                TextBoxPathIn.Text = File.ReadAllLines(DirPathCS + "\\TextBoxPathIn")[0].ToString();
+                TextBoxPathOut.Text = File.ReadAllLines(DirPathCS + "\\TextBoxPathOut")[0].ToString();
+                
+                InListSource = File.ReadAllLines(DirPath + "\\InListSource").ToList();
+                ListView11.ItemsSource = InListSource;
+                InListDestination = File.ReadAllLines(DirPath + "\\InListDestination").ToList();
+                ListView21.ItemsSource = InListDestination;
+                
+                ListNameSourceCS = File.ReadAllLines(DirPathCS + "\\ListNameSourceCS").ToList();
+                ListView12.ItemsSource = ListNameSourceCS;
+                TextBox13.Text = ListNameSourceCS.Count.ToString();
+
+                ListNameSourceSC = File.ReadAllLines(DirPathCS + "\\ListNameSourceSC").ToList();
+                //ListView12.ItemsSource = ListNameSourceSC;
+                TextBox16.Text = ListNameSourceSC.Count.ToString();
+
+                ListSubSourceCS = File.ReadAllLines(DirPathCS + "\\ListSubSourceCS").ToList();
+                ListView13.ItemsSource = ListSubSourceCS;
+                TextBox14.Text = ListSubSourceCS.Count.ToString();
+
+                ListSubSourceSC = File.ReadAllLines(DirPathCS + "\\ListSubSourceSC").ToList();
+                //ListView13.ItemsSource = ListSubSourceSC;
+                TextBox17.Text = ListSubSourceSC.Count.ToString();
+
+                ListOpcodeSourceCS = File.ReadAllLines(DirPathCS + "\\ListOpcodeSourceCS").ToList();
+                ListView14.ItemsSource = ListOpcodeSourceCS;
+                TextBox16Copy.Text = ListOpcodeSourceCS.Count.ToString();
+
+                ListOpcodeSourceSC = File.ReadAllLines(DirPathCS + "\\ListOpcodeSourceSC").ToList();
+                //ListView14.ItemsSource = ListOpcodeSourceSC;
+                TextBox17Copy.Text = ListOpcodeSourceSC.Count.ToString();
+
+                ListNameDestinationCS = File.ReadAllLines(DirPathCS + "\\ListNameDestinationCS").ToList();
+                ListView22.ItemsSource = ListNameDestinationCS;
+                TextBox23.Text = ListNameDestinationCS.Count.ToString();
+
+                ListNameDestinationSC = File.ReadAllLines(DirPathCS + "\\ListNameDestinationSC").ToList();
+                //ListView22.ItemsSource = ListNameDestinationSC;
+                TextBox26.Text = ListNameDestinationSC.Count.ToString();
+
+                ListSubDestinationCS = File.ReadAllLines(DirPathCS + "\\ListSubDestinationCS").ToList();
+                ListView23.ItemsSource = ListSubDestinationCS;
+                TextBox24.Text = ListSubDestinationCS.Count.ToString();
+
+                ListSubDestinationSC = File.ReadAllLines(DirPathCS + "\\ListSubDestinationSC").ToList();
+                //ListView23.ItemsSource = ListSubDestinationSC;
+                TextBox27.Text = ListSubDestinationSC.Count.ToString();
+
+                ListOpcodeDestinationCS = File.ReadAllLines(DirPathCS + "\\ListOpcodeDestinationCS").ToList();
+                ListView24.ItemsSource = ListOpcodeDestinationCS;
+                TextBox16Copy1.Text = ListOpcodeDestinationCS.Count.ToString();
+
+                ListOpcodeDestinationSC = File.ReadAllLines(DirPathCS + "\\ListOpcodeDestinationSC").ToList();
+                //ListView24.ItemsSource = ListOpcodeDestinationSC;
+                //TextBox16Copy1.Text = ListOpcodeDestinationSC.Count.ToString();
+
+                ListNameCompareCS = File.ReadAllLines(DirPathCS + "\\ListNameCompareCS").ToList();
+                ListView31.ItemsSource = ListNameCompareCS;
+                TextBox31.Text = ListNameCompareCS.Count.ToString();
+
+                ListNameCompareSC = File.ReadAllLines(DirPathCS + "\\ListNameCompareSC").ToList();
+                //ListView31.ItemsSource = ListNameCompareCS;
+                //TextBox31.Text = ListNameCompareSC.Count.ToString();
+
+                ListNameCompare = File.ReadAllLines(DirPathCS + "\\ListNameCompare").ToList();
+
+                ListNameCompareOutCS = File.ReadAllLines(DirPathCS + "\\ListNameCompareOutCS").ToList();
+                ListView32.ItemsSource = ListNameCompareOutCS;
+
+                ListNameCompareOutSC = File.ReadAllLines(DirPathCS + "\\ListNameCompareOutSC").ToList();
+                //ListView32.ItemsSource = ListNameCompareOutSC;
+
+                string json = File.ReadAllText(DirPathCS + "\\InUseIn.json");
+                InUseIn = JsonConvert.DeserializeObject<Dictionary<int, int>>(json);
+
+                json = File.ReadAllText(DirPathCS + "\\InUseOut.json");
+                InUseOut = JsonConvert.DeserializeObject<Dictionary<int, int>>(json);
+
+                json = File.ReadAllText(DirPathCS + "\\IsRenameDestination.json");
+                IsRenameDestination = JsonConvert.DeserializeObject<Dictionary<int, bool>>(json);
+
+                json = File.ReadAllText(DirPathCS + "\\StructureSourceCS.json");
+                StructureSourceCS = JsonConvert.DeserializeObject<Dictionary<int, List<string>>>(json);
+
+                json = File.ReadAllText(DirPathCS + "\\StructureSourceSC.json");
+                StructureSourceSC = JsonConvert.DeserializeObject<Dictionary<int, List<string>>>(json);
+
+                json = File.ReadAllText(DirPathCS + "\\StructureDestinationCS.json");
+                StructureDestinationCS = JsonConvert.DeserializeObject<Dictionary<int, List<string>>>(json);
+
+                json = File.ReadAllText(DirPathCS + "\\StructureDestinationSC.json");
+                StructureDestinationSC = JsonConvert.DeserializeObject<Dictionary<int, List<string>>>(json);
+
+                json = File.ReadAllText(DirPathCS + "\\XrefsIn.json");
+                XrefsIn = JsonConvert.DeserializeObject<Dictionary<int, List<string>>>(json);
+
+                json = File.ReadAllText(DirPathCS + "\\XrefsOut.json");
+                XrefsOut = JsonConvert.DeserializeObject<Dictionary<int, List<string>>>(json);
+
+                BtnLoadIn_Copy.IsEnabled = true;
+                BtnLoadIn.IsEnabled = true;
+                BtnCsLoadNameIn.IsEnabled = true;
+                BtnScLoadNameIn.IsEnabled = true;
+                ButtonSaveIn1.IsEnabled = true;
+                ButtonSaveIn2.IsEnabled = false;
+                BtnLoadOut.IsEnabled = true;
+                BtnCsLoadNameOut.IsEnabled = true;
+                BtnScLoadNameOut.IsEnabled = true;
+                ButtonSaveOut1.IsEnabled = true;
+                ButtonSaveOut2.IsEnabled = false;
+                ButtonCsCompare.IsEnabled = true;
+                ButtonScCompare.IsEnabled = false;
+
+                _isInCs = true;
+                _isOutCs = true;
+                isCompareCS = true;
+                isCompareSC = false;
+            }
+
+            Label_Semafor1.Background = Brushes.GreenYellow;
+            Label_Semafor2.Background = Brushes.GreenYellow;
+        }
+
+        private void btn_LoadSnapshotSC_Click(object sender, RoutedEventArgs e)
         {
             Label_Semafor1.Background = Brushes.Red;
             Label_Semafor2.Background = Brushes.Red;
@@ -4761,255 +4726,141 @@ namespace NameFinder
             lock (lockObj)
             {
 
-                TextBoxPathIn.Text = File.ReadAllLines(DirPath + "\\TextBoxPathIn")[0].ToString();
-                TextBoxPathOut.Text = File.ReadAllLines(DirPath + "\\TextBoxPathOut")[0].ToString();
+                TextBoxPathIn.Text = File.ReadAllLines(DirPathSC + "\\TextBoxPathIn")[0].ToString();
+                TextBoxPathOut.Text = File.ReadAllLines(DirPathSC + "\\TextBoxPathOut")[0].ToString();
+                
                 InListSource = File.ReadAllLines(DirPath + "\\InListSource").ToList();
                 ListView11.ItemsSource = InListSource;
-                ListNameSourceCS = File.ReadAllLines(DirPath + "\\ListNameSourceCS").ToList();
                 InListDestination = File.ReadAllLines(DirPath + "\\InListDestination").ToList();
                 ListView21.ItemsSource = InListDestination;
-                if (ListNameSourceCS.Count != 0)
-                {
-                    ListNameSourceCS = File.ReadAllLines(DirPath + "\\ListNameSourceCS").ToList();
-                    ListView12.ItemsSource = ListNameSourceCS;
-                    TextBox13.Text = ListNameSourceCS.Count.ToString();
+                
+                ListNameSourceCS = File.ReadAllLines(DirPathSC + "\\ListNameSourceCS").ToList();
+                //ListView12.ItemsSource = ListNameSourceCS;
+                TextBox13.Text = ListNameSourceCS.Count.ToString();
 
-                    ListNameSourceSC = File.ReadAllLines(DirPath + "\\ListNameSourceSC").ToList();
-                    //ListView12.ItemsSource = ListNameSourceSC;
-                    TextBox16.Text = ListNameSourceSC.Count.ToString();
+                ListNameSourceSC = File.ReadAllLines(DirPathSC + "\\ListNameSourceSC").ToList();
+                ListView12.ItemsSource = ListNameSourceSC;
+                TextBox16.Text = ListNameSourceSC.Count.ToString();
 
-                    ListSubSourceCS = File.ReadAllLines(DirPath + "\\ListSubSourceCS").ToList();
-                    ListView13.ItemsSource = ListSubSourceCS;
-                    TextBox14.Text = ListSubSourceCS.Count.ToString();
+                ListSubSourceCS = File.ReadAllLines(DirPathSC + "\\ListSubSourceCS").ToList();
+                //ListView13.ItemsSource = ListSubSourceCS;
+                TextBox14.Text = ListSubSourceCS.Count.ToString();
 
-                    ListSubSourceSC = File.ReadAllLines(DirPath + "\\ListSubSourceSC").ToList();
-                    //ListView13.ItemsSource = ListSubSourceSC;
-                    TextBox17.Text = ListSubSourceSC.Count.ToString();
+                ListSubSourceSC = File.ReadAllLines(DirPathSC + "\\ListSubSourceSC").ToList();
+                ListView13.ItemsSource = ListSubSourceSC;
+                TextBox17.Text = ListSubSourceSC.Count.ToString();
 
-                    ListOpcodeSourceCS = File.ReadAllLines(DirPath + "\\ListOpcodeSourceCS").ToList();
-                    ListView14.ItemsSource = ListOpcodeSourceCS;
-                    TextBox16Copy.Text = ListOpcodeSourceCS.Count.ToString();
+                ListOpcodeSourceCS = File.ReadAllLines(DirPathSC + "\\ListOpcodeSourceCS").ToList();
+                //ListView14.ItemsSource = ListOpcodeSourceCS;
+                TextBox16Copy.Text = ListOpcodeSourceCS.Count.ToString();
 
-                    ListOpcodeSourceSC = File.ReadAllLines(DirPath + "\\ListOpcodeSourceSC").ToList();
-                    //ListView14.ItemsSource = ListOpcodeSourceSC;
-                    TextBox17Copy.Text = ListOpcodeSourceSC.Count.ToString();
+                ListOpcodeSourceSC = File.ReadAllLines(DirPathSC + "\\ListOpcodeSourceSC").ToList();
+                ListView14.ItemsSource = ListOpcodeSourceSC;
+                TextBox17Copy.Text = ListOpcodeSourceSC.Count.ToString();
 
-                    ListNameDestinationCS = File.ReadAllLines(DirPath + "\\ListNameDestinationCS").ToList();
-                    ListView22.ItemsSource = ListNameDestinationCS;
-                    TextBox23.Text = ListNameDestinationCS.Count.ToString();
+                ListNameDestinationCS = File.ReadAllLines(DirPathSC + "\\ListNameDestinationCS").ToList();
+                //ListView22.ItemsSource = ListNameDestinationCS;
+                TextBox23.Text = ListNameDestinationCS.Count.ToString();
 
-                    ListNameDestinationSC = File.ReadAllLines(DirPath + "\\ListNameDestinationSC").ToList();
-                    //ListView22.ItemsSource = ListNameDestinationSC;
-                    TextBox26.Text = ListNameDestinationSC.Count.ToString();
+                ListNameDestinationSC = File.ReadAllLines(DirPathSC + "\\ListNameDestinationSC").ToList();
+                ListView22.ItemsSource = ListNameDestinationSC;
+                TextBox26.Text = ListNameDestinationSC.Count.ToString();
 
-                    ListSubDestinationCS = File.ReadAllLines(DirPath + "\\ListSubDestinationCS").ToList();
-                    ListView23.ItemsSource = ListSubDestinationCS;
-                    TextBox24.Text = ListSubDestinationCS.Count.ToString();
+                ListSubDestinationCS = File.ReadAllLines(DirPathSC + "\\ListSubDestinationCS").ToList();
+                //ListView23.ItemsSource = ListSubDestinationCS;
+                TextBox24.Text = ListSubDestinationCS.Count.ToString();
 
-                    ListSubDestinationSC = File.ReadAllLines(DirPath + "\\ListSubDestinationSC").ToList();
-                    //ListView23.ItemsSource = ListSubDestinationSC;
-                    TextBox27.Text = ListSubDestinationSC.Count.ToString();
+                ListSubDestinationSC = File.ReadAllLines(DirPathSC + "\\ListSubDestinationSC").ToList();
+                ListView23.ItemsSource = ListSubDestinationSC;
+                TextBox27.Text = ListSubDestinationSC.Count.ToString();
 
-                    ListOpcodeDestinationCS = File.ReadAllLines(DirPath + "\\ListOpcodeDestinationCS").ToList();
-                    ListView24.ItemsSource = ListOpcodeDestinationCS;
-                    TextBox16Copy1.Text = ListOpcodeDestinationCS.Count.ToString();
+                ListOpcodeDestinationCS = File.ReadAllLines(DirPathSC + "\\ListOpcodeDestinationCS").ToList();
+                //ListView24.ItemsSource = ListOpcodeDestinationCS;
+                //TextBox16Copy1.Text = ListOpcodeDestinationCS.Count.ToString();
 
-                    ListOpcodeDestinationSC = File.ReadAllLines(DirPath + "\\ListOpcodeDestinationSC").ToList();
-                    //ListView24.ItemsSource = ListOpcodeDestinationSC;
-                    //TextBox16Copy1.Text = ListOpcodeDestinationSC.Count.ToString();
+                ListOpcodeDestinationSC = File.ReadAllLines(DirPathSC + "\\ListOpcodeDestinationSC").ToList();
+                ListView24.ItemsSource = ListOpcodeDestinationSC;
+                TextBox16Copy1.Text = ListOpcodeDestinationSC.Count.ToString();
 
-                    ListNameCompareCS = File.ReadAllLines(DirPath + "\\ListNameCompareCS").ToList();
-                    ListView31.ItemsSource = ListNameCompareCS;
-                    TextBox31.Text = ListNameCompareCS.Count.ToString();
+                ListNameCompareCS = File.ReadAllLines(DirPathSC + "\\ListNameCompareCS").ToList();
+                //ListView31.ItemsSource = ListNameCompareCS;
+                //TextBox31.Text = ListNameCompareCS.Count.ToString();
 
-                    ListNameCompareSC = File.ReadAllLines(DirPath + "\\ListNameCompareSC").ToList();
-                    //ListView31.ItemsSource = ListNameCompareCS;
-                    //TextBox31.Text = ListNameCompareSC.Count.ToString();
+                ListNameCompareSC = File.ReadAllLines(DirPathSC + "\\ListNameCompareSC").ToList();
+                ListView31.ItemsSource = ListNameCompareSC;
+                TextBox31.Text = ListNameCompareSC.Count.ToString();
 
-                    ListNameCompare = File.ReadAllLines(DirPath + "\\ListNameCompare").ToList();
+                ListNameCompare = File.ReadAllLines(DirPathSC + "\\ListNameCompare").ToList();
 
-                    ListNameCompareOutCS = File.ReadAllLines(DirPath + "\\ListNameCompareOutCS").ToList();
-                    ListView32.ItemsSource = ListNameCompareOutCS;
+                ListNameCompareOutCS = File.ReadAllLines(DirPathSC + "\\ListNameCompareOutCS").ToList();
+                //ListView32.ItemsSource = ListNameCompareOutCS;
 
-                    ListNameCompareOutSC = File.ReadAllLines(DirPath + "\\ListNameCompareOutSC").ToList();
-                    //ListView32.ItemsSource = ListNameCompareOutSC;
+                ListNameCompareOutSC = File.ReadAllLines(DirPathSC + "\\ListNameCompareOutSC").ToList();
+                ListView32.ItemsSource = ListNameCompareOutSC;
 
-                    BtnLoadIn_Copy.IsEnabled = true;
-                    BtnLoadIn.IsEnabled = true;
-                    BtnCsLoadNameIn.IsEnabled = true;
-                    BtnScLoadNameIn.IsEnabled = true;
-                    ButtonSaveIn1.IsEnabled = true;
-                    ButtonSaveIn2.IsEnabled = false;
-                    BtnLoadOut.IsEnabled = true;
-                    BtnCsLoadNameOut.IsEnabled = true;
-                    BtnScLoadNameOut.IsEnabled = true;
-                    ButtonSaveOut1.IsEnabled = true;
-                    ButtonSaveOut2.IsEnabled = false;
-                    ButtonCsCompare.IsEnabled = true;
-                    ButtonScCompare.IsEnabled = false;
-
-                    _isInCs = true;
-                    _isOutCs = true;
-                    isCompareCS = true;
-                    isCompareSC = false;
-                }
-                else
-                {
-                    ListNameSourceCS = File.ReadAllLines(DirPath + "\\ListNameSourceCS").ToList();
-                    //ListView12.ItemsSource = ListNameSourceCS;
-                    TextBox13.Text = ListNameSourceCS.Count.ToString();
-
-                    ListNameSourceSC = File.ReadAllLines(DirPath + "\\ListNameSourceSC").ToList();
-                    ListView12.ItemsSource = ListNameSourceSC;
-                    TextBox16.Text = ListNameSourceSC.Count.ToString();
-
-                    ListSubSourceCS = File.ReadAllLines(DirPath + "\\ListSubSourceCS").ToList();
-                    //ListView13.ItemsSource = ListSubSourceCS;
-                    TextBox14.Text = ListSubSourceCS.Count.ToString();
-
-                    ListSubSourceSC = File.ReadAllLines(DirPath + "\\ListSubSourceSC").ToList();
-                    ListView13.ItemsSource = ListSubSourceSC;
-                    TextBox17.Text = ListSubSourceSC.Count.ToString();
-
-                    ListOpcodeSourceCS = File.ReadAllLines(DirPath + "\\ListOpcodeSourceCS").ToList();
-                    //ListView14.ItemsSource = ListOpcodeSourceCS;
-                    TextBox16Copy.Text = ListOpcodeSourceCS.Count.ToString();
-
-                    ListOpcodeSourceSC = File.ReadAllLines(DirPath + "\\ListOpcodeSourceSC").ToList();
-                    ListView14.ItemsSource = ListOpcodeSourceSC;
-                    TextBox17Copy.Text = ListOpcodeSourceSC.Count.ToString();
-
-                    ListNameDestinationCS = File.ReadAllLines(DirPath + "\\ListNameDestinationCS").ToList();
-                    //ListView22.ItemsSource = ListNameDestinationCS;
-                    TextBox23.Text = ListNameDestinationCS.Count.ToString();
-
-                    ListNameDestinationSC = File.ReadAllLines(DirPath + "\\ListNameDestinationSC").ToList();
-                    ListView22.ItemsSource = ListNameDestinationSC;
-                    TextBox26.Text = ListNameDestinationSC.Count.ToString();
-
-                    ListSubDestinationCS = File.ReadAllLines(DirPath + "\\ListSubDestinationCS").ToList();
-                    //ListView23.ItemsSource = ListSubDestinationCS;
-                    TextBox24.Text = ListSubDestinationCS.Count.ToString();
-
-                    ListSubDestinationSC = File.ReadAllLines(DirPath + "\\ListSubDestinationSC").ToList();
-                    ListView23.ItemsSource = ListSubDestinationSC;
-                    TextBox27.Text = ListSubDestinationSC.Count.ToString();
-
-                    ListOpcodeDestinationCS = File.ReadAllLines(DirPath + "\\ListOpcodeDestinationCS").ToList();
-                    //ListView24.ItemsSource = ListOpcodeDestinationCS;
-                    //TextBox16Copy1.Text = ListOpcodeDestinationCS.Count.ToString();
-
-                    ListOpcodeDestinationSC = File.ReadAllLines(DirPath + "\\ListOpcodeDestinationSC").ToList();
-                    ListView24.ItemsSource = ListOpcodeDestinationSC;
-                    TextBox16Copy1.Text = ListOpcodeDestinationSC.Count.ToString();
-
-                    ListNameCompareCS = File.ReadAllLines(DirPath + "\\ListNameCompareCS").ToList();
-                    //ListView31.ItemsSource = ListNameCompareCS;
-                    //TextBox31.Text = ListNameCompareCS.Count.ToString();
-
-                    ListNameCompareSC = File.ReadAllLines(DirPath + "\\ListNameCompareSC").ToList();
-                    ListView31.ItemsSource = ListNameCompareSC;
-                    TextBox31.Text = ListNameCompareSC.Count.ToString();
-
-                    ListNameCompare = File.ReadAllLines(DirPath + "\\ListNameCompare").ToList();
-
-                    ListNameCompareOutCS = File.ReadAllLines(DirPath + "\\ListNameCompareOutCS").ToList();
-                    //ListView32.ItemsSource = ListNameCompareOutCS;
-
-                    ListNameCompareOutSC = File.ReadAllLines(DirPath + "\\ListNameCompareOutSC").ToList();
-                    ListView32.ItemsSource = ListNameCompareOutSC;
-
-                    BtnLoadIn_Copy.IsEnabled = true;
-                    BtnLoadIn.IsEnabled = true;
-                    BtnCsLoadNameIn.IsEnabled = true;
-                    BtnScLoadNameIn.IsEnabled = true;
-                    ButtonSaveIn1.IsEnabled = false;
-                    ButtonSaveIn2.IsEnabled = true;
-                    BtnLoadOut.IsEnabled = true;
-                    BtnCsLoadNameOut.IsEnabled = true;
-                    BtnScLoadNameOut.IsEnabled = true;
-                    ButtonSaveOut1.IsEnabled = false;
-                    ButtonSaveOut2.IsEnabled = true;
-                    ButtonCsCompare.IsEnabled = false;
-                    ButtonScCompare.IsEnabled = true;
-
-                    _isInSc = true;
-                    _isOutSc = true;
-                    isCompareCS = false;
-                    isCompareSC = true;
-                }
-
-                string json = File.ReadAllText(DirPath + "\\InUseIn.json");
+                string json = File.ReadAllText(DirPathSC + "\\InUseIn.json");
                 InUseIn = JsonConvert.DeserializeObject<Dictionary<int, int>>(json);
 
-                json = File.ReadAllText(DirPath + "\\InUseOut.json");
+                json = File.ReadAllText(DirPathSC + "\\InUseOut.json");
                 InUseOut = JsonConvert.DeserializeObject<Dictionary<int, int>>(json);
 
-                json = File.ReadAllText(DirPath + "\\IsRenameDestination.json");
+                json = File.ReadAllText(DirPathSC + "\\IsRenameDestination.json");
                 IsRenameDestination = JsonConvert.DeserializeObject<Dictionary<int, bool>>(json);
 
-                json = File.ReadAllText(DirPath + "\\StructureSourceCS.json");
+                json = File.ReadAllText(DirPathSC + "\\StructureSourceCS.json");
                 StructureSourceCS = JsonConvert.DeserializeObject<Dictionary<int, List<string>>>(json);
 
-                json = File.ReadAllText(DirPath + "\\StructureSourceSC.json");
+                json = File.ReadAllText(DirPathSC + "\\StructureSourceSC.json");
                 StructureSourceSC = JsonConvert.DeserializeObject<Dictionary<int, List<string>>>(json);
 
-                json = File.ReadAllText(DirPath + "\\StructureDestinationCS.json");
+                json = File.ReadAllText(DirPathSC + "\\StructureDestinationCS.json");
                 StructureDestinationCS = JsonConvert.DeserializeObject<Dictionary<int, List<string>>>(json);
 
-                json = File.ReadAllText(DirPath + "\\StructureDestinationSC.json");
+                json = File.ReadAllText(DirPathSC + "\\StructureDestinationSC.json");
                 StructureDestinationSC = JsonConvert.DeserializeObject<Dictionary<int, List<string>>>(json);
 
-                json = File.ReadAllText(DirPath + "\\XrefsIn.json");
+                json = File.ReadAllText(DirPathSC + "\\XrefsIn.json");
                 XrefsIn = JsonConvert.DeserializeObject<Dictionary<int, List<string>>>(json);
 
-                json = File.ReadAllText(DirPath + "\\XrefsOut.json");
+                json = File.ReadAllText(DirPathSC + "\\XrefsOut.json");
                 XrefsOut = JsonConvert.DeserializeObject<Dictionary<int, List<string>>>(json);
+
+                BtnLoadIn_Copy.IsEnabled = true;
+                BtnLoadIn.IsEnabled = true;
+                BtnCsLoadNameIn.IsEnabled = true;
+                BtnScLoadNameIn.IsEnabled = true;
+                ButtonSaveIn1.IsEnabled = false;
+                ButtonSaveIn2.IsEnabled = true;
+                BtnLoadOut.IsEnabled = true;
+                BtnCsLoadNameOut.IsEnabled = true;
+                BtnScLoadNameOut.IsEnabled = true;
+                ButtonSaveOut1.IsEnabled = false;
+                ButtonSaveOut2.IsEnabled = true;
+                ButtonCsCompare.IsEnabled = false;
+                ButtonScCompare.IsEnabled = true;
+
+                _isInSc = true;
+                _isOutSc = true;
+                isCompareCS = false;
+                isCompareSC = true;
             }
 
             Label_Semafor1.Background = Brushes.GreenYellow;
             Label_Semafor2.Background = Brushes.GreenYellow;
         }
 
-        public bool SaveSnapshotFileDialog()
-        {
-            var saveSnapshotFileDialog = new SaveFileDialog();
-            saveSnapshotFileDialog.Filter = "X2Game.project File|*.project";
-            saveSnapshotFileDialog.FileName = "X2Game_1200.project";
-            saveSnapshotFileDialog.Title = "Save As Text File";
-            saveSnapshotFileDialog.InitialDirectory = Environment.CurrentDirectory + "\\data\\";
-
-            if (saveSnapshotFileDialog.ShowDialog() == true)
-            {
-                DirPath = saveSnapshotFileDialog.FileName;
-                return true;
-            }
-
-            return false;
-        }
-
-        public bool OpenSnapshotFileDialog()
-        {
-            var openSnapshotFileDialog = new OpenFileDialog
-            {
-                Filter = "Asm File|*.asm",
-                FileName = "New Text Doucment",
-                Title = "Open As Text File"
-            };
-
-            if (openSnapshotFileDialog.ShowDialog() == true)
-            {
-                DirPath = openSnapshotFileDialog.FileName;
-                return true;
-            }
-
-            return false;
-        }
         private void button_EditOutOpcode_Click(object sender, RoutedEventArgs e)
         {
             if (ListView24.SelectedItem != null)
             {
-                ListOpcodeDestinationCS[ListView24.SelectedIndex] = TextBoxEditOutOpcode.Text;
+                if (ButtonCsCompare.IsEnabled)
+                {
+                    ListOpcodeDestinationCS[ListView24.SelectedIndex] = TextBoxEditOutOpcode.Text;
+                }
+                else
+                {
+                    ListOpcodeDestinationSC[ListView24.SelectedIndex] = TextBoxEditOutOpcode.Text;
+                }
                 ListView24.SelectedItem = TextBoxEditOutOpcode.Text;
                 ListView24.Items.Refresh();
             }
@@ -5017,15 +4868,18 @@ namespace NameFinder
 
         private void ListView24_SelectionChanged(object sender, RoutedEventArgs e)
         {
-            TextBoxEditOutOpcode.Text = ListView24.SelectedItem.ToString();
+            if (ListView24.SelectedItem != null)
+            {
+                TextBoxEditOutOpcode.Text = ListView24.SelectedItem.ToString();
 
-            ListView22.SelectedIndex = ListView24.SelectedIndex;
-            ListView22.UpdateLayout();
-            ListView22.ScrollIntoView(ListView22.SelectedItem);
+                ListView22.SelectedIndex = ListView24.SelectedIndex;
+                ListView22.UpdateLayout();
+                ListView22.ScrollIntoView(ListView22.SelectedItem);
 
-            ListView23.SelectedIndex = ListView24.SelectedIndex;
-            ListView23.UpdateLayout();
-            ListView23.ScrollIntoView(ListView23.SelectedItem);
+                ListView23.SelectedIndex = ListView24.SelectedIndex;
+                ListView23.UpdateLayout();
+                ListView23.ScrollIntoView(ListView23.SelectedItem);
+            }
         }
 
         private void ListView14_SelectionChanged(object sender, RoutedEventArgs e)
@@ -5033,12 +4887,12 @@ namespace NameFinder
             ListView12.SelectedIndex = ListView14.SelectedIndex;
             ListView12.UpdateLayout();
             ListView12.ScrollIntoView(ListView12.SelectedItem);
-            
+
             ListView13.SelectedIndex = ListView14.SelectedIndex;
             ListView13.UpdateLayout();
             ListView13.ScrollIntoView(ListView13.SelectedItem);
         }
-        
+
         private void ListView31_SelectionChanged(object sender, RoutedEventArgs e)
         {
             ListView32.SelectedIndex = ListView31.SelectedIndex;
