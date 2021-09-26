@@ -118,7 +118,18 @@ namespace NameFinder
             }
 
             // запишем новое имя на место неизвестного, которое нашли
-            ListNameCompare[IdxD] = ListNameSource[IdxS];
+            // запишем новое имя на место неизвестного, которое нашли
+            // удаляем оконечные опкоды в имени пакета
+            var offset = ListNameSource[IdxS].LastIndexOf("_", StringComparison.Ordinal);
+            if (offset > 0)
+            {
+                var nameSource = ListNameSource[IdxS].Substring(0, offset);
+                ListNameCompare[IdxD] = nameSource;
+            }
+            else
+            {
+                ListNameCompare[IdxD] = ListNameSource[IdxS];
+            }
             // отобразим на форме результаты
             ShowList();
         }
@@ -258,7 +269,7 @@ namespace NameFinder
             // сохраняем в виде файла для внесения опкодов в AAEMU
             var offset = FilePath.LastIndexOf("\\", StringComparison.Ordinal) + 1;
             var name = FilePath.Substring(offset);
-            name = name.Substring(0,name.Length - 3);
+            name = name.Substring(0, name.Length - 3);
             tmp = new List<string>();
             if (name == "CSOffsets")
             {
@@ -281,7 +292,7 @@ namespace NameFinder
             {
                 if (ListOpcodeDestination.Count > 0)
                 {
-                    var lst = "        public const ushort " + ListNameCompare[i] + " = "+ ListOpcodeDestination[i] + ";";
+                    var lst = "        public const ushort " + ListNameCompare[i] + " = " + ListOpcodeDestination[i] + ";";
                     tmp.Add(lst);
                 }
                 else
@@ -318,8 +329,12 @@ namespace NameFinder
         private void ButtonIn2_Click(object sender, RoutedEventArgs e)
         {
             // продублируем в оба списка
-            MainWindow.ListNameCompareCS = new List<string>(ListNameCompare);
-            MainWindow.ListNameCompareSC = new List<string>(ListNameCompare);
+            //MainWindow.ListNameDestinationSC = new List<string>(ListNameCompare);
+            //MainWindow.ListNameDestinationCS = new List<string>(ListNameCompare);
+
+            //MainWindow.ListNameCompareSC = new List<string>(ListNameCompare);
+            //MainWindow.ListNameCompareCS = new List<string>(ListNameCompare);
+
             MainWindow.ListNameCompare = new List<string>(ListNameCompare);
 
             Close();

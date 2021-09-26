@@ -24,8 +24,8 @@
         </ListView>
         <TextBox x:Name="TextBox11" HorizontalAlignment="Left" Height="25" Margin="432,34,0,0" TextWrapping="Wrap" Text="CS_PACKETS_return_0" VerticalAlignment="Top" Width="135"/>
         <TextBox x:Name="TextBox21" HorizontalAlignment="Left" Height="25" Margin="1182,34,0,0" TextWrapping="Wrap" Text="CS_PACKETS_return_0" VerticalAlignment="Top" Width="160"/>
-        <Label x:Name="Label11" Content="Адрес для клиентских пакетов:" HorizontalAlignment="Left" Height="25" Margin="252,30,0,0" VerticalAlignment="Top" Width="180"/>
-        <Label x:Name="Label21" Content="Адрес для клиентских пакетов:" HorizontalAlignment="Left" Height="25" Margin="1002,30,0,0" VerticalAlignment="Top" Width="180"/>
+        <Label x:Name="Label11" Content="Address for client packets:" HorizontalAlignment="Left" Height="25" Margin="278,34,0,0" VerticalAlignment="Top" Width="153"/>
+        <Label x:Name="Label21" Content="Address for client packets:" HorizontalAlignment="Left" Height="25" Margin="1029,34,0,0" VerticalAlignment="Top" Width="152"/>
         <Button x:Name="BtnLoadIn" Content="Load" HorizontalAlignment="Left" Height="30" Margin="122,610,0,0" VerticalAlignment="Top" Width="75" Click="btn_Load_In_Click"/>
         <Button x:Name="BtnCsLoadNameIn" Content="CS" HorizontalAlignment="Left" Height="30" Margin="265,610,0,0" VerticalAlignment="Top" Width="75" Click="btn_CS_Load_Name1_Click" IsEnabled="false"/>
         <ListView x:Name="ListView12" HorizontalAlignment="Left" Height="350" Margin="207,240,0,0" VerticalAlignment="Top" Width="175">
@@ -43,27 +43,27 @@
             </ListView.View>
         </ListView>
         <TextBox x:Name="TextBox12" HorizontalAlignment="Left" Height="25" Margin="432,67,0,0" TextWrapping="Wrap" Text="SC_PACKETS_return_2" VerticalAlignment="Top" Width="135"/>
-        <Label x:Name="Label12" Content="Адрес для серверных пакетов:" HorizontalAlignment="Left" Height="25" Margin="251,63,0,0" VerticalAlignment="Top" Width="180"/>
+        <Label x:Name="Label12" Content="The address for server packets:" HorizontalAlignment="Left" Height="25" Margin="256,67,0,0" VerticalAlignment="Top" Width="176"/>
         <TextBox x:Name="TextBox22" HorizontalAlignment="Left" Height="25" Margin="1182,67,0,0" TextWrapping="Wrap" Text="SC_PACKETS_return_2" VerticalAlignment="Top" Width="160"/>
-        <Label x:Name="Label22" Content="Адрес для серверных пакетов:" HorizontalAlignment="Left" Height="25" Margin="1002,63,0,0" VerticalAlignment="Top" Width="180"/>
-        <Label x:Name="Label13" Content="Всего пакетов:" HorizontalAlignment="Left" Margin="215,100,0,0" VerticalAlignment="Top"/>
+        <Label x:Name="Label22" Content="The address for server packets:" HorizontalAlignment="Left" Height="25" Margin="1007,67,0,0" VerticalAlignment="Top" Width="175"/>
+        <Label x:Name="Label13" Content="Total packets:" HorizontalAlignment="Left" Margin="224,102,0,0" VerticalAlignment="Top"/>
         <TextBox x:Name="TextBox13" HorizontalAlignment="Left" Height="22" Margin="305,104,0,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top" Width="65"/>
-        <Label x:Name="Label14" Content="Структур пакетов:" HorizontalAlignment="Left" Margin="197,135,0,0" VerticalAlignment="Top"/>
+        <Label x:Name="Label14" Content="Packet structures:" HorizontalAlignment="Left" Margin="197,135,0,0" VerticalAlignment="Top"/>
         <TextBox x:Name="TextBox14" HorizontalAlignment="Left" Height="22" Margin="305,139,0,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top" Width="65"/>
-        <Label x:Name="Label16" Content="Всего пакетов:" HorizontalAlignment="Left" Margin="403,100,0,0" VerticalAlignment="Top"/>
+        <Label x:Name="Label16" Content="Total packets:" HorizontalAlignment="Left" Margin="412,102,0,0" VerticalAlignment="Top"/>
         <TextBox x:Name="TextBox16" HorizontalAlignment="Left" Height="22" Margin="493,104,0,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top" Width="65"/>
-        <Label x:Name="Label17" Content="Структур пакетов:" HorizontalAlignment="Left" Margin="385,135,0,0" VerticalAlignment="Top"/>
+        <Label x:Name="Label17" Content="Packet structures:" HorizontalAlignment="Left" Margin="385,135,0,0" VerticalAlignment="Top"/>
         <TextBox x:Name="TextBox17" HorizontalAlignment="Left" Height="22" Margin="493,139,0,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top" Width="65"/>
-        <Label x:Name="Label101" Content="Исходный файл:" HorizontalAlignment="Left" Height="35" Margin="4,212,0,0" VerticalAlignment="Top" Width="211"/>
-        <Label x:Name="Label102" Content="CS|SC:Имена пакетов:" HorizontalAlignment="Left" Height="28" Margin="207,212,0,0" VerticalAlignment="Top" Width="175"/>
-        <Label x:Name="Label103" Content="Адреса структур:" HorizontalAlignment="Left" Height="28" Margin="393,212,0,0" VerticalAlignment="Top" Width="175"/>
-        <Label x:Name="Label15" Content="Затрачено времени:" HorizontalAlignment="Left" Height="25" Margin="-2,175,0,0" VerticalAlignment="Top" Width="125"/>
+        <Label x:Name="Label101" Content="Source file:" HorizontalAlignment="Left" Height="35" Margin="4,212,0,0" VerticalAlignment="Top" Width="211"/>
+        <Label x:Name="Label102" Content="CS|SC:Packet names:" HorizontalAlignment="Left" Height="28" Margin="207,212,0,0" VerticalAlignment="Top" Width="175"/>
+        <Label x:Name="Label103" Content="Addresses of structures:" HorizontalAlignment="Left" Height="28" Margin="393,212,0,0" VerticalAlignment="Top" Width="175"/>
+        <Label x:Name="Label15" Content="Time consuming:" HorizontalAlignment="Left" Height="25" Margin="22,177,0,0" VerticalAlignment="Top" Width="99"/>
         <TextBox x:Name="TextBox15" HorizontalAlignment="Left" Height="21" Margin="121,179,0,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top" Width="65"/>
-        <Label x:Name="Label18" Content="Затрачено времени:" HorizontalAlignment="Left" Height="25" Margin="182,175,0,0" VerticalAlignment="Top" Width="123"/>
+        <Label x:Name="Label18" Content="Time consuming:" HorizontalAlignment="Left" Height="25" Margin="202,177,0,0" VerticalAlignment="Top" Width="103"/>
         <TextBox x:Name="TextBox18" HorizontalAlignment="Left" Height="21" Margin="305,179,0,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top" Width="65"/>
-        <Label x:Name="Label19" Content="Затрачено времени:" HorizontalAlignment="Left" Height="25" Margin="370,175,0,0" VerticalAlignment="Top" Width="123"/>
+        <Label x:Name="Label19" Content="Time consuming:" HorizontalAlignment="Left" Height="25" Margin="393,177,0,0" VerticalAlignment="Top" Width="100"/>
         <TextBox x:Name="TextBox19" HorizontalAlignment="Left" Height="21" Margin="493,179,0,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top" Width="65"/>
-        <Label x:Name="Label201" Content="Исходный файл:" HorizontalAlignment="Left" Height="35" Margin="761,212,0,0" VerticalAlignment="Top" Width="211"/>
+        <Label x:Name="Label201" Content="Source file:" HorizontalAlignment="Left" Height="35" Margin="761,212,0,0" VerticalAlignment="Top" Width="211"/>
         <Button x:Name="BtnScLoadNameOut" Content="SC" HorizontalAlignment="Left" Height="30" Margin="1223,610,0,0" VerticalAlignment="Top" Width="75" Click="btn_SC_Load_Name2_Click" IsEnabled="false"/>
         <ListView x:Name="ListView23" HorizontalAlignment="Left" Height="350" Margin="1172,240,0,0" VerticalAlignment="Top" Width="175">
             <ListView.View>
@@ -81,21 +81,21 @@
                 </GridView>
             </ListView.View>
         </ListView>
-        <Label x:Name="Label202" Content="CS|SC:Имена пакетов:" HorizontalAlignment="Left" Height="28" Margin="986,212,0,0" VerticalAlignment="Top" Width="175"/>
-        <Label x:Name="Label203" Content="Адреса структур:" HorizontalAlignment="Left" Height="28" Margin="1176,212,0,0" VerticalAlignment="Top" Width="175"/>
-        <Label x:Name="Label23" Content="Всего пакетов:" HorizontalAlignment="Left" Margin="999,100,0,0" VerticalAlignment="Top"/>
+        <Label x:Name="Label202" Content="CS|SC Packet names:" HorizontalAlignment="Left" Height="28" Margin="986,212,0,0" VerticalAlignment="Top" Width="175"/>
+        <Label x:Name="Label203" Content="Addresses of structures:" HorizontalAlignment="Left" Height="28" Margin="1176,212,0,0" VerticalAlignment="Top" Width="175"/>
+        <Label x:Name="Label23" Content="Total packets:" HorizontalAlignment="Left" Margin="1008,102,0,0" VerticalAlignment="Top"/>
         <TextBox x:Name="TextBox23" HorizontalAlignment="Left" Height="22" Margin="1089,104,0,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top" Width="65"/>
-        <Label x:Name="Label24" Content="Структур пакетов:" HorizontalAlignment="Left" Margin="981,135,0,0" VerticalAlignment="Top"/>
+        <Label x:Name="Label24" Content="Packet structures:" HorizontalAlignment="Left" Margin="987,137,0,0" VerticalAlignment="Top"/>
         <TextBox x:Name="TextBox24" HorizontalAlignment="Left" Height="22" Margin="1089,139,0,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top" Width="65"/>
-        <Label x:Name="Label26" Content="Всего пакетов:" HorizontalAlignment="Left" Margin="1188,100,0,0" VerticalAlignment="Top"/>
+        <Label x:Name="Label26" Content="Total packets:" HorizontalAlignment="Left" Margin="1198,102,0,0" VerticalAlignment="Top"/>
         <TextBox x:Name="TextBox26" HorizontalAlignment="Left" Height="22" Margin="1279,104,0,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top" Width="65"/>
-        <Label x:Name="Label27" Content="Структур пакетов:" HorizontalAlignment="Left" Margin="1171,135,0,0" VerticalAlignment="Top"/>
+        <Label x:Name="Label27" Content="Packet structures:" HorizontalAlignment="Left" Margin="1177,137,0,0" VerticalAlignment="Top"/>
         <TextBox x:Name="TextBox27" HorizontalAlignment="Left" Height="22" Margin="1279,139,0,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top" Width="65"/>
-        <Label x:Name="Label25" Content="Затрачено времени:" HorizontalAlignment="Left" Height="25" Margin="765,175,0,0" VerticalAlignment="Top" Width="125"/>
+        <Label x:Name="Label25" Content="Time consuming:" HorizontalAlignment="Left" Height="25" Margin="788,177,0,0" VerticalAlignment="Top" Width="100"/>
         <TextBox x:Name="TextBox25" HorizontalAlignment="Left" Height="21" Margin="888,179,0,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top" Width="65"/>
-        <Label x:Name="Label28" Content="Затрачено времени:" HorizontalAlignment="Left" Height="25" Margin="966,175,0,0" VerticalAlignment="Top" Width="125"/>
+        <Label x:Name="Label28" Content="Time consuming:" HorizontalAlignment="Left" Height="25" Margin="991,177,0,0" VerticalAlignment="Top" Width="99"/>
         <TextBox x:Name="TextBox28" HorizontalAlignment="Left" Height="21" Margin="1090,179,0,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top" Width="65"/>
-        <Label x:Name="Label29" Content="Затрачено времени:" HorizontalAlignment="Left" Height="25" Margin="1156,175,0,0" VerticalAlignment="Top" Width="125"/>
+        <Label x:Name="Label29" Content="Time consuming:" HorizontalAlignment="Left" Height="25" Margin="1180,177,0,0" VerticalAlignment="Top" Width="99"/>
         <TextBox x:Name="TextBox29" HorizontalAlignment="Left" Height="21" Margin="1279,179,0,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top" Width="65"/>
         <Button x:Name="ButtonCopy2" Content="SC Offset" HorizontalAlignment="Left" Height="30" Margin="1785,670,0,0" VerticalAlignment="Top" Width="75" Click="button_Copy2_Click" IsEnabled="false"/>
         <Button x:Name="Button2Copy2" Content="CS Offset" HorizontalAlignment="Left" Height="30" Margin="1584,670,0,0" VerticalAlignment="Top" Width="75" Click="button2_Copy2_Click" IsEnabled="false"/>
@@ -113,24 +113,24 @@
                 </GridView>
             </ListView.View>
         </ListView>
-        <Label x:Name="Label301" Content="CS|SC:Имена пакетов[было]" HorizontalAlignment="Left" Height="28" Margin="1540,212,0,0" VerticalAlignment="Top" Width="175"/>
-        <Label x:Name="Label302" Content="CS|SC:Имена пакетов[итог]" HorizontalAlignment="Left" Height="28" Margin="1736,212,0,0" VerticalAlignment="Top" Width="175"/>
+        <Label x:Name="Label301" Content="CS|SC Packet names[was]:" HorizontalAlignment="Left" Height="28" Margin="1540,212,0,0" VerticalAlignment="Top" Width="175"/>
+        <Label x:Name="Label302" Content="CS|SC Packet names[Summary]:" HorizontalAlignment="Left" Height="28" Margin="1736,212,0,0" VerticalAlignment="Top" Width="175"/>
         <Button x:Name="ButtonScCompare" Content="SC Compare" HorizontalAlignment="Left" Height="30" Margin="1785,610,0,0" VerticalAlignment="Top" Width="75" Click="button_Copy1_Click" IsEnabled="false"/>
         <Button x:Name="ButtonCsCompare" Content="CS Compare" HorizontalAlignment="Left" Height="30" Margin="1584,610,0,0" VerticalAlignment="Top" Width="75" Click="button2_Copy1_Click" IsEnabled="false"/>
 
-        <TextBox x:Name="TextBoxPathIn" HorizontalAlignment="Left" Height="25" Margin="11,676,0,0" TextWrapping="Wrap" Text="Выбери файл с исходными данными" VerticalAlignment="Top" Width="1088"/>
-        <TextBox x:Name="TextBoxPathOut" HorizontalAlignment="Left" Height="25" Margin="10,728,0,0" TextWrapping="Wrap" Text="Выбери файл с исходными данными" VerticalAlignment="Top" Width="1089"/>
-        <Label x:Name="LabelPathIn" Content="Путь к файлу с известными именами:" HorizontalAlignment="Left" Height="26" Margin="11,645,0,0" VerticalAlignment="Top" Width="234"/>
-        <Label x:Name="LabelPathOut" Content="Путь к файлу без имён:" HorizontalAlignment="Left" Height="26" Margin="11,701,0,0" VerticalAlignment="Top" Width="234"/>
+        <TextBox x:Name="TextBoxPathIn" HorizontalAlignment="Left" Height="25" Margin="11,676,0,0" TextWrapping="Wrap" Text="Select the raw data file" VerticalAlignment="Top" Width="1088"/>
+        <TextBox x:Name="TextBoxPathOut" HorizontalAlignment="Left" Height="25" Margin="10,728,0,0" TextWrapping="Wrap" Text="Select the raw data file" VerticalAlignment="Top" Width="1089"/>
+        <Label x:Name="LabelPathIn" Content="Path to a file with known names:" HorizontalAlignment="Left" Height="26" Margin="11,645,0,0" VerticalAlignment="Top" Width="182"/>
+        <Label x:Name="LabelPathOut" Content="File path without names:" HorizontalAlignment="Left" Height="26" Margin="11,701,0,0" VerticalAlignment="Top" Width="144"/>
         <ProgressBar x:Name="ProgressBar12" HorizontalAlignment="Left" Height="10" Margin="393,595,0,0" VerticalAlignment="Top" Width="175"/>
         <ProgressBar x:Name="ProgressBar22" HorizontalAlignment="Left" Height="10" Margin="1172,595,0,0" VerticalAlignment="Top" Width="175"/>
-        <CheckBox x:Name="CheckBoxFindOpcodeOut" Content="Искать опкоды" HorizontalAlignment="Left" Margin="1425,67,0,0" VerticalAlignment="Top" Checked="checkBox_Checked_In" IsChecked="true"/>
-        <CheckBox x:Name="CheckBoxFindOpcodeIn" Content="Искать опкоды" HorizontalAlignment="Left" Margin="643,69,0,0" VerticalAlignment="Top" Checked="checkBox_Checked_Out"/>
-        <Label x:Name="Label16Copy" Content="Всего опкодов:" HorizontalAlignment="Left" Margin="587,100,0,0" VerticalAlignment="Top"/>
+        <CheckBox x:Name="CheckBoxFindOpcodeOut" Content="Search opcodes" HorizontalAlignment="Left" Margin="1425,67,0,0" VerticalAlignment="Top" Checked="checkBox_Checked_In" IsChecked="true"/>
+        <CheckBox x:Name="CheckBoxFindOpcodeIn" Content="Search opcodes" HorizontalAlignment="Left" Margin="643,69,0,0" VerticalAlignment="Top" Checked="checkBox_Checked_Out"/>
+        <Label x:Name="Label16Copy" Content="Total opcodes:" HorizontalAlignment="Left" Margin="595,102,0,0" VerticalAlignment="Top"/>
         <TextBox x:Name="TextBox16Copy" HorizontalAlignment="Left" Height="22" Margin="681,104,0,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top" Width="65"/>
-        <Label x:Name="Label17Copy" Content="Не найдено:" HorizontalAlignment="Left" Margin="603,135,0,0" VerticalAlignment="Top"/>
+        <Label x:Name="Label17Copy" Content="Not found:" HorizontalAlignment="Left" Margin="614,137,0,0" VerticalAlignment="Top"/>
         <TextBox x:Name="TextBox17Copy" HorizontalAlignment="Left" Height="22" Margin="681,139,0,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top" Width="65"/>
-        <Label x:Name="Label19Copy" Content="Затрачено времени:" HorizontalAlignment="Left" Height="25" Margin="558,175,0,0" VerticalAlignment="Top" Width="122"/>
+        <Label x:Name="Label19Copy" Content="Time consuming:" HorizontalAlignment="Left" Height="25" Margin="579,177,0,0" VerticalAlignment="Top" Width="102"/>
         <TextBox x:Name="TextBox19Copy" HorizontalAlignment="Left" Height="21" Margin="681,179,0,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top" Width="65"/>
         <ListView x:Name="ListView14" HorizontalAlignment="Left" Height="350" Margin="575,240,0,0" VerticalAlignment="Top" Width="175" SelectionChanged="ListView14_SelectionChanged">
             <ListView.View>
@@ -139,12 +139,12 @@
                 </GridView>
             </ListView.View>
         </ListView>
-        <Label x:Name="Label103Copy" Content="Найденные опкоды:" HorizontalAlignment="Left" Height="28" Margin="575,212,0,0" VerticalAlignment="Top" Width="175"/>
-        <Label x:Name="Label16Copy1" Content="Всего опкодов:" HorizontalAlignment="Left" Margin="1369,100,0,0" VerticalAlignment="Top"/>
+        <Label x:Name="Label103Copy" Content="Opcodes found:" HorizontalAlignment="Left" Height="28" Margin="575,212,0,0" VerticalAlignment="Top" Width="175"/>
+        <Label x:Name="Label16Copy1" Content="Total opcodes:" HorizontalAlignment="Left" Margin="1377,102,0,0" VerticalAlignment="Top"/>
         <TextBox x:Name="TextBox16Copy1" HorizontalAlignment="Left" Height="22" Margin="1463,104,0,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top" Width="65"/>
-        <Label x:Name="Label17Copy1" Content="Не найдено:" HorizontalAlignment="Left" Margin="1385,135,0,0" VerticalAlignment="Top"/>
+        <Label x:Name="Label17Copy1" Content="Not found:" HorizontalAlignment="Left" Margin="1396,137,0,0" VerticalAlignment="Top"/>
         <TextBox x:Name="TextBox17Copy1" HorizontalAlignment="Left" Height="22" Margin="1463,139,0,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top" Width="65"/>
-        <Label x:Name="Label19Copy1" Content="Затрачено времени:" HorizontalAlignment="Left" Height="25" Margin="1340,175,0,0" VerticalAlignment="Top" Width="122"/>
+        <Label x:Name="Label19Copy1" Content="Time consuming:" HorizontalAlignment="Left" Height="25" Margin="1363,177,0,0" VerticalAlignment="Top" Width="100"/>
         <TextBox x:Name="TextBox19Copy1" HorizontalAlignment="Left" Height="21" Margin="1463,179,0,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top" Width="65"/>
         <ListView x:Name="ListView24" HorizontalAlignment="Left" Height="350" Margin="1357,240,0,0" VerticalAlignment="Top" Width="175" SelectionChanged="ListView24_SelectionChanged">
             <ListView.View>
@@ -153,7 +153,7 @@
                 </GridView>
             </ListView.View>
         </ListView>
-        <Label x:Name="Label204" Content="Найденные опкоды:" HorizontalAlignment="Left" Height="28" Margin="1357,212,0,0" VerticalAlignment="Top" Width="175"/>
+        <Label x:Name="Label204" Content="Opcodes found:" HorizontalAlignment="Left" Height="28" Margin="1357,212,0,0" VerticalAlignment="Top" Width="175"/>
         <ProgressBar x:Name="ProgressBar11" HorizontalAlignment="Left" Height="10" Margin="207,595,0,0" VerticalAlignment="Top" Width="175"/>
         <ProgressBar x:Name="ProgressBar13" HorizontalAlignment="Left" Height="10" Margin="575,595,0,0" VerticalAlignment="Top" Width="175"/>
         <ProgressBar x:Name="ProgressBar21" HorizontalAlignment="Left" Height="10" Margin="986,595,0,0" VerticalAlignment="Top" Width="175"/>
@@ -162,19 +162,19 @@
         <Button x:Name="ButtonSaveIn2" Content="Save SC" HorizontalAlignment="Left" Height="30" Margin="675,610,0,0" VerticalAlignment="Top" Width="75" Click="button_In_Save_SCOpcode_Click" IsEnabled="false"/>
         <Button x:Name="ButtonSaveOut1" Content="Save CS" HorizontalAlignment="Left" Height="30" Margin="1358,610,0,0" VerticalAlignment="Top" Width="75" Click="button_Out_Save_CSOpcode_Click" IsEnabled="false"/>
         <Button x:Name="ButtonSaveOut2" Content="Save SC" HorizontalAlignment="Left" Height="30" Margin="1458,610,0,0" VerticalAlignment="Top" Width="75" Click="button_Out_Save_SCOpcode_Click" IsEnabled="false"/>
-        <Label x:Name="Label31" Content="Всего пакетов:" HorizontalAlignment="Left" Margin="1750,100,0,0" VerticalAlignment="Top"/>
+        <Label x:Name="Label31" Content="Total packets:" HorizontalAlignment="Left" Margin="1762,102,0,0" VerticalAlignment="Top"/>
         <TextBox x:Name="TextBox31" HorizontalAlignment="Left" Height="22" Margin="1844,104,0,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top" Width="65"/>
-        <Label x:Name="Label32" Content="Не найдено:" HorizontalAlignment="Left" Margin="1766,135,0,0" VerticalAlignment="Top"/>
+        <Label x:Name="Label32" Content="Not found:" HorizontalAlignment="Left" Margin="1776,137,0,0" VerticalAlignment="Top"/>
         <TextBox x:Name="TextBox32" HorizontalAlignment="Left" Height="22" Margin="1844,139,0,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top" Width="65"/>
-        <Label x:Name="Label33" Content="Затрачено времени:" HorizontalAlignment="Left" Height="25" Margin="1721,175,0,0" VerticalAlignment="Top" Width="125"/>
+        <Label x:Name="Label33" Content="Time consuming:" HorizontalAlignment="Left" Height="25" Margin="1745,177,0,0" VerticalAlignment="Top" Width="99"/>
         <TextBox x:Name="TextBox33" HorizontalAlignment="Left" Height="21" Margin="1844,179,0,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top" Width="65"/>
-        <CheckBox x:Name="CheckBoxCompareManual" Content="Сравнивать структуры вручную" HorizontalAlignment="Left" Margin="1710,67,0,0" VerticalAlignment="Top" Checked="checkBox_Checked_In" Width="197" IsChecked="true"/>
+        <CheckBox x:Name="CheckBoxCompareManual" Content="Compare structures manually" HorizontalAlignment="Left" Margin="1710,67,0,0" VerticalAlignment="Top" Checked="checkBox_Checked_In" Width="197" IsChecked="true"/>
         <Button x:Name="ButtonCopy2_Copy" Content="SC Struct" HorizontalAlignment="Left" Height="30" Margin="1785,722,0,0" VerticalAlignment="Top" Width="75" Click="button_SaveStructSC_Click" IsEnabled="false"/>
         <Button x:Name="Button2Copy2_Copy" Content="CS Struct" HorizontalAlignment="Left" Height="30" Margin="1584,723,0,0" VerticalAlignment="Top" Width="75" Click="button_SaveStructCS_Click" IsEnabled="false"/>
-        <CheckBox x:Name="CheckBoxFindStructIn" Content="Искать структуры" HorizontalAlignment="Left" Margin="643,49,0,0" VerticalAlignment="Top" IsChecked="True"/>
-        <CheckBox x:Name="CheckBoxFindStructOut" Content="Искать структуры" HorizontalAlignment="Left" Margin="1425,47,0,0" VerticalAlignment="Top" Checked="checkBox_Checked_In" IsChecked="true"/>
-        <CheckBox x:Name="CheckBoxCleaningIn" Content="Чистить исходник" HorizontalAlignment="Left" Margin="68,141,0,0" VerticalAlignment="Top" IsChecked="False"/>
-        <CheckBox x:Name="CheckBoxCleaningOut" Content="Чистить исходник" HorizontalAlignment="Left" Margin="835,141,0,0" VerticalAlignment="Top" IsChecked="False"/>
+        <CheckBox x:Name="CheckBoxFindStructIn" Content="Looking for structures" HorizontalAlignment="Left" Margin="643,49,0,0" VerticalAlignment="Top" IsChecked="True"/>
+        <CheckBox x:Name="CheckBoxFindStructOut" Content="Looking for structures" HorizontalAlignment="Left" Margin="1425,47,0,0" VerticalAlignment="Top" Checked="checkBox_Checked_In" IsChecked="true"/>
+        <CheckBox x:Name="CheckBoxCleaningIn" Content="Clean up the source" HorizontalAlignment="Left" Margin="68,141,0,0" VerticalAlignment="Top" IsChecked="False"/>
+        <CheckBox x:Name="CheckBoxCleaningOut" Content="Clean up the source" HorizontalAlignment="Left" Margin="835,141,0,0" VerticalAlignment="Top" IsChecked="False"/>
         <Label x:Name="Label_Semafor1" Content="" HorizontalAlignment="Left" Margin="40,47,0,0" VerticalAlignment="Top" Height="58" Background="Red" Width="58"/>
         <Label x:Name="Label_Semafor2" Content="" HorizontalAlignment="Left" Margin="820,47,0,0" VerticalAlignment="Top" Height="58" Background="Red" Width="58"/>
         <Button x:Name="BtnLoadIn_Copy" Content="PreClear" HorizontalAlignment="Left" Height="30" Margin="23,610,0,0" VerticalAlignment="Top" Width="75" Click="btn_CS_Clear_Click"/>
@@ -183,5 +183,6 @@
         <Button x:Name="BtnLoadSnapshotSC" Content="Load Snapshot SC" HorizontalAlignment="Left" Height="60" Margin="1364,693,0,0" VerticalAlignment="Top" Width="100" Click="btn_LoadSnapshotSC_Click"/>
         <Button x:Name="ButtonEditOutOpcode" Content="Set Opcode" HorizontalAlignment="Left" Height="30" Margin="1457,645,0,0" VerticalAlignment="Top" Width="75" Click="button_EditOutOpcode_Click" IsEnabled="True"/>
         <TextBox x:Name="TextBoxEditOutOpcode" HorizontalAlignment="Left" Height="21" Margin="1358,651,0,0" TextWrapping="Wrap" Text="0x000" VerticalAlignment="Top" Width="75"/>
+        <CheckBox x:Name="CheckBoxRemoveOpcode" Content="Remove opcodes in packet name" HorizontalAlignment="Left" Margin="1710,47,0,0" VerticalAlignment="Top" Checked="checkBox_Checked_In" Width="197" IsChecked="true"/>
     </Grid>
 </Window>
