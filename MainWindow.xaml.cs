@@ -3406,6 +3406,8 @@ namespace NameFinder
             //_isOutSc = false;
             _isInCs = false;
             //_isOutCs = false;
+            isCompareCS = false;
+            isCompareSC = false;
 
             new Thread(() =>
             {
@@ -3469,6 +3471,8 @@ namespace NameFinder
             //_isOutSc = false;
             _isInCs = false;
             //_isOutCs = false;
+            isCompareCS = false;
+            isCompareSC = false;
 
             new Thread(() =>
             {
@@ -3557,6 +3561,8 @@ namespace NameFinder
             _isOutSc = false;
             // = false;
             _isOutCs = false;
+            isCompareCS = false;
+            isCompareSC = false;
 
             new Thread(() =>
             {
@@ -3585,6 +3591,8 @@ namespace NameFinder
             _isOutSc = false;
             //_isInCs = false;
             _isOutCs = false;
+            isCompareCS = false;
+            isCompareSC = false;
 
             new Thread(() =>
             {
@@ -3712,7 +3720,24 @@ namespace NameFinder
                                     }
 
                                     // запишем новое имя на место неизвестного, которое нашли
-                                    ListNameCompareCS[IdxD] = listNameSource[IdxS];
+                                    if (CheckBoxRemoveOpcode.IsChecked == true)
+                                    {
+                                        // удаляем оконечные опкоды в имени пакета
+                                        var offset = listNameSource[IdxS].LastIndexOf("_", StringComparison.Ordinal);
+                                        if (offset > 0)
+                                        {
+                                            var nameSource = listNameSource[IdxS].Substring(0, offset);
+                                            ListNameCompareCS[IdxD] = nameSource;
+                                        }
+                                        else
+                                        {
+                                            ListNameCompareCS[IdxD] = listNameSource[IdxS];
+                                        }
+                                    }
+                                    else
+                                    {
+                                        ListNameCompareCS[IdxD] = listNameSource[IdxS];
+                                    }
 
                                     repeat = false; // болше не повторять поиск
                                 }
@@ -3855,7 +3880,24 @@ namespace NameFinder
                                     }
 
                                     // запишем новое имя на место неизвестного, которое нашли
-                                    ListNameCompareSC[IdxD] = listNameSource[IdxS];
+                                    if (CheckBoxRemoveOpcode.IsChecked == true)
+                                    {
+                                        // удаляем оконечные опкоды в имени пакета
+                                        var offset = listNameSource[IdxS].LastIndexOf("_", StringComparison.Ordinal);
+                                        if (offset > 0)
+                                        {
+                                            var nameSource = listNameSource[IdxS].Substring(0, offset);
+                                            ListNameCompareSC[IdxD] = nameSource;
+                                        }
+                                        else
+                                        {
+                                            ListNameCompareSC[IdxD] = listNameSource[IdxS];
+                                        }
+                                    }
+                                    else
+                                    {
+                                        ListNameCompareSC[IdxD] = listNameSource[IdxS];
+                                    }
 
                                     repeat = false; // болше не повторять поиск
                                 }
@@ -3889,8 +3931,7 @@ namespace NameFinder
             if (!isCompareCS)
             {
                 // результат работы метода в ListNameCompareCS
-                CompareSourceStructuresCS(ref ListNameSourceCS, ref ListNameDestinationCS, ref ListSubDestinationCS,
-                    ref StructureSourceCS, ref StructureDestinationCS, ListOpcodeDestinationCS);
+                CompareSourceStructuresCS(ref ListNameSourceCS, ref ListNameDestinationCS, ref ListSubDestinationCS, ref StructureSourceCS, ref StructureDestinationCS, ListOpcodeDestinationCS);
                 // сравнение пакетов проведено
                 isCompareCS = true;
             }
@@ -3905,9 +3946,7 @@ namespace NameFinder
             {
                 var compareWindow = new CompareWindow();
                 compareWindow.Show();
-                compareWindow.CompareSourceStructures(ref ListNameSourceCS, ref ListNameDestinationCS,
-                    ref ListNameCompareCS, ref ListSubDestinationCS, ref StructureSourceCS, ref StructureDestinationCS,
-                    ListOpcodeDestinationCS);
+                compareWindow.CompareSourceStructures(ref ListNameSourceCS, ref ListNameDestinationCS, ref ListNameCompareCS, ref ListSubDestinationCS, ref StructureSourceCS, ref StructureDestinationCS, ListOpcodeDestinationCS);
             }
 
             ListNameCompareOutCS = new List<string>();
@@ -3916,17 +3955,19 @@ namespace NameFinder
             {
                 if (ListOpcodeDestinationCS.Count > 0)
                 {
-                    ListNameCompareOutCS.Add(t + " " + ListOpcodeDestinationCS[idxD]);
+                    ListNameCompareOutCS.Add(t + "_" + ListOpcodeDestinationCS[idxD]);
                 }
                 else
                 {
-                    ListNameCompareOutCS.Add(t + " " + "0xfff");
+                    ListNameCompareOutCS.Add(t + "_" + "0xfff");
                 }
 
                 idxD++;
             }
 
             ListView32.ItemsSource = ListNameCompareOutCS;
+            ListNameDestinationCS = ListNameCompareOutCS;
+            ListView22.ItemsSource = ListNameDestinationCS;
             Button2Copy2.IsEnabled = true;
             Button2Copy2_Copy.IsEnabled = true;
         }
@@ -3961,17 +4002,19 @@ namespace NameFinder
             {
                 if (ListOpcodeDestinationSC.Count > 0)
                 {
-                    ListNameCompareOutSC.Add(t + " " + ListOpcodeDestinationSC[idxD]);
+                    ListNameCompareOutSC.Add(t + "_" + ListOpcodeDestinationSC[idxD]);
                 }
                 else
                 {
-                    ListNameCompareOutSC.Add(t + " " + "0xfff");
+                    ListNameCompareOutSC.Add(t + "_" + "0xfff");
                 }
 
                 idxD++;
             }
 
             ListView32.ItemsSource = ListNameCompareOutSC;
+            ListNameDestinationSC = ListNameCompareOutSC;
+            ListView22.ItemsSource = ListNameDestinationSC;
             ButtonCopy2.IsEnabled = true;
             ButtonCopy2_Copy.IsEnabled = true;
         }
@@ -4467,24 +4510,24 @@ namespace NameFinder
                     File.WriteAllLines(DirPath + "\\InListDestination", InListDestination);
                     
                     File.WriteAllLines(DirPathCS + "\\ListNameSourceCS", ListNameSourceCS);
-                    File.WriteAllLines(DirPathCS + "\\ListNameSourceSC", new List<string>());
+                    File.WriteAllLines(DirPathCS + "\\ListNameSourceSC", ListNameSourceSC);
                     File.WriteAllLines(DirPathCS + "\\ListSubSourceCS", ListSubSourceCS);
-                    File.WriteAllLines(DirPathCS + "\\ListSubSourceSC", new List<string>());
+                    File.WriteAllLines(DirPathCS + "\\ListSubSourceSC", ListSubSourceSC);
                     File.WriteAllLines(DirPathCS + "\\ListOpcodeSourceCS", ListOpcodeSourceCS);
-                    File.WriteAllLines(DirPathCS + "\\ListOpcodeSourceSC", new List<string>());
+                    File.WriteAllLines(DirPathCS + "\\ListOpcodeSourceSC", ListOpcodeSourceSC);
 
                     File.WriteAllLines(DirPathCS + "\\ListNameDestinationCS", ListNameDestinationCS);
-                    File.WriteAllLines(DirPathCS + "\\ListNameDestinationSC", new List<string>());
+                    File.WriteAllLines(DirPathCS + "\\ListNameDestinationSC", ListNameDestinationSC);
                     File.WriteAllLines(DirPathCS + "\\ListSubDestinationCS", ListSubDestinationCS);
-                    File.WriteAllLines(DirPathCS + "\\ListSubDestinationSC", new List<string>());
+                    File.WriteAllLines(DirPathCS + "\\ListSubDestinationSC", ListSubDestinationSC);
                     File.WriteAllLines(DirPathCS + "\\ListOpcodeDestinationCS", ListOpcodeDestinationCS);
-                    File.WriteAllLines(DirPathCS + "\\ListOpcodeDestinationSC", new List<string>());
+                    File.WriteAllLines(DirPathCS + "\\ListOpcodeDestinationSC", ListOpcodeDestinationSC);
 
                     File.WriteAllLines(DirPathCS + "\\ListNameCompareCS", ListNameCompareCS);
-                    File.WriteAllLines(DirPathCS + "\\ListNameCompareSC", new List<string>());
+                    File.WriteAllLines(DirPathCS + "\\ListNameCompareSC", ListNameCompareSC);
 
                     File.WriteAllLines(DirPathCS + "\\ListNameCompareOutCS", ListNameCompareOutCS);
-                    File.WriteAllLines(DirPathCS + "\\ListNameCompareOutSC", new List<string>());
+                    File.WriteAllLines(DirPathCS + "\\ListNameCompareOutSC", ListNameCompareOutSC);
                     File.WriteAllLines(DirPathCS + "\\ListNameCompare", ListNameCompare);
 
                     string json = JsonConvert.SerializeObject(InUseIn, Formatting.Indented);
@@ -4513,6 +4556,9 @@ namespace NameFinder
 
                     json = JsonConvert.SerializeObject(XrefsOut, Formatting.Indented);
                     File.WriteAllText(DirPathCS + "\\XrefsOut.json", json);
+                    
+                    isCompareCS = true;
+                    isCompareSC = false;
                 }
                 else
                 {
@@ -4522,24 +4568,24 @@ namespace NameFinder
                     File.WriteAllLines(DirPath + "\\InListSource", InListSource);
                     File.WriteAllLines(DirPath + "\\InListDestination", InListDestination);
 
-                    File.WriteAllLines(DirPathSC + "\\ListNameSourceCS", new List<string>());
+                    File.WriteAllLines(DirPathSC + "\\ListNameSourceCS", ListNameSourceCS);
                     File.WriteAllLines(DirPathSC + "\\ListNameSourceSC", ListNameSourceSC);
-                    File.WriteAllLines(DirPathSC + "\\ListSubSourceCS", new List<string>());
+                    File.WriteAllLines(DirPathSC + "\\ListSubSourceCS", ListSubSourceCS);
                     File.WriteAllLines(DirPathSC + "\\ListSubSourceSC", ListSubSourceSC);
-                    File.WriteAllLines(DirPathSC + "\\ListOpcodeSourceCS", new List<string>());
+                    File.WriteAllLines(DirPathSC + "\\ListOpcodeSourceCS", ListOpcodeSourceCS);
                     File.WriteAllLines(DirPathSC + "\\ListOpcodeSourceSC", ListOpcodeSourceSC);
 
-                    File.WriteAllLines(DirPathSC + "\\ListNameDestinationCS", new List<string>());
+                    File.WriteAllLines(DirPathSC + "\\ListNameDestinationCS", ListNameDestinationCS);
                     File.WriteAllLines(DirPathSC + "\\ListNameDestinationSC", ListNameDestinationSC);
-                    File.WriteAllLines(DirPathSC + "\\ListSubDestinationCS", new List<string>());
+                    File.WriteAllLines(DirPathSC + "\\ListSubDestinationCS", ListSubDestinationCS);
                     File.WriteAllLines(DirPathSC + "\\ListSubDestinationSC", ListSubDestinationSC);
-                    File.WriteAllLines(DirPathSC + "\\ListOpcodeDestinationCS", new List<string>());
+                    File.WriteAllLines(DirPathSC + "\\ListOpcodeDestinationCS", ListOpcodeDestinationCS);
                     File.WriteAllLines(DirPathSC + "\\ListOpcodeDestinationSC", ListOpcodeDestinationSC);
 
-                    File.WriteAllLines(DirPathSC + "\\ListNameCompareCS", new List<string>());
+                    File.WriteAllLines(DirPathSC + "\\ListNameCompareCS", ListNameCompareCS);
                     File.WriteAllLines(DirPathSC + "\\ListNameCompareSC", ListNameCompareSC);
 
-                    File.WriteAllLines(DirPathSC + "\\ListNameCompareOutCS", new List<string>());
+                    File.WriteAllLines(DirPathSC + "\\ListNameCompareOutCS", ListNameCompareOutCS);
                     File.WriteAllLines(DirPathSC + "\\ListNameCompareOutSC", ListNameCompareOutSC);
                     File.WriteAllLines(DirPathSC + "\\ListNameCompare", ListNameCompare);
 
@@ -4569,13 +4615,14 @@ namespace NameFinder
 
                     json = JsonConvert.SerializeObject(XrefsOut, Formatting.Indented);
                     File.WriteAllText(DirPathSC + "\\XrefsOut.json", json);
+
+                    isCompareCS = false;
+                    isCompareSC = true;
                 }
             }
 
             stopWatch.Stop();
             TextBox15.Text = stopWatch.Elapsed.ToString();
-            isCompareCS = true;
-            isCompareSC = true;
             Label_Semafor1.Background = Brushes.GreenYellow;
             Label_Semafor2.Background = Brushes.GreenYellow;
         }
@@ -4623,7 +4670,7 @@ namespace NameFinder
 
                 ListOpcodeSourceSC = File.ReadAllLines(DirPathCS + "\\ListOpcodeSourceSC").ToList();
                 //ListView14.ItemsSource = ListOpcodeSourceSC;
-                TextBox17Copy.Text = ListOpcodeSourceSC.Count.ToString();
+                //TextBox16Copy.Text = ListOpcodeSourceSC.Count.ToString();
 
                 ListNameDestinationCS = File.ReadAllLines(DirPathCS + "\\ListNameDestinationCS").ToList();
                 ListView22.ItemsSource = ListNameDestinationCS;
@@ -4752,11 +4799,11 @@ namespace NameFinder
 
                 ListOpcodeSourceCS = File.ReadAllLines(DirPathSC + "\\ListOpcodeSourceCS").ToList();
                 //ListView14.ItemsSource = ListOpcodeSourceCS;
-                TextBox16Copy.Text = ListOpcodeSourceCS.Count.ToString();
+                //TextBox16Copy.Text = ListOpcodeSourceCS.Count.ToString();
 
                 ListOpcodeSourceSC = File.ReadAllLines(DirPathSC + "\\ListOpcodeSourceSC").ToList();
                 ListView14.ItemsSource = ListOpcodeSourceSC;
-                TextBox17Copy.Text = ListOpcodeSourceSC.Count.ToString();
+                TextBox16Copy.Text = ListOpcodeSourceSC.Count.ToString();
 
                 ListNameDestinationCS = File.ReadAllLines(DirPathSC + "\\ListNameDestinationCS").ToList();
                 //ListView22.ItemsSource = ListNameDestinationCS;

@@ -183,5 +183,6 @@
         <Button x:Name="BtnLoadSnapshotSC" Content="Load Snapshot SC" HorizontalAlignment="Left" Height="60" Margin="1364,693,0,0" VerticalAlignment="Top" Width="100" Click="btn_LoadSnapshotSC_Click"/>
         <Button x:Name="ButtonEditOutOpcode" Content="Set Opcode" HorizontalAlignment="Left" Height="30" Margin="1457,645,0,0" VerticalAlignment="Top" Width="75" Click="button_EditOutOpcode_Click" IsEnabled="True"/>
         <TextBox x:Name="TextBoxEditOutOpcode" HorizontalAlignment="Left" Height="21" Margin="1358,651,0,0" TextWrapping="Wrap" Text="0x000" VerticalAlignment="Top" Width="75"/>
+        <CheckBox x:Name="CheckBoxRemoveOpcode" Content="Удалять опкоды в имени пакета" HorizontalAlignment="Left" Margin="1710,47,0,0" VerticalAlignment="Top" Checked="checkBox_Checked_In" Width="197" IsChecked="true"/>
     </Grid>
 </Window>
