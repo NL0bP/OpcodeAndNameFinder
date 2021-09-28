@@ -7,7 +7,7 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="800" Width="1925">
     <Grid>
-        <Button x:Name="BtnScLoadNameIn" Content="SC" HorizontalAlignment="Left" Height="30" Margin="492,610,0,0" VerticalAlignment="Top" Width="75" Click="btn_SC_Load_Name1_Click" IsEnabled="False"/>
+        <Button x:Name="BtnScLoadNameIn" Content="SC" HorizontalAlignment="Left" Height="30" Margin="393,610,0,0" VerticalAlignment="Top" Width="75" Click="btn_SC_Load_Name1_Click" IsEnabled="False"/>
         <ListView x:Name="ListView11" HorizontalAlignment="Left" Height="350" Margin="5,240,0,0" VerticalAlignment="Top" Width="192">
             <ListView.View>
                 <GridView>
@@ -15,7 +15,7 @@
                 </GridView>
             </ListView.View>
         </ListView>
-        <ListView x:Name="ListView13" HorizontalAlignment="Left" Height="350" Margin="393,240,0,0" VerticalAlignment="Top" Width="175">
+        <ListView x:Name="ListView13" HorizontalAlignment="Left" Height="350" Margin="393,240,0,0" VerticalAlignment="Top" Width="175" SelectionChanged="ListView13_SelectionChanged">
             <ListView.View>
                 <GridView>
                     <GridViewColumn Width="250"/>
@@ -27,8 +27,8 @@
         <Label x:Name="Label11" Content="Address for client packets:" HorizontalAlignment="Left" Height="25" Margin="278,34,0,0" VerticalAlignment="Top" Width="153"/>
         <Label x:Name="Label21" Content="Address for client packets:" HorizontalAlignment="Left" Height="25" Margin="1029,34,0,0" VerticalAlignment="Top" Width="152"/>
         <Button x:Name="BtnLoadIn" Content="Load" HorizontalAlignment="Left" Height="30" Margin="122,610,0,0" VerticalAlignment="Top" Width="75" Click="btn_Load_In_Click"/>
-        <Button x:Name="BtnCsLoadNameIn" Content="CS" HorizontalAlignment="Left" Height="30" Margin="307,610,0,0" VerticalAlignment="Top" Width="75" Click="btn_CS_Load_Name1_Click" IsEnabled="False"/>
-        <ListView x:Name="ListView12" HorizontalAlignment="Left" Height="350" Margin="207,240,0,0" VerticalAlignment="Top" Width="175">
+        <Button x:Name="BtnCsLoadNameIn" Content="CS" HorizontalAlignment="Left" Height="30" Margin="207,610,0,0" VerticalAlignment="Top" Width="75" Click="btn_CS_Load_Name1_Click" IsEnabled="False"/>
+        <ListView x:Name="ListView12" HorizontalAlignment="Left" Height="350" Margin="207,240,0,0" VerticalAlignment="Top" Width="175" SelectionChanged="ListView12_SelectionChanged">
             <ListView.View>
                 <GridView>
                     <GridViewColumn Width="250"/>
@@ -64,17 +64,17 @@
         <Label x:Name="Label19" Content="Time consuming:" HorizontalAlignment="Left" Height="25" Margin="393,177,0,0" VerticalAlignment="Top" Width="100"/>
         <TextBox x:Name="TextBox19" HorizontalAlignment="Left" Height="21" Margin="493,179,0,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top" Width="65"/>
         <Label x:Name="Label201" Content="Source file:" HorizontalAlignment="Left" Height="35" Margin="761,212,0,0" VerticalAlignment="Top" Width="211"/>
-        <Button x:Name="BtnScLoadNameOut" Content="SC" HorizontalAlignment="Left" Height="30" Margin="1269,610,0,0" VerticalAlignment="Top" Width="75" Click="btn_SC_Load_Name2_Click" IsEnabled="False"/>
-        <ListView x:Name="ListView23" HorizontalAlignment="Left" Height="350" Margin="1172,240,0,0" VerticalAlignment="Top" Width="175">
+        <Button x:Name="BtnScLoadNameOut" Content="SC" HorizontalAlignment="Left" Height="30" Margin="1172,610,0,0" VerticalAlignment="Top" Width="75" Click="btn_SC_Load_Name2_Click" IsEnabled="False"/>
+        <ListView x:Name="ListView23" HorizontalAlignment="Left" Height="350" Margin="1172,240,0,0" VerticalAlignment="Top" Width="175" SelectionChanged="ListView23_SelectionChanged">
             <ListView.View>
                 <GridView>
                     <GridViewColumn Width="250"/>
                 </GridView>
             </ListView.View>
         </ListView>
-        <Button x:Name="BtnLoadOut" Content="Load" HorizontalAlignment="Left" Height="30" Margin="822,610,0,0" VerticalAlignment="Top" Width="75" Click="btn_Load_Out_Click"/>
-        <Button x:Name="BtnCsLoadNameOut" Content="CS" HorizontalAlignment="Left" Height="30" Margin="1086,610,0,0" VerticalAlignment="Top" Width="75" Click="btn_CS_Load_Name2_Click" IsEnabled="False"/>
-        <ListView x:Name="ListView22" HorizontalAlignment="Left" Height="350" Margin="986,240,0,0" VerticalAlignment="Top" Width="175">
+        <Button x:Name="BtnLoadOut" Content="Load" HorizontalAlignment="Left" Height="30" Margin="901,610,0,0" VerticalAlignment="Top" Width="75" Click="btn_Load_Out_Click"/>
+        <Button x:Name="BtnCsLoadNameOut" Content="CS" HorizontalAlignment="Left" Height="30" Margin="987,610,0,0" VerticalAlignment="Top" Width="75" Click="btn_CS_Load_Name2_Click" IsEnabled="False"/>
+        <ListView x:Name="ListView22" HorizontalAlignment="Left" Height="350" Margin="986,240,0,0" VerticalAlignment="Top" Width="175" SelectionChanged="ListView22_SelectionChanged">
             <ListView.View>
                 <GridView>
                     <GridViewColumn Width="250"/>
@@ -97,9 +97,9 @@
         <TextBox x:Name="TextBox28" HorizontalAlignment="Left" Height="21" Margin="1090,179,0,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top" Width="65"/>
         <Label x:Name="Label29" Content="Time consuming:" HorizontalAlignment="Left" Height="25" Margin="1180,177,0,0" VerticalAlignment="Top" Width="99"/>
         <TextBox x:Name="TextBox29" HorizontalAlignment="Left" Height="21" Margin="1279,179,0,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top" Width="65"/>
-        <Button x:Name="ButtonCopy2" Content="SC Offset" HorizontalAlignment="Left" Height="30" Margin="1785,670,0,0" VerticalAlignment="Top" Width="75" Click="button_Copy2_Click" IsEnabled="False"/>
-        <Button x:Name="Button2Copy2" Content="CS Offset" HorizontalAlignment="Left" Height="30" Margin="1584,670,0,0" VerticalAlignment="Top" Width="75" Click="button2_Copy2_Click" IsEnabled="False"/>
-        <ListView x:Name="ListView32" HorizontalAlignment="Left" Height="350" Margin="1736,240,0,0" VerticalAlignment="Top" Width="175">
+        <Button x:Name="ButtonCopy2" Content="SC Offset" HorizontalAlignment="Left" Height="30" Margin="1736,670,0,0" VerticalAlignment="Top" Width="75" Click="button_Copy2_Click" IsEnabled="False"/>
+        <Button x:Name="Button2Copy2" Content="CS Offset" HorizontalAlignment="Left" Height="30" Margin="1640,669,0,0" VerticalAlignment="Top" Width="75" Click="button2_Copy2_Click" IsEnabled="False"/>
+        <ListView x:Name="ListView32" HorizontalAlignment="Left" Height="350" Margin="1736,240,0,0" VerticalAlignment="Top" Width="175" SelectionChanged="ListView32_SelectionChanged">
             <ListView.View>
                 <GridView>
                     <GridViewColumn Width="250"/>
@@ -115,8 +115,8 @@
         </ListView>
         <Label x:Name="Label301" Content="CS|SC Packet names[was]:" HorizontalAlignment="Left" Height="28" Margin="1540,212,0,0" VerticalAlignment="Top" Width="175"/>
         <Label x:Name="Label302" Content="CS|SC Packet names[Summary]:" HorizontalAlignment="Left" Height="28" Margin="1736,212,0,0" VerticalAlignment="Top" Width="175"/>
-        <Button x:Name="ButtonScCompare" Content="SC Compare" HorizontalAlignment="Left" Height="30" Margin="1785,610,0,0" VerticalAlignment="Top" Width="75" Click="button_Copy1_Click" IsEnabled="False"/>
-        <Button x:Name="ButtonCsCompare" Content="CS Compare" HorizontalAlignment="Left" Height="30" Margin="1584,610,0,0" VerticalAlignment="Top" Width="75" Click="button2_Copy1_Click" IsEnabled="False"/>
+        <Button x:Name="ButtonScCompare" Content="SC Compare" HorizontalAlignment="Left" Height="30" Margin="1736,610,0,0" VerticalAlignment="Top" Width="75" Click="button_Copy1_Click" IsEnabled="False"/>
+        <Button x:Name="ButtonCsCompare" Content="CS Compare" HorizontalAlignment="Left" Height="30" Margin="1640,609,0,0" VerticalAlignment="Top" Width="75" Click="button2_Copy1_Click" IsEnabled="False"/>
 
         <TextBox x:Name="TextBoxPathIn" HorizontalAlignment="Left" Height="25" Margin="11,676,0,0" TextWrapping="Wrap" Text="Select the raw data file" VerticalAlignment="Top" Width="1088"/>
         <TextBox x:Name="TextBoxPathOut" HorizontalAlignment="Left" Height="25" Margin="10,728,0,0" TextWrapping="Wrap" Text="Select the raw data file" VerticalAlignment="Top" Width="1089"/>
@@ -169,15 +169,15 @@
         <Label x:Name="Label33" Content="Time consuming:" HorizontalAlignment="Left" Height="25" Margin="1745,177,0,0" VerticalAlignment="Top" Width="99"/>
         <TextBox x:Name="TextBox33" HorizontalAlignment="Left" Height="21" Margin="1844,179,0,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top" Width="65"/>
         <CheckBox x:Name="CheckBoxCompareManual" Content="Compare structures manually" HorizontalAlignment="Left" Margin="1710,67,0,0" VerticalAlignment="Top" Checked="checkBox_Checked_In" Width="197" IsChecked="False"/>
-        <Button x:Name="ButtonCopy2_Copy" Content="SC Struct" HorizontalAlignment="Left" Height="30" Margin="1785,722,0,0" VerticalAlignment="Top" Width="75" Click="button_SaveStructSC_Click" IsEnabled="False"/>
-        <Button x:Name="Button2Copy2_Copy" Content="CS Struct" HorizontalAlignment="Left" Height="30" Margin="1584,723,0,0" VerticalAlignment="Top" Width="75" Click="button_SaveStructCS_Click" IsEnabled="False"/>
+        <Button x:Name="ButtonCopy2_Copy" Content="SC Struct" HorizontalAlignment="Left" Height="30" Margin="1736,722,0,0" VerticalAlignment="Top" Width="75" Click="button_SaveStructSC_Click" IsEnabled="False"/>
+        <Button x:Name="Button2Copy2_Copy" Content="CS Struct" HorizontalAlignment="Left" Height="30" Margin="1640,722,0,0" VerticalAlignment="Top" Width="75" Click="button_SaveStructCS_Click" IsEnabled="False"/>
         <CheckBox x:Name="CheckBoxFindStructIn" Content="Looking for structures" HorizontalAlignment="Left" Margin="643,49,0,0" VerticalAlignment="Top" IsChecked="True"/>
         <CheckBox x:Name="CheckBoxFindStructOut" Content="Looking for structures" HorizontalAlignment="Left" Margin="1425,47,0,0" VerticalAlignment="Top" Checked="checkBox_Checked_In" IsChecked="True"/>
-        <CheckBox x:Name="CheckBoxCleaningIn" Content="Clean up the source" HorizontalAlignment="Left" Margin="68,141,0,0" VerticalAlignment="Top" IsChecked="False"/>
-        <CheckBox x:Name="CheckBoxCleaningOut" Content="Clean up the source" HorizontalAlignment="Left" Margin="835,141,0,0" VerticalAlignment="Top" IsChecked="False"/>
-        <Label x:Name="Label_Semafor1" Content="" HorizontalAlignment="Left" Margin="40,47,0,0" VerticalAlignment="Top" Height="58" Background="Red" Width="58"/>
-        <Label x:Name="Label_Semafor2" Content="" HorizontalAlignment="Left" Margin="820,47,0,0" VerticalAlignment="Top" Height="58" Background="Red" Width="58"/>
-        <Button x:Name="BtnLoadIn_Copy" Content="PreClear" HorizontalAlignment="Left" Height="30" Margin="23,610,0,0" VerticalAlignment="Top" Width="75" Click="btn_CS_Clear_Click"/>
+        <CheckBox x:Name="CheckBoxCleaningIn" Content="Clean up the source" HorizontalAlignment="Left" Margin="22,141,0,0" VerticalAlignment="Top" IsChecked="False"/>
+        <CheckBox x:Name="CheckBoxCleaningOut" Content="Clean up the source" HorizontalAlignment="Left" Margin="788,143,0,0" VerticalAlignment="Top" IsChecked="False"/>
+        <Label x:Name="Label_Semafor1" Content="" HorizontalAlignment="Left" Margin="89,47,0,0" VerticalAlignment="Top" Height="58" Background="Red" Width="58"/>
+        <Label x:Name="Label_Semafor2" Content="" HorizontalAlignment="Left" Margin="855,47,0,0" VerticalAlignment="Top" Height="58" Background="Red" Width="58"/>
+        <Button x:Name="BtnLoadIn_Copy" Content="PreClear" HorizontalAlignment="Left" Height="30" Margin="5,610,0,0" VerticalAlignment="Top" Width="75" Click="btn_CS_Clear_Click"/>
         <Button x:Name="BtnSaveSnapshot" Content="Save Snapshot" HorizontalAlignment="Left" Height="60" Margin="1122,693,0,0" VerticalAlignment="Top" Width="100" Click="btn_SaveSnapshot_Click"/>
         <Button x:Name="BtnLoadSnapshotCS" Content="Load Snapshot CS" HorizontalAlignment="Left" Height="60" Margin="1243,693,0,0" VerticalAlignment="Top" Width="100" Click="btn_LoadSnapshotCS_Click"/>
         <Button x:Name="BtnLoadSnapshotSC" Content="Load Snapshot SC" HorizontalAlignment="Left" Height="60" Margin="1364,693,0,0" VerticalAlignment="Top" Width="100" Click="btn_LoadSnapshotSC_Click"/>
@@ -185,9 +185,9 @@
         <TextBox x:Name="TextBoxEditOutOpcode" HorizontalAlignment="Left" Height="21" Margin="1358,651,0,0" TextWrapping="Wrap" Text="0x000" VerticalAlignment="Top" Width="75"/>
         <CheckBox x:Name="CheckBoxRemoveOpcode" Content="Remove opcodes in packet name" HorizontalAlignment="Left" Margin="1710,47,0,0" VerticalAlignment="Top" Checked="checkBox_Checked_In" Width="197" IsChecked="False"/>
         <CheckBox x:Name="CheckBoxRename" Content="Rename packets in source" HorizontalAlignment="Left" Margin="1710,27,0,0" VerticalAlignment="Top" Checked="checkBox_Checked_In" Width="197" IsChecked="False"/>
-        <Button x:Name="BtnGotoNameOut" Content="Goto Name" HorizontalAlignment="Left" Height="30" Margin="987,610,0,0" VerticalAlignment="Top" Width="75" Click="btn_CS_Load_Name2_Click" IsEnabled="True"/>
-        <Button x:Name="BtnGotoOpcodeOut" Content="Goto Opcode" HorizontalAlignment="Left" Height="30" Margin="1172,610,0,0" VerticalAlignment="Top" Width="75" Click="btn_CS_Load_Name2_Click" IsEnabled="True"/>
-        <Button x:Name="BtnGotoNameIn" Content="Goto Name" HorizontalAlignment="Left" Height="30" Margin="207,610,0,0" VerticalAlignment="Top" Width="75" Click="btn_CS_Load_Name2_Click" IsEnabled="True"/>
-        <Button x:Name="BtnGotoOpcodeIn" Content="Goto Opcode" HorizontalAlignment="Left" Height="30" Margin="393,610,0,0" VerticalAlignment="Top" Width="75" Click="btn_CS_Load_Name2_Click" IsEnabled="True"/>
+        <Button x:Name="BtnGotoNameIn" Content="Goto Name" HorizontalAlignment="Left" Height="30" Margin="306,610,0,0" VerticalAlignment="Top" Width="75" IsEnabled="True" Click="BtnGotoNameIn_Click"/>
+        <Button x:Name="BtnGotoOpcodeIn" Content="Goto Opcode" HorizontalAlignment="Left" Height="30" Margin="492,610,0,0" VerticalAlignment="Top" Width="75" IsEnabled="True" Click="BtnGotoOpcodeIn_Click"/>
+        <Button x:Name="BtnGotoNameOut" Content="Goto Name" HorizontalAlignment="Left" Height="30" Margin="1087,610,0,0" VerticalAlignment="Top" Width="75" IsEnabled="True" Click="BtnGotoNameOut_Click"/>
+        <Button x:Name="BtnGotoOpcodeOut" Content="Goto Opcode" HorizontalAlignment="Left" Height="30" Margin="1272,610,0,0" VerticalAlignment="Top" Width="75" IsEnabled="True" Click="BtnGotoOpcodeOut_Click"/>
     </Grid>
 </Window>

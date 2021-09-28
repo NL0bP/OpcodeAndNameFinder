@@ -3453,7 +3453,7 @@ namespace NameFinder
 
             TextBox32.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox32.Text = "0"; }));
             TextBox33.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox33.Text = "0"; }));
-        
+
             ButtonCsCompare.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ButtonCsCompare.IsEnabled = false; }));
             Button2Copy2.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { Button2Copy2.IsEnabled = false; }));
             Button2Copy2_Copy.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { Button2Copy2_Copy.IsEnabled = false; }));
@@ -3465,7 +3465,7 @@ namespace NameFinder
 
         private void btn_SC_Load_Name1_Click(object sender, RoutedEventArgs e)
         {
-            
+
             InitializeIn();
 
             BtnCsLoadNameIn.IsEnabled = false;
@@ -3533,7 +3533,7 @@ namespace NameFinder
 
         private void btn_CS_Load_Name1_Click(object sender, RoutedEventArgs e)
         {
-            
+
             InitializeIn();
 
             BtnCsLoadNameIn.IsEnabled = false;
@@ -3621,7 +3621,7 @@ namespace NameFinder
 
         private void btn_SC_Load_Name2_Click(object sender, RoutedEventArgs e)
         {
-            
+
             // инициализируем прогрессбары и списки
             InitializeOut();
 
@@ -3654,7 +3654,7 @@ namespace NameFinder
 
         private void btn_CS_Load_Name2_Click(object sender, RoutedEventArgs e)
         {
-            
+
             // инициализируем прогрессбары и списки
             InitializeOut();
 
@@ -5130,6 +5130,72 @@ namespace NameFinder
             }
         }
 
+        private void ListView12_SelectionChanged(object sender, RoutedEventArgs e)
+        {
+            if (ListView12.SelectedItem != null)
+            {
+                ListView13.SelectedIndex = ListView12.SelectedIndex;
+                ListView13.UpdateLayout();
+                ListView13.ScrollIntoView(ListView13.SelectedItem);
+
+                ListView14.SelectedIndex = ListView12.SelectedIndex;
+                ListView14.UpdateLayout();
+                ListView14.ScrollIntoView(ListView14.SelectedItem);
+            }
+        }
+
+        private void ListView13_SelectionChanged(object sender, RoutedEventArgs e)
+        {
+            if (ListView13.SelectedItem != null)
+            {
+                ListView12.SelectedIndex = ListView13.SelectedIndex;
+                ListView12.UpdateLayout();
+                ListView12.ScrollIntoView(ListView12.SelectedItem);
+
+                ListView14.SelectedIndex = ListView13.SelectedIndex;
+                ListView14.UpdateLayout();
+                ListView14.ScrollIntoView(ListView14.SelectedItem);
+            }
+        }
+
+        private void ListView32_SelectionChanged(object sender, RoutedEventArgs e)
+        {
+            if (ListView32.SelectedItem != null)
+            {
+                ListView31.SelectedIndex = ListView32.SelectedIndex;
+                ListView31.UpdateLayout();
+                ListView31.ScrollIntoView(ListView31.SelectedItem);
+            }
+        }
+
+        private void ListView23_SelectionChanged(object sender, RoutedEventArgs e)
+        {
+            if (ListView23.SelectedItem != null)
+            {
+                ListView22.SelectedIndex = ListView23.SelectedIndex;
+                ListView22.UpdateLayout();
+                ListView22.ScrollIntoView(ListView22.SelectedItem);
+
+                ListView24.SelectedIndex = ListView23.SelectedIndex;
+                ListView24.UpdateLayout();
+                ListView24.ScrollIntoView(ListView24.SelectedItem);
+            }
+        }
+
+        private void ListView22_SelectionChanged(object sender, RoutedEventArgs e)
+        {
+            if (ListView22.SelectedItem != null)
+            {
+                ListView23.SelectedIndex = ListView22.SelectedIndex;
+                ListView23.UpdateLayout();
+                ListView23.ScrollIntoView(ListView23.SelectedItem);
+
+                ListView24.SelectedIndex = ListView22.SelectedIndex;
+                ListView24.UpdateLayout();
+                ListView24.ScrollIntoView(ListView24.SelectedItem);
+            }
+        }
+
         private void ListView24_SelectionChanged(object sender, RoutedEventArgs e)
         {
             if (ListView24.SelectedItem != null)
@@ -5162,6 +5228,280 @@ namespace NameFinder
             ListView32.SelectedIndex = ListView31.SelectedIndex;
             ListView32.UpdateLayout();
             ListView32.ScrollIntoView(ListView32.SelectedItem);
+        }
+
+        private void BtnGotoNameIn_Click(object sender, RoutedEventArgs e)
+        {
+            if (ListView12.SelectedItem != null)
+            {
+                Label_Semafor1.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { Label_Semafor1.Background = Brushes.Yellow; }));
+                var name = ListView12.SelectedItem.ToString();
+                GotoNameIn(name);
+                Label_Semafor1.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { Label_Semafor1.Background = Brushes.GreenYellow; }));
+            }
+        }
+
+        private int loopIn = 1;
+        private int prevIn = 0;
+        private int currIn = 0;
+
+        private void BtnGotoOpcodeIn_Click(object sender, RoutedEventArgs e)
+        {
+            if (ListView12.SelectedItem == null) return;
+
+            Label_Semafor1.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { Label_Semafor1.Background = Brushes.Yellow; }));
+            var name = ListView12.SelectedItem.ToString();
+            var idx = GotoNameIn(name);
+            if (idx > 0)
+            {
+                currIn = idx;
+                var regexXREF = new Regex(@"^\s+;[a-zA-Z:\s]*\s(sub_\w+)|(X2\w+)|(w+)", RegexOptions.Compiled);
+                if (prevIn != currIn)
+                {
+                    loopIn = 1;
+                    idx += loopIn;
+                    // ищем "; DATA XREF: sub_3922E1C0+79↑o" или "; sub_3922E1C0:loc_3922E37F↑o"
+                    var matchesXREF = regexXREF.Match(InListSource[idx]);
+                    var ss = "";
+                    //group 1 = sub_\w+
+                    if (matchesXREF.Groups[1].Length > 0)
+                    {
+                        ss = matchesXREF.Groups[1].ToString();
+                        GotoNameIn(ss);
+                    }
+                    //group 2 = X2\w+
+                    else if (matchesXREF.Groups[2].Length > 0)
+                    {
+                        ss = matchesXREF.Groups[2].ToString();
+                        GotoNameIn(ss);
+                    }
+                    //group 3 = w+
+                    else if (matchesXREF.Groups[3].Length > 0)
+                    {
+                        ss = matchesXREF.Groups[3].ToString();
+                        GotoNameIn(ss);
+                    }
+
+                    loopIn = 2;
+                    prevIn = currIn;
+                }
+                else if (loopIn == 1)
+                {
+                    idx += loopIn;
+                    // ищем "; DATA XREF: sub_3922E1C0+79↑o" или "; sub_3922E1C0:loc_3922E37F↑o"
+                    var matchesXREF = regexXREF.Match(InListSource[idx]);
+                    var ss = "";
+                    //group 1 = sub_\w+
+                    if (matchesXREF.Groups[1].Length > 0)
+                    {
+                        ss = matchesXREF.Groups[1].ToString();
+                        GotoNameIn(ss);
+                    }
+                    //group 2 = X2\w+
+                    else if (matchesXREF.Groups[2].Length > 0)
+                    {
+                        ss = matchesXREF.Groups[2].ToString();
+                        GotoNameIn(ss);
+                    }
+                    //group 3 = w+
+                    else if (matchesXREF.Groups[3].Length > 0)
+                    {
+                        ss = matchesXREF.Groups[3].ToString();
+                        GotoNameIn(ss);
+                    }
+
+                    loopIn = 2;
+                    prevIn = currIn;
+                }
+                else
+                {
+                    idx += loopIn;
+                    // ищем "; DATA XREF: sub_3922E1C0+79↑o" или "; sub_3922E1C0:loc_3922E37F↑o"
+                    var matchesXREF = regexXREF.Match(InListSource[idx]);
+                    var ss = "";
+                    //group 1 = sub_\w+
+                    if (matchesXREF.Groups[1].Length > 0)
+                    {
+                        ss = matchesXREF.Groups[1].ToString();
+                        GotoNameIn(ss);
+                    }
+                    //group 2 = X2\w+
+                    else if (matchesXREF.Groups[2].Length > 0)
+                    {
+                        ss = matchesXREF.Groups[2].ToString();
+                        GotoNameIn(ss);
+                    }
+                    //group 3 = w+
+                    else if (matchesXREF.Groups[3].Length > 0)
+                    {
+                        ss = matchesXREF.Groups[3].ToString();
+                        GotoNameIn(ss);
+                    }
+
+                    loopIn = 1;
+                    prevIn = currIn;
+                }
+            }
+            Label_Semafor1.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { Label_Semafor1.Background = Brushes.GreenYellow; }));
+        }
+
+        private int GotoNameIn(string name)
+        {
+            var str = name;
+            str = str.Replace("?", ".");
+            str = str.Replace("@", ".");
+            str = str.Replace("+", ".");
+            var regex = new Regex(@"^" + str, RegexOptions.Compiled);
+            for (var i = 0; i < InListSource.Count; i++)
+            {
+                var matches = regex.Matches(InListSource[i]);
+                if (matches.Count <= 0)
+                {
+                    continue;
+                }
+
+                ListView11.SelectedIndex = i;
+                ListView11.UpdateLayout();
+                ListView11.ScrollIntoView(ListView11.SelectedItem);
+                return i;
+            }
+            return 0;
+        }
+
+        private void BtnGotoNameOut_Click(object sender, RoutedEventArgs e)
+        {
+            if (ListView22.SelectedItem != null)
+            {
+                Label_Semafor2.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { Label_Semafor2.Background = Brushes.Yellow; }));
+                var name = ListView22.SelectedItem.ToString();
+                GotoNameOut(name);
+                Label_Semafor2.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { Label_Semafor2.Background = Brushes.GreenYellow; }));
+            }
+        }
+
+        private int loopOut = 1;
+        private int prevOut = 0;
+        private int currOut = 0;
+        private void BtnGotoOpcodeOut_Click(object sender, RoutedEventArgs e)
+        {
+            if (ListView22.SelectedItem == null) return;
+
+            Label_Semafor2.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { Label_Semafor2.Background = Brushes.Yellow; }));
+            var name = ListView22.SelectedItem.ToString();
+            var idx = GotoNameOut(name);
+            if (idx > 0)
+            {
+                currOut = idx;
+                var regexXREF = new Regex(@"^\s+;[a-zA-Z:\s]*\s(sub_\w+)|(X2\w+)|(w+)", RegexOptions.Compiled);
+                if (prevOut != currOut)
+                {
+                    loopOut = 1;
+                    idx += loopIn;
+                    // ищем "; DATA XREF: sub_3922E1C0+79↑o" или "; sub_3922E1C0:loc_3922E37F↑o"
+                    var matchesXREF = regexXREF.Match(InListDestination[idx]);
+                    var ss = "";
+                    //group 1 = sub_\w+
+                    if (matchesXREF.Groups[1].Length > 0)
+                    {
+                        ss = matchesXREF.Groups[1].ToString();
+                        GotoNameOut(ss);
+                    }
+                    //group 2 = X2\w+
+                    else if (matchesXREF.Groups[2].Length > 0)
+                    {
+                        ss = matchesXREF.Groups[2].ToString();
+                        GotoNameOut(ss);
+                    }
+                    //group 3 = w+
+                    else if (matchesXREF.Groups[3].Length > 0)
+                    {
+                        ss = matchesXREF.Groups[3].ToString();
+                        GotoNameOut(ss);
+                    }
+
+                    loopOut = 2;
+                    prevOut = currOut;
+                }
+                else if (loopOut == 1)
+                {
+                    idx += loopOut;
+                    // ищем "; DATA XREF: sub_3922E1C0+79↑o" или "; sub_3922E1C0:loc_3922E37F↑o"
+                    var matchesXREF = regexXREF.Match(InListDestination[idx]);
+                    var ss = "";
+                    //group 1 = sub_\w+
+                    if (matchesXREF.Groups[1].Length > 0)
+                    {
+                        ss = matchesXREF.Groups[1].ToString();
+                        GotoNameOut(ss);
+                    }
+                    //group 2 = X2\w+
+                    else if (matchesXREF.Groups[2].Length > 0)
+                    {
+                        ss = matchesXREF.Groups[2].ToString();
+                        GotoNameOut(ss);
+                    }
+                    //group 3 = w+
+                    else if (matchesXREF.Groups[3].Length > 0)
+                    {
+                        ss = matchesXREF.Groups[3].ToString();
+                        GotoNameOut(ss);
+                    }
+
+                    loopOut = 2;
+                    prevOut = currOut;
+                }
+                else
+                {
+                    idx += loopOut;
+                    // ищем "; DATA XREF: sub_3922E1C0+79↑o" или "; sub_3922E1C0:loc_3922E37F↑o"
+                    var matchesXREF = regexXREF.Match(InListDestination[idx]);
+                    var ss = "";
+                    //group 1 = sub_\w+
+                    if (matchesXREF.Groups[1].Length > 0)
+                    {
+                        ss = matchesXREF.Groups[1].ToString();
+                        GotoNameOut(ss);
+                    }
+                    //group 2 = X2\w+
+                    else if (matchesXREF.Groups[2].Length > 0)
+                    {
+                        ss = matchesXREF.Groups[2].ToString();
+                        GotoNameOut(ss);
+                    }
+                    //group 3 = w+
+                    else if (matchesXREF.Groups[3].Length > 0)
+                    {
+                        ss = matchesXREF.Groups[3].ToString();
+                        GotoNameOut(ss);
+                    }
+
+                    loopOut = 1;
+                    prevOut = currOut;
+                }
+            }
+            Label_Semafor2.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { Label_Semafor2.Background = Brushes.GreenYellow; }));
+        }
+        private int GotoNameOut(string name)
+        {
+            var str = name;
+            str = str.Replace("?", ".");
+            str = str.Replace("@", ".");
+            str = str.Replace("+", ".");
+            var regex = new Regex(@"^" + str, RegexOptions.Compiled);
+            for (var i = 0; i < InListDestination.Count; i++)
+            {
+                var matches = regex.Matches(InListDestination[i]);
+                if (matches.Count <= 0)
+                {
+                    continue;
+                }
+
+                ListView21.SelectedIndex = i;
+                ListView21.UpdateLayout();
+                ListView21.ScrollIntoView(ListView21.SelectedItem);
+                return i;
+            }
+            return 0;
         }
     }
 }
