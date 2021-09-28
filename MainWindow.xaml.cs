@@ -1,6 +1,4 @@
-﻿using Microsoft.Win32;
-
-using NameFinder.Conversion;
+﻿using NameFinder.Conversion;
 
 using Newtonsoft.Json;
 
@@ -12,8 +10,13 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Windows;
+using System.Windows.Forms;
 using System.Windows.Media;
 using System.Windows.Threading;
+
+using MessageBox = System.Windows.MessageBox;
+using OpenFileDialog = Microsoft.Win32.OpenFileDialog;
+using SaveFileDialog = Microsoft.Win32.SaveFileDialog;
 
 namespace NameFinder
 {
@@ -39,6 +42,7 @@ namespace NameFinder
         private bool FindStructOut = true;
         public bool isCompareCS = false;
         public bool isCompareSC = false;
+        public static bool isRemoveOpcode = false;
 
         //public static Dictionary<int, int> InUseSource { get; set; } = new Dictionary<int, int>();
         public static Dictionary<int, int> InUseIn { get; set; } = new Dictionary<int, int>();
@@ -2932,8 +2936,7 @@ namespace NameFinder
                     // dd offset nullsub_18
                     // dd offset CSInteractGimmickPacket
                     // dd offset CSGmCommandPacket
-                    var regexBody = new Regex(@"(dd\soffset\snullsub|dd\soffset\ssub_\w+|dd\soffset\s\w+)",
-                        RegexOptions.Compiled);
+                    var regexBody = new Regex(@"(dd\soffset\snullsub|dd\soffset\ssub_\w+|dd\soffset\s\w+)", RegexOptions.Compiled);
                     var matchesBodys = regexBody.Match(InListDestination[index]);
                     ListSubDestinationCS.Add(matchesBodys.ToString().Substring(10)); // сохранили адрес подпрограммы
                 }
@@ -3352,13 +3355,7 @@ namespace NameFinder
                 }
 
                 // инициализируем прогрессбары и списки
-                ProgressBar11.Value = 0;
-                ProgressBar12.Value = 0;
-                ProgressBar13.Value = 0;
-                ListView12.ItemsSource = new List<string>();
-                ListView13.ItemsSource = new List<string>();
-                ListView14.ItemsSource = new List<string>();
-
+                InitializeIn();
 
                 isCleaningIn = CheckBoxCleaningIn.IsChecked == true;
                 if (isCleaningIn)
@@ -3390,8 +3387,87 @@ namespace NameFinder
             }
         }
 
+        private void InitializeIn()
+        {
+            // инициализируем прогрессбары и списки
+            ProgressBar11.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar11.Value = 0; }));
+            ProgressBar12.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar12.Value = 0; }));
+            ProgressBar13.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar13.Value = 0; }));
+
+            ListView12.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ListView12.ItemsSource = new List<string>(); }));
+            ListView13.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ListView14.ItemsSource = new List<string>(); }));
+            ListView14.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ListView13.ItemsSource = new List<string>(); }));
+
+            ListView31.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ListView31.ItemsSource = new List<string>(); }));
+            ListView32.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ListView32.ItemsSource = new List<string>(); }));
+
+            TextBox13.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox13.Text = "0"; }));
+            TextBox14.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox14.Text = "0"; }));
+            TextBox18.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox18.Text = "0"; }));
+
+            TextBox16.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox16.Text = "0"; }));
+            TextBox17.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox17.Text = "0"; }));
+            TextBox19.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox19.Text = "0"; }));
+
+            TextBox16Copy.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox16Copy.Text = "0"; }));
+            TextBox17Copy.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox17Copy.Text = "0"; }));
+            TextBox19Copy.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox19Copy.Text = "0"; }));
+
+            TextBox32.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox32.Text = "0"; }));
+            TextBox33.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox33.Text = "0"; }));
+
+            ButtonCsCompare.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ButtonCsCompare.IsEnabled = false; }));
+            Button2Copy2.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { Button2Copy2.IsEnabled = false; }));
+            Button2Copy2_Copy.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { Button2Copy2_Copy.IsEnabled = false; }));
+
+            ButtonScCompare.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ButtonScCompare.IsEnabled = false; }));
+            ButtonCopy2.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ButtonCopy2.IsEnabled = false; }));
+            ButtonCopy2_Copy.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ButtonCopy2_Copy.IsEnabled = false; }));
+        }
+
+        private void InitializeOut()
+        {
+            // инициализируем прогрессбары и списки
+            ProgressBar21.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar21.Value = 0; }));
+            ProgressBar22.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar22.Value = 0; }));
+            ProgressBar23.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar23.Value = 0; }));
+
+            ListView22.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ListView22.ItemsSource = new List<string>(); }));
+            ListView23.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ListView24.ItemsSource = new List<string>(); }));
+            ListView24.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ListView23.ItemsSource = new List<string>(); }));
+
+            ListView31.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ListView31.ItemsSource = new List<string>(); }));
+            ListView32.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ListView32.ItemsSource = new List<string>(); }));
+
+            TextBox23.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox23.Text = "0"; }));
+            TextBox24.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox24.Text = "0"; }));
+            TextBox28.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox28.Text = "0"; }));
+
+            TextBox26.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox26.Text = "0"; }));
+            TextBox27.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox27.Text = "0"; }));
+            TextBox29.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox29.Text = "0"; }));
+
+            TextBox16Copy1.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox16Copy1.Text = "0"; }));
+            TextBox17Copy1.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox17Copy1.Text = "0"; }));
+            TextBox19Copy1.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox19Copy1.Text = "0"; }));
+
+            TextBox32.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox32.Text = "0"; }));
+            TextBox33.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox33.Text = "0"; }));
+        
+            ButtonCsCompare.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ButtonCsCompare.IsEnabled = false; }));
+            Button2Copy2.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { Button2Copy2.IsEnabled = false; }));
+            Button2Copy2_Copy.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { Button2Copy2_Copy.IsEnabled = false; }));
+
+            ButtonScCompare.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ButtonScCompare.IsEnabled = false; }));
+            ButtonCopy2.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ButtonCopy2.IsEnabled = false; }));
+            ButtonCopy2_Copy.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ButtonCopy2_Copy.IsEnabled = false; }));
+        }
+
         private void btn_SC_Load_Name1_Click(object sender, RoutedEventArgs e)
         {
+            
+            InitializeIn();
+
             BtnCsLoadNameIn.IsEnabled = false;
             BtnScLoadNameIn.IsEnabled = false;
             BtnLoadIn_Copy.IsEnabled = false;
@@ -3457,6 +3533,9 @@ namespace NameFinder
 
         private void btn_CS_Load_Name1_Click(object sender, RoutedEventArgs e)
         {
+            
+            InitializeIn();
+
             BtnCsLoadNameIn.IsEnabled = false;
             BtnScLoadNameIn.IsEnabled = false;
             BtnLoadIn_Copy.IsEnabled = false;
@@ -3508,13 +3587,7 @@ namespace NameFinder
                 }
 
                 // инициализируем прогрессбары и списки
-                ProgressBar21.Value = 0;
-                ProgressBar22.Value = 0;
-                ProgressBar23.Value = 0;
-                ListView22.ItemsSource = new List<string>();
-                ListView23.ItemsSource = new List<string>();
-                ListView24.ItemsSource = new List<string>();
-
+                InitializeOut();
 
                 isCleaningOut = CheckBoxCleaningOut.IsChecked == true;
                 if (isCleaningOut)
@@ -3548,6 +3621,10 @@ namespace NameFinder
 
         private void btn_SC_Load_Name2_Click(object sender, RoutedEventArgs e)
         {
+            
+            // инициализируем прогрессбары и списки
+            InitializeOut();
+
             BtnCsLoadNameOut.IsEnabled = false;
             BtnScLoadNameOut.IsEnabled = false;
             BtnLoadOut.IsEnabled = false;
@@ -3577,6 +3654,10 @@ namespace NameFinder
 
         private void btn_CS_Load_Name2_Click(object sender, RoutedEventArgs e)
         {
+            
+            // инициализируем прогрессбары и списки
+            InitializeOut();
+
             BtnCsLoadNameOut.IsEnabled = false;
             BtnScLoadNameOut.IsEnabled = false;
             //BtnLoadIn_Copy.IsEnabled = false;
@@ -3933,7 +4014,6 @@ namespace NameFinder
                 // результат работы метода в ListNameCompareCS
                 CompareSourceStructuresCS(ref ListNameSourceCS, ref ListNameDestinationCS, ref ListSubDestinationCS, ref StructureSourceCS, ref StructureDestinationCS, ListOpcodeDestinationCS);
                 // сравнение пакетов проведено
-                isCompareCS = true;
             }
             else
             {
@@ -3944,9 +4024,11 @@ namespace NameFinder
 
             if (CheckBoxCompareManual.IsChecked == true)
             {
+                CompareWindow.isRemoveOpcode = isRemoveOpcode;
                 var compareWindow = new CompareWindow();
                 compareWindow.Show();
                 compareWindow.CompareSourceStructures(ref ListNameSourceCS, ref ListNameDestinationCS, ref ListNameCompareCS, ref ListSubDestinationCS, ref StructureSourceCS, ref StructureDestinationCS, ListOpcodeDestinationCS);
+                isCompareCS = true;
             }
 
             ListNameCompareOutCS = new List<string>();
@@ -3966,8 +4048,16 @@ namespace NameFinder
             }
 
             ListView32.ItemsSource = ListNameCompareOutCS;
-            ListNameDestinationCS = ListNameCompareOutCS;
-            ListView22.ItemsSource = ListNameDestinationCS;
+
+            if (CheckBoxRename.IsChecked == true)
+            {
+                // сохраняем новые имена в исходник
+                // InListDestination = ListNameDestinationCS <- ListNameCompareOutCS
+                new Thread(() =>
+                {
+                    RenamePackets(ListNameDestinationCS, ListNameCompareOutCS);
+                }).Start();
+            }
             Button2Copy2.IsEnabled = true;
             Button2Copy2_Copy.IsEnabled = true;
         }
@@ -3980,7 +4070,6 @@ namespace NameFinder
                 // результат работы метода в ListNameCompareSC
                 CompareSourceStructuresSC(ref ListNameSourceSC, ref ListNameDestinationSC, ref ListSubDestinationSC, ref StructureSourceSC, ref StructureDestinationSC, ListOpcodeDestinationSC);
                 // сравнение пакетов проведено
-                isCompareSC = true;
             }
             else
             {
@@ -3994,6 +4083,7 @@ namespace NameFinder
                 var compareWindow = new CompareWindow();
                 compareWindow.Show();
                 compareWindow.CompareSourceStructures(ref ListNameSourceSC, ref ListNameDestinationSC, ref ListNameCompareSC, ref ListSubDestinationSC, ref StructureSourceSC, ref StructureDestinationSC, ListOpcodeDestinationSC);
+                isCompareSC = true;
             }
 
             ListNameCompareOutSC = new List<string>();
@@ -4013,10 +4103,54 @@ namespace NameFinder
             }
 
             ListView32.ItemsSource = ListNameCompareOutSC;
-            ListNameDestinationSC = ListNameCompareOutSC;
-            ListView22.ItemsSource = ListNameDestinationSC;
+
+            if (CheckBoxRename.IsChecked == true)
+            {
+                // сохраняем новые имена в исходник
+                // InListDestination = ListNameDestinationCS <- ListNameCompareOutCS
+                new Thread(() =>
+                {
+                    RenamePackets(ListNameDestinationSC, ListNameCompareOutSC);
+                }).Start();
+            }
             ButtonCopy2.IsEnabled = true;
             ButtonCopy2_Copy.IsEnabled = true;
+        }
+
+        private void RenamePackets(List<string> listName, List<string> listNameCompare)
+        {
+            var stopWatch = new Stopwatch();
+            stopWatch.Start();
+            Label_Semafor2.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { Label_Semafor2.Background = Brushes.Yellow; }));
+            ProgressBar21.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar21.Value = 0; }));
+            ProgressBar21.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar21.Maximum = listName.Count; }));
+            //
+            // начали работу по поиску имен пакетов
+            //
+            for (int i = 0; i < listName.Count; i++)
+            {
+                // ищем имя пакета, с начала файла до конца файла
+                var found = false;
+                var regexSub = new Regex(@"" + listName[i], RegexOptions.Compiled);
+                for (var index = 0; index < InListDestination.Count; index++)
+                {
+                    var matchesSub = regexSub.Matches(InListDestination[index]);
+                    if (matchesSub.Count <= 0)
+                    {
+                        continue;
+                    }
+
+                    // нашли старое имя пакета, заменяем на новое
+                    InListDestination[index] = InListDestination[index].Replace(listName[i], listNameCompare[i]); // переименуем имя пакета
+                }
+                ProgressBar21.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar21.Value = i; }));
+            }
+            stopWatch.Stop();
+            TextBox25.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox25.Text = stopWatch.Elapsed.ToString(); }));
+            ProgressBar22.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar22.Value = listName.Count; }));
+            Label_Semafor2.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { Label_Semafor2.Background = Brushes.GreenYellow; }));
+            listName = listNameCompare;
+            ListView22.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ListView22.ItemsSource = listName; }));
         }
 
         private string FilePathOut3 = "";
@@ -4112,8 +4246,7 @@ namespace NameFinder
                     dd++;
                 } while (ss < count);
 
-                tmp.Add(
-                    "--------------------------------------------------------------------------------------------------------------------------------------------");
+                tmp.Add("--------------------------------------------------------------------------------------------------------------------------------------------");
             }
             if (SaveFileDialog7())
             {
@@ -4458,7 +4591,7 @@ namespace NameFinder
                 .Select(x => Convert.ToByte(hex.Substring(x, 2), 16))
                 .ToArray();
         }
-        
+
         /*
         * Which works out about 30% faster than PZahras (not that you'd notice with small amounts of data).
         * The BitConverter method itself is pretty quick, it's just having to do the replace which slows it down, so if you can live with the dashes then it's perfectly good.
@@ -4490,6 +4623,10 @@ namespace NameFinder
             //FindOpcodeOut = checkBoxOut.IsChecked == true;
         }
 
+        private string DirPath = ".\\data";
+        private string DirPathCS = ".\\data\\cs";
+        private string DirPathSC = ".\\data\\sc";
+
         private void btn_SaveSnapshot_Click(object sender, RoutedEventArgs e)
         {
             Label_Semafor1.Background = Brushes.Red;
@@ -4501,33 +4638,84 @@ namespace NameFinder
             var lockObj = new object();
             lock (lockObj)
             {
+                using (var FBD = new FolderBrowserDialog())
+                {
+                    // сохраним путь к рабочей папке
+                    string path = Environment.CurrentDirectory + "\\WorkDir.cfg";
+                    FileInfo fileInf = new FileInfo(path);
+                    if (fileInf.Exists)
+                    {
+                        FBD.SelectedPath = File.ReadAllLines(Environment.CurrentDirectory + "\\WorkDir.cfg")[0].ToString();
+                    }
+                    else
+                    {
+                        FBD.SelectedPath = Environment.CurrentDirectory;
+                    }
+
+                    if (FBD.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+                    {
+                        //MessageBox.Show(FBD.SelectedPath);
+                        DirPath = FBD.SelectedPath;
+                        DirPathCS = DirPath + "\\data\\cs";
+                        DirPathSC = DirPath + "\\data\\sc";
+                        File.WriteAllLines(Environment.CurrentDirectory + "\\WorkDir.cfg", new List<string> { DirPath });
+                    }
+                }
+
+                DirectoryInfo dirInfo = new DirectoryInfo(DirPath + "\\data");
+                if (!dirInfo.Exists)
+                {
+                    //dirInfo.Create();
+                    dirInfo.CreateSubdirectory("cs");
+                    dirInfo.CreateSubdirectory("sc");
+                }
+
+                // Проверяем на то что есть, что-либо сохранять
+                if (ButtonCsCompare.IsEnabled == false && ButtonScCompare.IsEnabled == false)
+                {
+                    return;
+                }
+
                 if (ButtonSaveIn1.IsEnabled)
                 {
                     File.WriteAllLines(DirPathCS + "\\TextBoxPathIn", new List<string> { TextBoxPathIn.Text });
                     File.WriteAllLines(DirPathCS + "\\TextBoxPathOut", new List<string> { TextBoxPathOut.Text });
 
-                    File.WriteAllLines(DirPath + "\\InListSource", InListSource);
-                    File.WriteAllLines(DirPath + "\\InListDestination", InListDestination);
-                    
+                    File.WriteAllLines(DirPathCS + "\\AddressForClientPacketsIn", new List<string> { TextBox11.Text });
+                    File.WriteAllLines(DirPathCS + "\\AddressForServerPacketsIn", new List<string> { TextBox12.Text });
+
+                    File.WriteAllLines(DirPathCS + "\\AddressForClientPacketsOut", new List<string> { TextBox21.Text });
+                    File.WriteAllLines(DirPathCS + "\\AddressForServerPacketsOut", new List<string> { TextBox22.Text });
+
+                    File.WriteAllLines(DirPathCS + "\\NotFoundIn", new List<string> { TextBox17Copy.Text });
+                    File.WriteAllLines(DirPathCS + "\\NotFoundOut", new List<string> { TextBox17Copy1.Text });
+
+                    File.WriteAllLines(DirPathCS + "\\isCompareCS", new List<string> { isCompareCS.ToString() });
+                    File.WriteAllLines(DirPathCS + "\\isCompareSC", new List<string> { isCompareSC.ToString() });
+
+
+                    File.WriteAllLines(DirPath + "\\data\\InListSource", InListSource);
+                    File.WriteAllLines(DirPath + "\\data\\InListDestination", InListDestination);
+
                     File.WriteAllLines(DirPathCS + "\\ListNameSourceCS", ListNameSourceCS);
-                    File.WriteAllLines(DirPathCS + "\\ListNameSourceSC", ListNameSourceSC);
+                    File.WriteAllLines(DirPathCS + "\\ListNameSourceSC", new List<string>());
                     File.WriteAllLines(DirPathCS + "\\ListSubSourceCS", ListSubSourceCS);
-                    File.WriteAllLines(DirPathCS + "\\ListSubSourceSC", ListSubSourceSC);
+                    File.WriteAllLines(DirPathCS + "\\ListSubSourceSC", new List<string>());
                     File.WriteAllLines(DirPathCS + "\\ListOpcodeSourceCS", ListOpcodeSourceCS);
-                    File.WriteAllLines(DirPathCS + "\\ListOpcodeSourceSC", ListOpcodeSourceSC);
+                    File.WriteAllLines(DirPathCS + "\\ListOpcodeSourceSC", new List<string>());
 
                     File.WriteAllLines(DirPathCS + "\\ListNameDestinationCS", ListNameDestinationCS);
-                    File.WriteAllLines(DirPathCS + "\\ListNameDestinationSC", ListNameDestinationSC);
+                    File.WriteAllLines(DirPathCS + "\\ListNameDestinationSC", new List<string>());
                     File.WriteAllLines(DirPathCS + "\\ListSubDestinationCS", ListSubDestinationCS);
-                    File.WriteAllLines(DirPathCS + "\\ListSubDestinationSC", ListSubDestinationSC);
+                    File.WriteAllLines(DirPathCS + "\\ListSubDestinationSC", new List<string>());
                     File.WriteAllLines(DirPathCS + "\\ListOpcodeDestinationCS", ListOpcodeDestinationCS);
-                    File.WriteAllLines(DirPathCS + "\\ListOpcodeDestinationSC", ListOpcodeDestinationSC);
+                    File.WriteAllLines(DirPathCS + "\\ListOpcodeDestinationSC", new List<string>());
 
                     File.WriteAllLines(DirPathCS + "\\ListNameCompareCS", ListNameCompareCS);
-                    File.WriteAllLines(DirPathCS + "\\ListNameCompareSC", ListNameCompareSC);
+                    File.WriteAllLines(DirPathCS + "\\ListNameCompareSC", new List<string>());
 
                     File.WriteAllLines(DirPathCS + "\\ListNameCompareOutCS", ListNameCompareOutCS);
-                    File.WriteAllLines(DirPathCS + "\\ListNameCompareOutSC", ListNameCompareOutSC);
+                    File.WriteAllLines(DirPathCS + "\\ListNameCompareOutSC", new List<string>());
                     File.WriteAllLines(DirPathCS + "\\ListNameCompare", ListNameCompare);
 
                     string json = JsonConvert.SerializeObject(InUseIn, Formatting.Indented);
@@ -4556,36 +4744,45 @@ namespace NameFinder
 
                     json = JsonConvert.SerializeObject(XrefsOut, Formatting.Indented);
                     File.WriteAllText(DirPathCS + "\\XrefsOut.json", json);
-                    
-                    isCompareCS = true;
-                    isCompareSC = false;
                 }
                 else
                 {
                     File.WriteAllLines(DirPathSC + "\\TextBoxPathIn", new List<string> { TextBoxPathIn.Text });
                     File.WriteAllLines(DirPathSC + "\\TextBoxPathOut", new List<string> { TextBoxPathOut.Text });
 
-                    File.WriteAllLines(DirPath + "\\InListSource", InListSource);
-                    File.WriteAllLines(DirPath + "\\InListDestination", InListDestination);
+                    File.WriteAllLines(DirPathSC + "\\AddressForClientPacketsIn", new List<string> { TextBox11.Text });
+                    File.WriteAllLines(DirPathSC + "\\AddressForServerPacketsIn", new List<string> { TextBox12.Text });
 
-                    File.WriteAllLines(DirPathSC + "\\ListNameSourceCS", ListNameSourceCS);
+                    File.WriteAllLines(DirPathSC + "\\AddressForClientPacketsOut", new List<string> { TextBox21.Text });
+                    File.WriteAllLines(DirPathSC + "\\AddressForServerPacketsOut", new List<string> { TextBox22.Text });
+
+                    File.WriteAllLines(DirPathSC + "\\NotFoundIn", new List<string> { TextBox17Copy.Text });
+                    File.WriteAllLines(DirPathSC + "\\NotFoundOut", new List<string> { TextBox17Copy1.Text });
+
+                    File.WriteAllLines(DirPathCS + "\\isCompareCS", new List<string> { isCompareCS.ToString() });
+                    File.WriteAllLines(DirPathCS + "\\isCompareSC", new List<string> { isCompareSC.ToString() });
+
+                    File.WriteAllLines(DirPath + "\\data\\InListSource", InListSource);
+                    File.WriteAllLines(DirPath + "\\data\\InListDestination", InListDestination);
+
+                    File.WriteAllLines(DirPathSC + "\\ListNameSourceCS", new List<string>());
                     File.WriteAllLines(DirPathSC + "\\ListNameSourceSC", ListNameSourceSC);
-                    File.WriteAllLines(DirPathSC + "\\ListSubSourceCS", ListSubSourceCS);
+                    File.WriteAllLines(DirPathSC + "\\ListSubSourceCS", new List<string>());
                     File.WriteAllLines(DirPathSC + "\\ListSubSourceSC", ListSubSourceSC);
-                    File.WriteAllLines(DirPathSC + "\\ListOpcodeSourceCS", ListOpcodeSourceCS);
+                    File.WriteAllLines(DirPathSC + "\\ListOpcodeSourceCS", new List<string>());
                     File.WriteAllLines(DirPathSC + "\\ListOpcodeSourceSC", ListOpcodeSourceSC);
 
-                    File.WriteAllLines(DirPathSC + "\\ListNameDestinationCS", ListNameDestinationCS);
+                    File.WriteAllLines(DirPathSC + "\\ListNameDestinationCS", new List<string>());
                     File.WriteAllLines(DirPathSC + "\\ListNameDestinationSC", ListNameDestinationSC);
-                    File.WriteAllLines(DirPathSC + "\\ListSubDestinationCS", ListSubDestinationCS);
+                    File.WriteAllLines(DirPathSC + "\\ListSubDestinationCS", new List<string>());
                     File.WriteAllLines(DirPathSC + "\\ListSubDestinationSC", ListSubDestinationSC);
-                    File.WriteAllLines(DirPathSC + "\\ListOpcodeDestinationCS", ListOpcodeDestinationCS);
+                    File.WriteAllLines(DirPathSC + "\\ListOpcodeDestinationCS", new List<string>());
                     File.WriteAllLines(DirPathSC + "\\ListOpcodeDestinationSC", ListOpcodeDestinationSC);
 
-                    File.WriteAllLines(DirPathSC + "\\ListNameCompareCS", ListNameCompareCS);
+                    File.WriteAllLines(DirPathSC + "\\ListNameCompareCS", new List<string>());
                     File.WriteAllLines(DirPathSC + "\\ListNameCompareSC", ListNameCompareSC);
 
-                    File.WriteAllLines(DirPathSC + "\\ListNameCompareOutCS", ListNameCompareOutCS);
+                    File.WriteAllLines(DirPathSC + "\\ListNameCompareOutCS", new List<string>());
                     File.WriteAllLines(DirPathSC + "\\ListNameCompareOutSC", ListNameCompareOutSC);
                     File.WriteAllLines(DirPathSC + "\\ListNameCompare", ListNameCompare);
 
@@ -4615,9 +4812,6 @@ namespace NameFinder
 
                     json = JsonConvert.SerializeObject(XrefsOut, Formatting.Indented);
                     File.WriteAllText(DirPathSC + "\\XrefsOut.json", json);
-
-                    isCompareCS = false;
-                    isCompareSC = true;
                 }
             }
 
@@ -4626,10 +4820,6 @@ namespace NameFinder
             Label_Semafor1.Background = Brushes.GreenYellow;
             Label_Semafor2.Background = Brushes.GreenYellow;
         }
-
-        private string DirPath = ".\\data";
-        private string DirPathCS = ".\\data\\cs";
-        private string DirPathSC = ".\\data\\sc";
 
         private void btn_LoadSnapshotCS_Click(object sender, RoutedEventArgs e)
         {
@@ -4640,14 +4830,30 @@ namespace NameFinder
             var lockObj = new object();
             lock (lockObj)
             {
+                DirPath = TextBoxPathIn.Text = File.ReadAllLines(Environment.CurrentDirectory + "\\WorkDir.cfg")[0].ToString();
+                DirPathCS = DirPath + "\\data\\cs";
+                DirPathSC = DirPath + "\\data\\sc";
+
                 TextBoxPathIn.Text = File.ReadAllLines(DirPathCS + "\\TextBoxPathIn")[0].ToString();
                 TextBoxPathOut.Text = File.ReadAllLines(DirPathCS + "\\TextBoxPathOut")[0].ToString();
-                
-                InListSource = File.ReadAllLines(DirPath + "\\InListSource").ToList();
+
+                TextBox11.Text = File.ReadAllLines(DirPathCS + "\\AddressForClientPacketsIn")[0].ToString();
+                TextBox12.Text = File.ReadAllLines(DirPathCS + "\\AddressForServerPacketsIn")[0].ToString();
+
+                TextBox21.Text = File.ReadAllLines(DirPathCS + "\\AddressForClientPacketsOut")[0].ToString();
+                TextBox22.Text = File.ReadAllLines(DirPathCS + "\\AddressForServerPacketsOut")[0].ToString();
+
+                TextBox17Copy.Text = File.ReadAllLines(DirPathCS + "\\NotFoundIn")[0].ToString();
+                TextBox17Copy1.Text = File.ReadAllLines(DirPathCS + "\\NotFoundOut")[0].ToString();
+
+                isCompareCS = File.ReadAllLines(DirPathCS + "\\isCompareCS")[0] == "True";
+                isCompareSC = File.ReadAllLines(DirPathCS + "\\isCompareSC")[0] == "True";
+
+                InListSource = File.ReadAllLines(DirPath + "\\data\\InListSource").ToList();
                 ListView11.ItemsSource = InListSource;
-                InListDestination = File.ReadAllLines(DirPath + "\\InListDestination").ToList();
+                InListDestination = File.ReadAllLines(DirPath + "\\data\\InListDestination").ToList();
                 ListView21.ItemsSource = InListDestination;
-                
+
                 ListNameSourceCS = File.ReadAllLines(DirPathCS + "\\ListNameSourceCS").ToList();
                 ListView12.ItemsSource = ListNameSourceCS;
                 TextBox13.Text = ListNameSourceCS.Count.ToString();
@@ -4755,8 +4961,6 @@ namespace NameFinder
 
                 _isInCs = true;
                 _isOutCs = true;
-                isCompareCS = true;
-                isCompareSC = false;
             }
 
             Label_Semafor1.Background = Brushes.GreenYellow;
@@ -4772,15 +4976,30 @@ namespace NameFinder
             var lockObj = new object();
             lock (lockObj)
             {
+                DirPath = TextBoxPathIn.Text = File.ReadAllLines(Environment.CurrentDirectory + "\\WorkDir.cfg")[0].ToString();
+                DirPathCS = DirPath + "\\data\\cs";
+                DirPathSC = DirPath + "\\data\\sc";
 
                 TextBoxPathIn.Text = File.ReadAllLines(DirPathSC + "\\TextBoxPathIn")[0].ToString();
                 TextBoxPathOut.Text = File.ReadAllLines(DirPathSC + "\\TextBoxPathOut")[0].ToString();
-                
-                InListSource = File.ReadAllLines(DirPath + "\\InListSource").ToList();
+
+                TextBox11.Text = File.ReadAllLines(DirPathSC + "\\AddressForClientPacketsIn")[0].ToString();
+                TextBox12.Text = File.ReadAllLines(DirPathSC + "\\AddressForServerPacketsIn")[0].ToString();
+
+                TextBox21.Text = File.ReadAllLines(DirPathSC + "\\AddressForClientPacketsOut")[0].ToString();
+                TextBox22.Text = File.ReadAllLines(DirPathSC + "\\AddressForServerPacketsOut")[0].ToString();
+
+                TextBox17Copy.Text = File.ReadAllLines(DirPathSC + "\\NotFoundIn")[0].ToString();
+                TextBox17Copy1.Text = File.ReadAllLines(DirPathSC + "\\NotFoundOut")[0].ToString();
+
+                isCompareCS = File.ReadAllLines(DirPathCS + "\\isCompareCS")[0] == "True";
+                isCompareSC = File.ReadAllLines(DirPathCS + "\\isCompareSC")[0] == "True";
+
+                InListSource = File.ReadAllLines(DirPath + "\\data\\InListSource").ToList();
                 ListView11.ItemsSource = InListSource;
-                InListDestination = File.ReadAllLines(DirPath + "\\InListDestination").ToList();
+                InListDestination = File.ReadAllLines(DirPath + "\\data\\InListDestination").ToList();
                 ListView21.ItemsSource = InListDestination;
-                
+
                 ListNameSourceCS = File.ReadAllLines(DirPathSC + "\\ListNameSourceCS").ToList();
                 //ListView12.ItemsSource = ListNameSourceCS;
                 TextBox13.Text = ListNameSourceCS.Count.ToString();
@@ -4888,8 +5107,6 @@ namespace NameFinder
 
                 _isInSc = true;
                 _isOutSc = true;
-                isCompareCS = false;
-                isCompareSC = true;
             }
 
             Label_Semafor1.Background = Brushes.GreenYellow;

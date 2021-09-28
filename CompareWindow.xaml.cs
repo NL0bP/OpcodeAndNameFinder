@@ -29,6 +29,7 @@ namespace NameFinder
         public static Dictionary<int, List<string>> StructureSource = new Dictionary<int, List<string>>();
         public static Dictionary<int, List<string>> StructureDestination = new Dictionary<int, List<string>>();
         public static List<string> ListOpcodeDestination = new List<string>();
+        public static bool isRemoveOpcode = false;
 
         public void CompareSourceStructures(
             ref List<string> listNameSource,
@@ -118,13 +119,19 @@ namespace NameFinder
             }
 
             // запишем новое имя на место неизвестного, которое нашли
-            // запишем новое имя на место неизвестного, которое нашли
-            // удаляем оконечные опкоды в имени пакета
-            var offset = ListNameSource[IdxS].LastIndexOf("_", StringComparison.Ordinal);
-            if (offset > 0)
+            if (isRemoveOpcode)
             {
-                var nameSource = ListNameSource[IdxS].Substring(0, offset);
-                ListNameCompare[IdxD] = nameSource;
+                // удаляем оконечные опкоды в имени пакета
+                var offset = ListNameSource[IdxS].LastIndexOf("_", StringComparison.Ordinal);
+                if (offset > 0)
+                {
+                    var nameSource = ListNameSource[IdxS].Substring(0, offset);
+                    ListNameCompare[IdxD] = nameSource;
+                }
+                else
+                {
+                    ListNameCompare[IdxD] = ListNameSource[IdxS];
+                }
             }
             else
             {
