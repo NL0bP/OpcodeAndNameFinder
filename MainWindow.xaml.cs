@@ -717,6 +717,10 @@ namespace NameFinder
             TextBox17Copy1.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox17Copy1.Text = "0"; }));
             TextBox19Copy1.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox19Copy1.Text = "0"; }));
             Label_Semafor2.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { Label_Semafor2.Background = Brushes.Yellow; }));
+            ButtonSaveOut1.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ButtonSaveOut1.IsEnabled = false; }));
+            ButtonSaveOut2.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ButtonSaveOut2.IsEnabled = false; }));
+            BtnLoadOut.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnLoadOut.IsEnabled = false; }));
+            //BtnLoadIn_Copy.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnLoadIn_Copy.IsEnabled = false; }));
 
             _isOutCs = false;
             ButtonCsCompare.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ButtonCsCompare.IsEnabled = false; }));
@@ -992,6 +996,9 @@ namespace NameFinder
             TextBox19Copy1.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox19Copy1.Text = stopWatch.Elapsed.ToString(); }));
             ListView24.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ListView24.ItemsSource = ListOpcodeDestinationCS; }));
             Label_Semafor2.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { Label_Semafor2.Background = Brushes.GreenYellow; }));
+            ButtonSaveIn2.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ButtonSaveOut1.IsEnabled = true; }));
+            BtnLoadOut.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnLoadOut.IsEnabled = true; }));
+            //BtnLoadIn_Copy.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnLoadIn_Copy.IsEnabled = true; }));
 
             _isOutCs = true;
             if (_isInCs && _isOutCs)
@@ -1436,8 +1443,7 @@ namespace NameFinder
             var tmpLst = new List<string>();
             var regexProcNear = new Regex(@"(proc\s+near)", RegexOptions.Compiled); // ищем начало подпрограммы
             var regexEndP = new Regex(@"\s+endp\s*", RegexOptions.Compiled); // ищем конец подпрограммы
-            //var regexSub = new Regex(@"push\s+offset\s|call\s+sub_\w+|mov\s+\[\w+\+\w+\],\soffset\s|mov\s+\[\w+\+\w+\],\s([1-9]|[0-9A-F]{2,3}h)|mov\s+dword\sptr\s\[\w+\+\w+\],\s([1-9]|[0-9A-F]{2,3}h)|mov\s+dword\sptr\s\[\w+\+\w+\+\w+\],\s([1-9]|[0-9A-F]{2,3}h)|mov\s+dword\sptr\s\[\w+\],\soffset\s|mov\s+dword\sptr\s\[\w+\-\w+\],\soffset\s|mov\s+dword\sptr\s\[\w+\-\w+\],\s([1-9]|[0-9A-F]{2,3}h)", RegexOptions.Compiled);
-            var regexSub = new Regex(@"push\s+offset\s|call\s+\w+|call\s+sub_\w+|mov\s+\[\w+\+\w+\],\soffset\s|mov\s+dword\sptr\s\[\w+\+\w+\],\soffset\s|mov\s+\[\w+\+\w+\],\s([1-9]|[0-9A-F]{2,3}h)|mov\s+dword\sptr\s\[\w+\+\w+\],\s([1-9]|[0-9A-F]{2,3}h)|mov\s+dword\sptr\s\[\w+\+\w+\+\w+\],\s([1-9]|[0-9A-F]{2,3}h)|mov\s+dword\sptr\s\[\w+\],\soffset\s|mov\s+dword\sptr\s\[\w+\-\w+\],\soffset\s|mov\s+dword\sptr\s\[\w+\-\w+\],\s([1-9]|[0-9A-F]{2,3}h)", RegexOptions.Compiled);
+            var regexSub = new Regex(@"push\s+offset\s|call\s+\w+|call\s+sub_\w+|mov\s+\[\w+\+\w+\],\soffset\s|mov\s+dword\sptr\s\[\w+\+\w+\],\soffset\s|mov\s+\[\w+\+\w+\],\s([1-9]|[0-9A-F]{2,3}h)|mov\s+dword\sptr\s\[\w+\+\w+\],\s([1-9]|[0-9A-F]{2,3}h)|mov\s+dword\sptr\s\[\w+\+\w+\+\w+\],\s([1-9]|[0-9A-F]{2,3}h)|mov\s+dword\sptr\s\[\w+\],\soffset\s|mov\s+dword\sptr\s\[\w+\-\w+\],\soffset\s|mov\s+dword\sptr\s\[\w+\-\w+\],\s([1-9]|[0-9A-F]{2,3}h)|mov\s+e[abcd]x,\s\[e[abcd]x\+([1-9]|[0-9A-F]{2,3}h)\]", RegexOptions.Compiled);
             for (var index = idx; index < maxCount; index++)
             {
                 if (index % progress == 0)
@@ -2023,9 +2029,7 @@ namespace NameFinder
 
             InListSource = new List<string>();
             string s;
-            var regexClr = new Regex(@"\;\ssub_\d+|\;\sDATA\sXREF\:|proc\s+near|\s+endp\s*|\soffset\s|call\s+\w+|call\s+sub_\w+|mov\s+\[\w+\+\w+\],\s([1-9]|[0-9A-F]{2,3}h)|mov\s+dword\sptr\s\[\w+\+\w+\],\s([1-9]|[0-9A-F]{2,3}h)|mov\s+dword\sptr\s\[\w+\+\w+\+\w+\],\s([1-9]|[0-9A-F]{2,3}h)|mov\s+dword\sptr\s\[\w+\-\w+\],\s([1-9]|[0-9A-F]{2,3}h)", RegexOptions.Compiled);
-            //var regexClr = new Regex(@"proc\s+near|\s+endp\s*|\sdd\soffset\s|push\s+offset\s|call\s+sub_\w+|mov\s+\[\w+\+\w+\],\soffset\s|mov\s+\[\w+\+\w+\],\s([1-9]|[0-9A-F]{2,3}h)|mov\s+dword\sptr\s\[\w+\+\w+\],\s([1-9]|[0-9A-F]{2,3}h)|mov\s+dword\sptr\s\[\w+\],\soffset\s|mov\s+dword\sptr\s\[\w+\-\w+\],\soffset\s|mov\s+dword\sptr\s\[\w+\-\w+\],\s([1-9]|[0-9A-F]{2,3}h)", RegexOptions.Compiled);
-            //var regexClr = new Regex(@"(^(\s+\w+\s+\d+)|^\s*$)", RegexOptions.IgnoreCase); // ищем мусорные строки 
+            var regexClr = new Regex(@"\;\ssub_\d+|\;\sDATA\sXREF\:|proc\s+near|\s+endp\s*|\soffset\s|call\s+\w+|call\s+sub_\w+|mov\s+\[\w+\+\w+\],\s([1-9]|[0-9A-F]{2,3}h)|mov\s+dword\sptr\s\[\w+\+\w+\],\s([1-9]|[0-9A-F]{2,3}h)|mov\s+dword\sptr\s\[\w+\+\w+\+\w+\],\s([1-9]|[0-9A-F]{2,3}h)|mov\s+dword\sptr\s\[\w+\-\w+\],\s([1-9]|[0-9A-F]{2,3}h)|mov\s+e[abcd]x,\s\[e[abcd]x\+([1-9]|[0-9A-F]{2,3}h)\]", RegexOptions.Compiled);
             // узнаем количество строк в файле
             var maxCount = File.ReadLines(FilePathIn1).Count();
             var progress = CalcProgress(maxCount);
@@ -2853,6 +2857,12 @@ namespace NameFinder
             TextBox28.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox28.Text = "0"; }));
             ProgressBar22.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar22.Value = 0; }));
             Label_Semafor2.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { Label_Semafor2.Background = Brushes.Yellow; }));
+            ButtonSaveOut1.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ButtonSaveOut1.IsEnabled = false; }));
+            ButtonSaveOut2.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ButtonSaveOut2.IsEnabled = false; }));
+            BtnLoadOut.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnLoadOut.IsEnabled = false; }));
+            //BtnLoadIn_Copy.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnLoadIn_Copy.IsEnabled = false; }));
+            BtnCsLoadNameOut.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnCsLoadNameOut.IsEnabled = false; }));
+            BtnScLoadNameOut.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnScLoadNameOut.IsEnabled = false; }));
 
             //
             // начали предварительную работу по поиску имен и ссылок на подпрограммы со структурами
@@ -3381,7 +3391,7 @@ namespace NameFinder
             }
             else
             {
-                MessageBox.Show("Для работы программы необходимо выбрать .asm файл!");
+                MessageBox.Show("Для работы программы необходимо выбрать .asm файл!", "Error", System.Windows.MessageBoxButton.OK, MessageBoxImage.Information);
                 BtnLoadIn_Copy.IsEnabled = true;
                 BtnLoadIn.IsEnabled = true;
             }
@@ -3525,7 +3535,7 @@ namespace NameFinder
             }
             else
             {
-                MessageBox.Show("Для работы программы необходимо выбрать .asm файл!");
+                MessageBox.Show("Для работы программы необходимо выбрать .asm файл!", "Error", System.Windows.MessageBoxButton.OK, MessageBoxImage.Information);
                 BtnLoadIn_Copy.IsEnabled = true;
                 BtnLoadIn.IsEnabled = true;
             }
@@ -3613,7 +3623,7 @@ namespace NameFinder
             }
             else
             {
-                MessageBox.Show("Для работы программы необходимо выбрать .asm файл!");
+                MessageBox.Show("Для работы программы необходимо выбрать .asm файл!", "Error", System.Windows.MessageBoxButton.OK, MessageBoxImage.Information);
                 //BtnLoadIn_Copy.IsEnabled = true;
                 BtnLoadOut.IsEnabled = true;
             }
@@ -3731,96 +3741,104 @@ namespace NameFinder
                 // начали предварительную работу по поиску структур пакетов
                 //
                 // начнем с начала файла
-                do // проходим по списку имён? которые нужно найти, т.е. Destination
+                try
                 {
-                    // возьмем следующую структуру, для которой нужно найти новое имя
-                    var ddList = dictDestination[IdxD];
-                    //if (ddList.Count == 0)
-                    //{
-                    //    IdxD++;
-                    //    repeat = true; // нужно будет повторять поиск
-                    //    continue; // пропускаем пустые структуры
-                    //}
-                    IdxS = 0;
-                    do
+                    do // проходим по списку имён? которые нужно найти, т.е. Destination
                     {
-                        badFound = 0;
-                        // проверим, что имя не занято
-                        if (!InUseIn.ContainsKey(IdxS))
+                        // возьмем следующую структуру, для которой нужно найти новое имя
+                        var ddList = dictDestination[IdxD];
+                        //if (ddList.Count == 0)
+                        //{
+                        //    IdxD++;
+                        //    repeat = true; // нужно будет повторять поиск
+                        //    continue; // пропускаем пустые структуры
+                        //}
+                        IdxS = 0;
+                        do
                         {
-                            // возьмем следующую структуру, с которой нужно свериться и решить, что имя нашли
-                            var dsList = dictSource[IdxS];
-                            if (ddList.Count == dsList.Count)
+                            badFound = 0;
+                            // проверим, что имя не занято
+                            if (!InUseIn.ContainsKey(IdxS))
                             {
-                                if (ddList.Count == 0 && dsList.Count == 0)
+                                // возьмем следующую структуру, с которой нужно свериться и решить, что имя нашли
+                                var dsList = dictSource[IdxS];
+                                if (ddList.Count == dsList.Count)
                                 {
-                                    foundName = true; // делаем пустые структуры похожими
-                                    //foundName = false; // делаем пустые структуры непохожими
-                                }
-                                //else if (ddList.Count == 1 && dsList.Count == 1 && ddList[0] == dsList[0] &&
-                                //         (ddList[0] == "\"type\"" || ddList[0] == "\"bc\""))
-                                //{
-                                //    foundName = false; // делаем структуры с одним полем "type" - непохожими
-                                //}
-                                else
-                                {
-                                    // количество строк в структурах совпадает
-                                    for (var i = 0; i < ddList.Count; i++)
+                                    if (ddList.Count == 0 && dsList.Count == 0)
                                     {
-                                        // сверим на одинаковость
-                                        if (ddList[i] == dsList[i])
+                                        foundName = true; // делаем пустые структуры похожими
+                                                          //foundName = false; // делаем пустые структуры непохожими
+                                    }
+                                    //else if (ddList.Count == 1 && dsList.Count == 1 && ddList[0] == dsList[0] &&
+                                    //         (ddList[0] == "\"type\"" || ddList[0] == "\"bc\""))
+                                    //{
+                                    //    foundName = false; // делаем структуры с одним полем "type" - непохожими
+                                    //}
+                                    else
+                                    {
+                                        // количество строк в структурах совпадает
+                                        for (var i = 0; i < ddList.Count; i++)
                                         {
-                                            foundName = true;
+                                            // сверим на одинаковость
+                                            if (ddList[i] == dsList[i])
+                                            {
+                                                foundName = true;
+                                            }
+                                            else
+                                            {
+                                                badFound++;
+                                                foundName = false;
+                                            }
+                                        }
+                                    }
+
+                                    if (foundName && badFound == 0)
+                                    {
+                                        if (InUseIn.ContainsKey(IdxS))
+                                        {
+                                            InUseIn[IdxS] = IdxD;
                                         }
                                         else
                                         {
-                                            badFound++;
-                                            foundName = false;
+                                            InUseIn.Add(IdxS, IdxD); // отметим, что найденное имя занято
                                         }
-                                    }
-                                }
 
-                                if (foundName && badFound == 0)
-                                {
-                                    if (InUseIn.ContainsKey(IdxS))
-                                    {
-                                        InUseIn[IdxS] = IdxD;
-                                    }
-                                    else
-                                    {
-                                        InUseIn.Add(IdxS, IdxD); // отметим, что найденное имя занято
-                                    }
-
-                                    if (InUseOut.ContainsKey(IdxD))
-                                    {
-                                        InUseOut[IdxD] = IdxS;
-                                    }
-                                    else
-                                    {
-                                        InUseOut.Add(IdxD, IdxS); // отметим, что найденное имя занято
-                                    }
-
-                                    // запишем новое имя на место неизвестного, которое нашли
-                                    if (CheckBoxRemoveOpcode.IsChecked == true)
-                                    {
-                                        // удаляем оконечные опкоды в имени пакета
-                                        var offset = listNameSource[IdxS].LastIndexOf("_", StringComparison.Ordinal);
-                                        if (offset > 0)
+                                        if (InUseOut.ContainsKey(IdxD))
                                         {
-                                            var nameSource = listNameSource[IdxS].Substring(0, offset);
-                                            ListNameCompareCS[IdxD] = nameSource;
+                                            InUseOut[IdxD] = IdxS;
+                                        }
+                                        else
+                                        {
+                                            InUseOut.Add(IdxD, IdxS); // отметим, что найденное имя занято
+                                        }
+
+                                        // запишем новое имя на место неизвестного, которое нашли
+                                        if (CheckBoxRemoveOpcode.IsChecked == true)
+                                        {
+                                            // удаляем оконечные опкоды в имени пакета
+                                            var offset = listNameSource[IdxS].LastIndexOf("_", StringComparison.Ordinal);
+                                            if (offset > 0)
+                                            {
+                                                var nameSource = listNameSource[IdxS].Substring(0, offset);
+                                                ListNameCompareCS[IdxD] = nameSource;
+                                            }
+                                            else
+                                            {
+                                                ListNameCompareCS[IdxD] = listNameSource[IdxS];
+                                            }
                                         }
                                         else
                                         {
                                             ListNameCompareCS[IdxD] = listNameSource[IdxS];
                                         }
+
+                                        repeat = false; // болше не повторять поиск
                                     }
                                     else
                                     {
-                                        ListNameCompareCS[IdxD] = listNameSource[IdxS];
+                                        IdxS++; // взять следующее
+                                        repeat = true; // нужно будет повторять поиск
                                     }
-
-                                    repeat = false; // болше не повторять поиск
                                 }
                                 else
                                 {
@@ -3830,19 +3848,19 @@ namespace NameFinder
                             }
                             else
                             {
-                                IdxS++; // взять следующее
-                                repeat = true; // нужно будет повторять поиск
+                                IdxS++;
                             }
-                        }
-                        else
-                        {
-                            IdxS++;
-                        }
-                    } while (IdxS < lenSourceListName && repeat);
+                        } while (IdxS < lenSourceListName && repeat);
 
-                    IdxD++;
-                    repeat = true; // нужно будет повторять поиск
-                } while (IdxD < lenDestinationListName);
+                        IdxD++;
+                        repeat = true; // нужно будет повторять поиск
+                    } while (IdxD < lenDestinationListName);
+                }
+                catch (Exception)
+                {
+                    MessageBox.Show("Opcodes not found!", "Error", System.Windows.MessageBoxButton.OK, MessageBoxImage.Error);
+
+                }
             }
         }
 
@@ -4056,6 +4074,7 @@ namespace NameFinder
                 new Thread(() =>
                 {
                     RenamePackets(ListNameDestinationCS, ListNameCompareOutCS);
+                    ListNameDestinationCS = ListNameCompareOutCS;
                 }).Start();
             }
             Button2Copy2.IsEnabled = true;
@@ -4111,6 +4130,7 @@ namespace NameFinder
                 new Thread(() =>
                 {
                     RenamePackets(ListNameDestinationSC, ListNameCompareOutSC);
+                    ListNameDestinationSC = ListNameCompareOutSC;
                 }).Start();
             }
             ButtonCopy2.IsEnabled = true;
@@ -4670,148 +4690,164 @@ namespace NameFinder
                     dirInfo.CreateSubdirectory("sc");
                 }
 
-                // Проверяем на то что есть, что-либо сохранять
-                if (ButtonCsCompare.IsEnabled == false && ButtonScCompare.IsEnabled == false)
+                //// Проверяем на то что есть, что-либо сохранять
+                //if (ButtonCsCompare.IsEnabled == false && ButtonScCompare.IsEnabled == false)
+                //{
+                //    return;
+                //}
+
+                if (ButtonCsCompare.IsEnabled)
                 {
-                    return;
+                    try
+                    {
+                        File.WriteAllLines(DirPathCS + "\\TextBoxPathIn", new List<string> { TextBoxPathIn.Text });
+                        File.WriteAllLines(DirPathCS + "\\TextBoxPathOut", new List<string> { TextBoxPathOut.Text });
+
+                        File.WriteAllLines(DirPathCS + "\\AddressForClientPacketsIn", new List<string> { TextBox11.Text });
+                        File.WriteAllLines(DirPathCS + "\\AddressForServerPacketsIn", new List<string> { TextBox12.Text });
+
+                        File.WriteAllLines(DirPathCS + "\\AddressForClientPacketsOut", new List<string> { TextBox21.Text });
+                        File.WriteAllLines(DirPathCS + "\\AddressForServerPacketsOut", new List<string> { TextBox22.Text });
+
+                        File.WriteAllLines(DirPathCS + "\\NotFoundIn", new List<string> { TextBox17Copy.Text });
+                        File.WriteAllLines(DirPathCS + "\\NotFoundOut", new List<string> { TextBox17Copy1.Text });
+
+                        File.WriteAllLines(DirPathCS + "\\isCompareCS", new List<string> { isCompareCS.ToString() });
+                        File.WriteAllLines(DirPathCS + "\\isCompareSC", new List<string> { isCompareSC.ToString() });
+
+
+                        File.WriteAllLines(DirPath + "\\data\\InListSource", InListSource);
+                        File.WriteAllLines(DirPath + "\\data\\InListDestination", InListDestination);
+
+                        File.WriteAllLines(DirPathCS + "\\ListNameSourceCS", ListNameSourceCS);
+                        File.WriteAllLines(DirPathCS + "\\ListNameSourceSC", new List<string>());
+                        File.WriteAllLines(DirPathCS + "\\ListSubSourceCS", ListSubSourceCS);
+                        File.WriteAllLines(DirPathCS + "\\ListSubSourceSC", new List<string>());
+                        File.WriteAllLines(DirPathCS + "\\ListOpcodeSourceCS", ListOpcodeSourceCS);
+                        File.WriteAllLines(DirPathCS + "\\ListOpcodeSourceSC", new List<string>());
+
+                        File.WriteAllLines(DirPathCS + "\\ListNameDestinationCS", ListNameDestinationCS);
+                        File.WriteAllLines(DirPathCS + "\\ListNameDestinationSC", new List<string>());
+                        File.WriteAllLines(DirPathCS + "\\ListSubDestinationCS", ListSubDestinationCS);
+                        File.WriteAllLines(DirPathCS + "\\ListSubDestinationSC", new List<string>());
+                        File.WriteAllLines(DirPathCS + "\\ListOpcodeDestinationCS", ListOpcodeDestinationCS);
+                        File.WriteAllLines(DirPathCS + "\\ListOpcodeDestinationSC", new List<string>());
+
+                        File.WriteAllLines(DirPathCS + "\\ListNameCompareCS", ListNameCompareCS);
+                        File.WriteAllLines(DirPathCS + "\\ListNameCompareSC", new List<string>());
+
+                        File.WriteAllLines(DirPathCS + "\\ListNameCompareOutCS", ListNameCompareOutCS);
+                        File.WriteAllLines(DirPathCS + "\\ListNameCompareOutSC", new List<string>());
+                        File.WriteAllLines(DirPathCS + "\\ListNameCompare", ListNameCompare);
+
+                        string json = JsonConvert.SerializeObject(InUseIn, Formatting.Indented);
+                        File.WriteAllText(DirPathCS + "\\InUseIn.json", json);
+
+                        json = JsonConvert.SerializeObject(InUseOut, Formatting.Indented);
+                        File.WriteAllText(DirPathCS + "\\InUseOut.json", json);
+
+                        json = JsonConvert.SerializeObject(IsRenameDestination, Formatting.Indented);
+                        File.WriteAllText(DirPathCS + "\\IsRenameDestination.json", json);
+
+                        json = JsonConvert.SerializeObject(StructureSourceCS, Formatting.Indented);
+                        File.WriteAllText(DirPathCS + "\\StructureSourceCS.json", json);
+
+                        json = JsonConvert.SerializeObject(StructureSourceSC, Formatting.Indented);
+                        File.WriteAllText(DirPathCS + "\\StructureSourceSC.json", json);
+
+                        json = JsonConvert.SerializeObject(StructureDestinationCS, Formatting.Indented);
+                        File.WriteAllText(DirPathCS + "\\StructureDestinationCS.json", json);
+
+                        json = JsonConvert.SerializeObject(StructureDestinationSC, Formatting.Indented);
+                        File.WriteAllText(DirPathCS + "\\StructureDestinationSC.json", json);
+
+                        json = JsonConvert.SerializeObject(XrefsIn, Formatting.Indented);
+                        File.WriteAllText(DirPathCS + "\\XrefsIn.json", json);
+
+                        json = JsonConvert.SerializeObject(XrefsOut, Formatting.Indented);
+                        File.WriteAllText(DirPathCS + "\\XrefsOut.json", json);
+                    }
+                    catch (Exception exception)
+                    {
+                        MessageBox.Show(exception.Message, "Error", System.Windows.MessageBoxButton.OK, MessageBoxImage.Error);
+                    }
                 }
 
-                if (ButtonSaveIn1.IsEnabled)
+                if (ButtonScCompare.IsEnabled == true)
                 {
-                    File.WriteAllLines(DirPathCS + "\\TextBoxPathIn", new List<string> { TextBoxPathIn.Text });
-                    File.WriteAllLines(DirPathCS + "\\TextBoxPathOut", new List<string> { TextBoxPathOut.Text });
+                    try
+                    {
+                        File.WriteAllLines(DirPathSC + "\\TextBoxPathIn", new List<string> { TextBoxPathIn.Text });
 
-                    File.WriteAllLines(DirPathCS + "\\AddressForClientPacketsIn", new List<string> { TextBox11.Text });
-                    File.WriteAllLines(DirPathCS + "\\AddressForServerPacketsIn", new List<string> { TextBox12.Text });
+                        File.WriteAllLines(DirPathSC + "\\TextBoxPathOut", new List<string> { TextBoxPathOut.Text });
 
-                    File.WriteAllLines(DirPathCS + "\\AddressForClientPacketsOut", new List<string> { TextBox21.Text });
-                    File.WriteAllLines(DirPathCS + "\\AddressForServerPacketsOut", new List<string> { TextBox22.Text });
+                        File.WriteAllLines(DirPathSC + "\\AddressForClientPacketsIn", new List<string> { TextBox11.Text });
+                        File.WriteAllLines(DirPathSC + "\\AddressForServerPacketsIn", new List<string> { TextBox12.Text });
 
-                    File.WriteAllLines(DirPathCS + "\\NotFoundIn", new List<string> { TextBox17Copy.Text });
-                    File.WriteAllLines(DirPathCS + "\\NotFoundOut", new List<string> { TextBox17Copy1.Text });
+                        File.WriteAllLines(DirPathSC + "\\AddressForClientPacketsOut", new List<string> { TextBox21.Text });
+                        File.WriteAllLines(DirPathSC + "\\AddressForServerPacketsOut", new List<string> { TextBox22.Text });
 
-                    File.WriteAllLines(DirPathCS + "\\isCompareCS", new List<string> { isCompareCS.ToString() });
-                    File.WriteAllLines(DirPathCS + "\\isCompareSC", new List<string> { isCompareSC.ToString() });
+                        File.WriteAllLines(DirPathSC + "\\NotFoundIn", new List<string> { TextBox17Copy.Text });
+                        File.WriteAllLines(DirPathSC + "\\NotFoundOut", new List<string> { TextBox17Copy1.Text });
 
+                        File.WriteAllLines(DirPathCS + "\\isCompareCS", new List<string> { isCompareCS.ToString() });
+                        File.WriteAllLines(DirPathCS + "\\isCompareSC", new List<string> { isCompareSC.ToString() });
 
-                    File.WriteAllLines(DirPath + "\\data\\InListSource", InListSource);
-                    File.WriteAllLines(DirPath + "\\data\\InListDestination", InListDestination);
+                        File.WriteAllLines(DirPath + "\\data\\InListSource", InListSource);
+                        File.WriteAllLines(DirPath + "\\data\\InListDestination", InListDestination);
 
-                    File.WriteAllLines(DirPathCS + "\\ListNameSourceCS", ListNameSourceCS);
-                    File.WriteAllLines(DirPathCS + "\\ListNameSourceSC", new List<string>());
-                    File.WriteAllLines(DirPathCS + "\\ListSubSourceCS", ListSubSourceCS);
-                    File.WriteAllLines(DirPathCS + "\\ListSubSourceSC", new List<string>());
-                    File.WriteAllLines(DirPathCS + "\\ListOpcodeSourceCS", ListOpcodeSourceCS);
-                    File.WriteAllLines(DirPathCS + "\\ListOpcodeSourceSC", new List<string>());
+                        File.WriteAllLines(DirPathSC + "\\ListNameSourceCS", new List<string>());
+                        File.WriteAllLines(DirPathSC + "\\ListNameSourceSC", ListNameSourceSC);
+                        File.WriteAllLines(DirPathSC + "\\ListSubSourceCS", new List<string>());
+                        File.WriteAllLines(DirPathSC + "\\ListSubSourceSC", ListSubSourceSC);
+                        File.WriteAllLines(DirPathSC + "\\ListOpcodeSourceCS", new List<string>());
+                        File.WriteAllLines(DirPathSC + "\\ListOpcodeSourceSC", ListOpcodeSourceSC);
 
-                    File.WriteAllLines(DirPathCS + "\\ListNameDestinationCS", ListNameDestinationCS);
-                    File.WriteAllLines(DirPathCS + "\\ListNameDestinationSC", new List<string>());
-                    File.WriteAllLines(DirPathCS + "\\ListSubDestinationCS", ListSubDestinationCS);
-                    File.WriteAllLines(DirPathCS + "\\ListSubDestinationSC", new List<string>());
-                    File.WriteAllLines(DirPathCS + "\\ListOpcodeDestinationCS", ListOpcodeDestinationCS);
-                    File.WriteAllLines(DirPathCS + "\\ListOpcodeDestinationSC", new List<string>());
+                        File.WriteAllLines(DirPathSC + "\\ListNameDestinationCS", new List<string>());
+                        File.WriteAllLines(DirPathSC + "\\ListNameDestinationSC", ListNameDestinationSC);
+                        File.WriteAllLines(DirPathSC + "\\ListSubDestinationCS", new List<string>());
+                        File.WriteAllLines(DirPathSC + "\\ListSubDestinationSC", ListSubDestinationSC);
+                        File.WriteAllLines(DirPathSC + "\\ListOpcodeDestinationCS", new List<string>());
+                        File.WriteAllLines(DirPathSC + "\\ListOpcodeDestinationSC", ListOpcodeDestinationSC);
 
-                    File.WriteAllLines(DirPathCS + "\\ListNameCompareCS", ListNameCompareCS);
-                    File.WriteAllLines(DirPathCS + "\\ListNameCompareSC", new List<string>());
+                        File.WriteAllLines(DirPathSC + "\\ListNameCompareCS", new List<string>());
+                        File.WriteAllLines(DirPathSC + "\\ListNameCompareSC", ListNameCompareSC);
 
-                    File.WriteAllLines(DirPathCS + "\\ListNameCompareOutCS", ListNameCompareOutCS);
-                    File.WriteAllLines(DirPathCS + "\\ListNameCompareOutSC", new List<string>());
-                    File.WriteAllLines(DirPathCS + "\\ListNameCompare", ListNameCompare);
+                        File.WriteAllLines(DirPathSC + "\\ListNameCompareOutCS", new List<string>());
+                        File.WriteAllLines(DirPathSC + "\\ListNameCompareOutSC", ListNameCompareOutSC);
+                        File.WriteAllLines(DirPathSC + "\\ListNameCompare", ListNameCompare);
 
-                    string json = JsonConvert.SerializeObject(InUseIn, Formatting.Indented);
-                    File.WriteAllText(DirPathCS + "\\InUseIn.json", json);
+                        string json = JsonConvert.SerializeObject(InUseIn, Formatting.Indented);
+                        File.WriteAllText(DirPathSC + "\\InUseIn.json", json);
 
-                    json = JsonConvert.SerializeObject(InUseOut, Formatting.Indented);
-                    File.WriteAllText(DirPathCS + "\\InUseOut.json", json);
+                        json = JsonConvert.SerializeObject(InUseOut, Formatting.Indented);
+                        File.WriteAllText(DirPathSC + "\\InUseOut.json", json);
 
-                    json = JsonConvert.SerializeObject(IsRenameDestination, Formatting.Indented);
-                    File.WriteAllText(DirPathCS + "\\IsRenameDestination.json", json);
+                        json = JsonConvert.SerializeObject(IsRenameDestination, Formatting.Indented);
+                        File.WriteAllText(DirPathSC + "\\IsRenameDestination.json", json);
 
-                    json = JsonConvert.SerializeObject(StructureSourceCS, Formatting.Indented);
-                    File.WriteAllText(DirPathCS + "\\StructureSourceCS.json", json);
+                        json = JsonConvert.SerializeObject(StructureSourceCS, Formatting.Indented);
+                        File.WriteAllText(DirPathSC + "\\StructureSourceCS.json", json);
 
-                    json = JsonConvert.SerializeObject(StructureSourceSC, Formatting.Indented);
-                    File.WriteAllText(DirPathCS + "\\StructureSourceSC.json", json);
+                        json = JsonConvert.SerializeObject(StructureSourceSC, Formatting.Indented);
+                        File.WriteAllText(DirPathSC + "\\StructureSourceSC.json", json);
 
-                    json = JsonConvert.SerializeObject(StructureDestinationCS, Formatting.Indented);
-                    File.WriteAllText(DirPathCS + "\\StructureDestinationCS.json", json);
+                        json = JsonConvert.SerializeObject(StructureDestinationCS, Formatting.Indented);
+                        File.WriteAllText(DirPathSC + "\\StructureDestinationCS.json", json);
 
-                    json = JsonConvert.SerializeObject(StructureDestinationSC, Formatting.Indented);
-                    File.WriteAllText(DirPathCS + "\\StructureDestinationSC.json", json);
+                        json = JsonConvert.SerializeObject(StructureDestinationSC, Formatting.Indented);
+                        File.WriteAllText(DirPathSC + "\\StructureDestinationSC.json", json);
 
-                    json = JsonConvert.SerializeObject(XrefsIn, Formatting.Indented);
-                    File.WriteAllText(DirPathCS + "\\XrefsIn.json", json);
+                        json = JsonConvert.SerializeObject(XrefsIn, Formatting.Indented);
+                        File.WriteAllText(DirPathSC + "\\XrefsIn.json", json);
 
-                    json = JsonConvert.SerializeObject(XrefsOut, Formatting.Indented);
-                    File.WriteAllText(DirPathCS + "\\XrefsOut.json", json);
-                }
-                else
-                {
-                    File.WriteAllLines(DirPathSC + "\\TextBoxPathIn", new List<string> { TextBoxPathIn.Text });
-                    File.WriteAllLines(DirPathSC + "\\TextBoxPathOut", new List<string> { TextBoxPathOut.Text });
-
-                    File.WriteAllLines(DirPathSC + "\\AddressForClientPacketsIn", new List<string> { TextBox11.Text });
-                    File.WriteAllLines(DirPathSC + "\\AddressForServerPacketsIn", new List<string> { TextBox12.Text });
-
-                    File.WriteAllLines(DirPathSC + "\\AddressForClientPacketsOut", new List<string> { TextBox21.Text });
-                    File.WriteAllLines(DirPathSC + "\\AddressForServerPacketsOut", new List<string> { TextBox22.Text });
-
-                    File.WriteAllLines(DirPathSC + "\\NotFoundIn", new List<string> { TextBox17Copy.Text });
-                    File.WriteAllLines(DirPathSC + "\\NotFoundOut", new List<string> { TextBox17Copy1.Text });
-
-                    File.WriteAllLines(DirPathCS + "\\isCompareCS", new List<string> { isCompareCS.ToString() });
-                    File.WriteAllLines(DirPathCS + "\\isCompareSC", new List<string> { isCompareSC.ToString() });
-
-                    File.WriteAllLines(DirPath + "\\data\\InListSource", InListSource);
-                    File.WriteAllLines(DirPath + "\\data\\InListDestination", InListDestination);
-
-                    File.WriteAllLines(DirPathSC + "\\ListNameSourceCS", new List<string>());
-                    File.WriteAllLines(DirPathSC + "\\ListNameSourceSC", ListNameSourceSC);
-                    File.WriteAllLines(DirPathSC + "\\ListSubSourceCS", new List<string>());
-                    File.WriteAllLines(DirPathSC + "\\ListSubSourceSC", ListSubSourceSC);
-                    File.WriteAllLines(DirPathSC + "\\ListOpcodeSourceCS", new List<string>());
-                    File.WriteAllLines(DirPathSC + "\\ListOpcodeSourceSC", ListOpcodeSourceSC);
-
-                    File.WriteAllLines(DirPathSC + "\\ListNameDestinationCS", new List<string>());
-                    File.WriteAllLines(DirPathSC + "\\ListNameDestinationSC", ListNameDestinationSC);
-                    File.WriteAllLines(DirPathSC + "\\ListSubDestinationCS", new List<string>());
-                    File.WriteAllLines(DirPathSC + "\\ListSubDestinationSC", ListSubDestinationSC);
-                    File.WriteAllLines(DirPathSC + "\\ListOpcodeDestinationCS", new List<string>());
-                    File.WriteAllLines(DirPathSC + "\\ListOpcodeDestinationSC", ListOpcodeDestinationSC);
-
-                    File.WriteAllLines(DirPathSC + "\\ListNameCompareCS", new List<string>());
-                    File.WriteAllLines(DirPathSC + "\\ListNameCompareSC", ListNameCompareSC);
-
-                    File.WriteAllLines(DirPathSC + "\\ListNameCompareOutCS", new List<string>());
-                    File.WriteAllLines(DirPathSC + "\\ListNameCompareOutSC", ListNameCompareOutSC);
-                    File.WriteAllLines(DirPathSC + "\\ListNameCompare", ListNameCompare);
-
-                    string json = JsonConvert.SerializeObject(InUseIn, Formatting.Indented);
-                    File.WriteAllText(DirPathSC + "\\InUseIn.json", json);
-
-                    json = JsonConvert.SerializeObject(InUseOut, Formatting.Indented);
-                    File.WriteAllText(DirPathSC + "\\InUseOut.json", json);
-
-                    json = JsonConvert.SerializeObject(IsRenameDestination, Formatting.Indented);
-                    File.WriteAllText(DirPathSC + "\\IsRenameDestination.json", json);
-
-                    json = JsonConvert.SerializeObject(StructureSourceCS, Formatting.Indented);
-                    File.WriteAllText(DirPathSC + "\\StructureSourceCS.json", json);
-
-                    json = JsonConvert.SerializeObject(StructureSourceSC, Formatting.Indented);
-                    File.WriteAllText(DirPathSC + "\\StructureSourceSC.json", json);
-
-                    json = JsonConvert.SerializeObject(StructureDestinationCS, Formatting.Indented);
-                    File.WriteAllText(DirPathSC + "\\StructureDestinationCS.json", json);
-
-                    json = JsonConvert.SerializeObject(StructureDestinationSC, Formatting.Indented);
-                    File.WriteAllText(DirPathSC + "\\StructureDestinationSC.json", json);
-
-                    json = JsonConvert.SerializeObject(XrefsIn, Formatting.Indented);
-                    File.WriteAllText(DirPathSC + "\\XrefsIn.json", json);
-
-                    json = JsonConvert.SerializeObject(XrefsOut, Formatting.Indented);
-                    File.WriteAllText(DirPathSC + "\\XrefsOut.json", json);
+                        json = JsonConvert.SerializeObject(XrefsOut, Formatting.Indented);
+                        File.WriteAllText(DirPathSC + "\\XrefsOut.json", json);
+                    }
+                    catch (Exception exception)
+                    {
+                        MessageBox.Show(exception.Message, "Error", System.Windows.MessageBoxButton.OK, MessageBoxImage.Error);
+                    }
                 }
             }
 
@@ -4830,137 +4866,144 @@ namespace NameFinder
             var lockObj = new object();
             lock (lockObj)
             {
-                DirPath = TextBoxPathIn.Text = File.ReadAllLines(Environment.CurrentDirectory + "\\WorkDir.cfg")[0].ToString();
-                DirPathCS = DirPath + "\\data\\cs";
-                DirPathSC = DirPath + "\\data\\sc";
+                try
+                {
+                    DirPath = File.ReadAllLines(Environment.CurrentDirectory + "\\WorkDir.cfg")[0].ToString();
+                    DirPathCS = DirPath + "\\data\\cs";
+                    DirPathSC = DirPath + "\\data\\sc";
 
-                TextBoxPathIn.Text = File.ReadAllLines(DirPathCS + "\\TextBoxPathIn")[0].ToString();
-                TextBoxPathOut.Text = File.ReadAllLines(DirPathCS + "\\TextBoxPathOut")[0].ToString();
+                    TextBoxPathIn.Text = File.ReadAllLines(DirPathCS + "\\TextBoxPathIn")[0].ToString();
+                    TextBoxPathOut.Text = File.ReadAllLines(DirPathCS + "\\TextBoxPathOut")[0].ToString();
 
-                TextBox11.Text = File.ReadAllLines(DirPathCS + "\\AddressForClientPacketsIn")[0].ToString();
-                TextBox12.Text = File.ReadAllLines(DirPathCS + "\\AddressForServerPacketsIn")[0].ToString();
+                    TextBox11.Text = File.ReadAllLines(DirPathCS + "\\AddressForClientPacketsIn")[0].ToString();
+                    TextBox12.Text = File.ReadAllLines(DirPathCS + "\\AddressForServerPacketsIn")[0].ToString();
 
-                TextBox21.Text = File.ReadAllLines(DirPathCS + "\\AddressForClientPacketsOut")[0].ToString();
-                TextBox22.Text = File.ReadAllLines(DirPathCS + "\\AddressForServerPacketsOut")[0].ToString();
+                    TextBox21.Text = File.ReadAllLines(DirPathCS + "\\AddressForClientPacketsOut")[0].ToString();
+                    TextBox22.Text = File.ReadAllLines(DirPathCS + "\\AddressForServerPacketsOut")[0].ToString();
 
-                TextBox17Copy.Text = File.ReadAllLines(DirPathCS + "\\NotFoundIn")[0].ToString();
-                TextBox17Copy1.Text = File.ReadAllLines(DirPathCS + "\\NotFoundOut")[0].ToString();
+                    TextBox17Copy.Text = File.ReadAllLines(DirPathCS + "\\NotFoundIn")[0].ToString();
+                    TextBox17Copy1.Text = File.ReadAllLines(DirPathCS + "\\NotFoundOut")[0].ToString();
 
-                isCompareCS = File.ReadAllLines(DirPathCS + "\\isCompareCS")[0] == "True";
-                isCompareSC = File.ReadAllLines(DirPathCS + "\\isCompareSC")[0] == "True";
+                    isCompareCS = File.ReadAllLines(DirPathCS + "\\isCompareCS")[0] == "True";
+                    isCompareSC = File.ReadAllLines(DirPathCS + "\\isCompareSC")[0] == "True";
 
-                InListSource = File.ReadAllLines(DirPath + "\\data\\InListSource").ToList();
-                ListView11.ItemsSource = InListSource;
-                InListDestination = File.ReadAllLines(DirPath + "\\data\\InListDestination").ToList();
-                ListView21.ItemsSource = InListDestination;
+                    InListSource = File.ReadAllLines(DirPath + "\\data\\InListSource").ToList();
+                    ListView11.ItemsSource = InListSource;
+                    InListDestination = File.ReadAllLines(DirPath + "\\data\\InListDestination").ToList();
+                    ListView21.ItemsSource = InListDestination;
 
-                ListNameSourceCS = File.ReadAllLines(DirPathCS + "\\ListNameSourceCS").ToList();
-                ListView12.ItemsSource = ListNameSourceCS;
-                TextBox13.Text = ListNameSourceCS.Count.ToString();
+                    ListNameSourceCS = File.ReadAllLines(DirPathCS + "\\ListNameSourceCS").ToList();
+                    ListView12.ItemsSource = ListNameSourceCS;
+                    TextBox13.Text = ListNameSourceCS.Count.ToString();
 
-                ListNameSourceSC = File.ReadAllLines(DirPathCS + "\\ListNameSourceSC").ToList();
-                //ListView12.ItemsSource = ListNameSourceSC;
-                TextBox16.Text = ListNameSourceSC.Count.ToString();
+                    ListNameSourceSC = File.ReadAllLines(DirPathCS + "\\ListNameSourceSC").ToList();
+                    //ListView12.ItemsSource = ListNameSourceSC;
+                    TextBox16.Text = ListNameSourceSC.Count.ToString();
 
-                ListSubSourceCS = File.ReadAllLines(DirPathCS + "\\ListSubSourceCS").ToList();
-                ListView13.ItemsSource = ListSubSourceCS;
-                TextBox14.Text = ListSubSourceCS.Count.ToString();
+                    ListSubSourceCS = File.ReadAllLines(DirPathCS + "\\ListSubSourceCS").ToList();
+                    ListView13.ItemsSource = ListSubSourceCS;
+                    TextBox14.Text = ListSubSourceCS.Count.ToString();
 
-                ListSubSourceSC = File.ReadAllLines(DirPathCS + "\\ListSubSourceSC").ToList();
-                //ListView13.ItemsSource = ListSubSourceSC;
-                TextBox17.Text = ListSubSourceSC.Count.ToString();
+                    ListSubSourceSC = File.ReadAllLines(DirPathCS + "\\ListSubSourceSC").ToList();
+                    //ListView13.ItemsSource = ListSubSourceSC;
+                    TextBox17.Text = ListSubSourceSC.Count.ToString();
 
-                ListOpcodeSourceCS = File.ReadAllLines(DirPathCS + "\\ListOpcodeSourceCS").ToList();
-                ListView14.ItemsSource = ListOpcodeSourceCS;
-                TextBox16Copy.Text = ListOpcodeSourceCS.Count.ToString();
+                    ListOpcodeSourceCS = File.ReadAllLines(DirPathCS + "\\ListOpcodeSourceCS").ToList();
+                    ListView14.ItemsSource = ListOpcodeSourceCS;
+                    TextBox16Copy.Text = ListOpcodeSourceCS.Count.ToString();
 
-                ListOpcodeSourceSC = File.ReadAllLines(DirPathCS + "\\ListOpcodeSourceSC").ToList();
-                //ListView14.ItemsSource = ListOpcodeSourceSC;
-                //TextBox16Copy.Text = ListOpcodeSourceSC.Count.ToString();
+                    ListOpcodeSourceSC = File.ReadAllLines(DirPathCS + "\\ListOpcodeSourceSC").ToList();
+                    //ListView14.ItemsSource = ListOpcodeSourceSC;
+                    //TextBox16Copy.Text = ListOpcodeSourceSC.Count.ToString();
 
-                ListNameDestinationCS = File.ReadAllLines(DirPathCS + "\\ListNameDestinationCS").ToList();
-                ListView22.ItemsSource = ListNameDestinationCS;
-                TextBox23.Text = ListNameDestinationCS.Count.ToString();
+                    ListNameDestinationCS = File.ReadAllLines(DirPathCS + "\\ListNameDestinationCS").ToList();
+                    ListView22.ItemsSource = ListNameDestinationCS;
+                    TextBox23.Text = ListNameDestinationCS.Count.ToString();
 
-                ListNameDestinationSC = File.ReadAllLines(DirPathCS + "\\ListNameDestinationSC").ToList();
-                //ListView22.ItemsSource = ListNameDestinationSC;
-                TextBox26.Text = ListNameDestinationSC.Count.ToString();
+                    ListNameDestinationSC = File.ReadAllLines(DirPathCS + "\\ListNameDestinationSC").ToList();
+                    //ListView22.ItemsSource = ListNameDestinationSC;
+                    TextBox26.Text = ListNameDestinationSC.Count.ToString();
 
-                ListSubDestinationCS = File.ReadAllLines(DirPathCS + "\\ListSubDestinationCS").ToList();
-                ListView23.ItemsSource = ListSubDestinationCS;
-                TextBox24.Text = ListSubDestinationCS.Count.ToString();
+                    ListSubDestinationCS = File.ReadAllLines(DirPathCS + "\\ListSubDestinationCS").ToList();
+                    ListView23.ItemsSource = ListSubDestinationCS;
+                    TextBox24.Text = ListSubDestinationCS.Count.ToString();
 
-                ListSubDestinationSC = File.ReadAllLines(DirPathCS + "\\ListSubDestinationSC").ToList();
-                //ListView23.ItemsSource = ListSubDestinationSC;
-                TextBox27.Text = ListSubDestinationSC.Count.ToString();
+                    ListSubDestinationSC = File.ReadAllLines(DirPathCS + "\\ListSubDestinationSC").ToList();
+                    //ListView23.ItemsSource = ListSubDestinationSC;
+                    TextBox27.Text = ListSubDestinationSC.Count.ToString();
 
-                ListOpcodeDestinationCS = File.ReadAllLines(DirPathCS + "\\ListOpcodeDestinationCS").ToList();
-                ListView24.ItemsSource = ListOpcodeDestinationCS;
-                TextBox16Copy1.Text = ListOpcodeDestinationCS.Count.ToString();
+                    ListOpcodeDestinationCS = File.ReadAllLines(DirPathCS + "\\ListOpcodeDestinationCS").ToList();
+                    ListView24.ItemsSource = ListOpcodeDestinationCS;
+                    TextBox16Copy1.Text = ListOpcodeDestinationCS.Count.ToString();
 
-                ListOpcodeDestinationSC = File.ReadAllLines(DirPathCS + "\\ListOpcodeDestinationSC").ToList();
-                //ListView24.ItemsSource = ListOpcodeDestinationSC;
-                //TextBox16Copy1.Text = ListOpcodeDestinationSC.Count.ToString();
+                    ListOpcodeDestinationSC = File.ReadAllLines(DirPathCS + "\\ListOpcodeDestinationSC").ToList();
+                    //ListView24.ItemsSource = ListOpcodeDestinationSC;
+                    //TextBox16Copy1.Text = ListOpcodeDestinationSC.Count.ToString();
 
-                ListNameCompareCS = File.ReadAllLines(DirPathCS + "\\ListNameCompareCS").ToList();
-                ListView31.ItemsSource = ListNameCompareCS;
-                TextBox31.Text = ListNameCompareCS.Count.ToString();
+                    ListNameCompareCS = File.ReadAllLines(DirPathCS + "\\ListNameCompareCS").ToList();
+                    ListView31.ItemsSource = ListNameCompareCS;
+                    TextBox31.Text = ListNameCompareCS.Count.ToString();
 
-                ListNameCompareSC = File.ReadAllLines(DirPathCS + "\\ListNameCompareSC").ToList();
-                //ListView31.ItemsSource = ListNameCompareCS;
-                //TextBox31.Text = ListNameCompareSC.Count.ToString();
+                    ListNameCompareSC = File.ReadAllLines(DirPathCS + "\\ListNameCompareSC").ToList();
+                    //ListView31.ItemsSource = ListNameCompareCS;
+                    //TextBox31.Text = ListNameCompareSC.Count.ToString();
 
-                ListNameCompare = File.ReadAllLines(DirPathCS + "\\ListNameCompare").ToList();
+                    ListNameCompare = File.ReadAllLines(DirPathCS + "\\ListNameCompare").ToList();
 
-                ListNameCompareOutCS = File.ReadAllLines(DirPathCS + "\\ListNameCompareOutCS").ToList();
-                ListView32.ItemsSource = ListNameCompareOutCS;
+                    ListNameCompareOutCS = File.ReadAllLines(DirPathCS + "\\ListNameCompareOutCS").ToList();
+                    ListView32.ItemsSource = ListNameCompareOutCS;
 
-                ListNameCompareOutSC = File.ReadAllLines(DirPathCS + "\\ListNameCompareOutSC").ToList();
-                //ListView32.ItemsSource = ListNameCompareOutSC;
+                    ListNameCompareOutSC = File.ReadAllLines(DirPathCS + "\\ListNameCompareOutSC").ToList();
+                    //ListView32.ItemsSource = ListNameCompareOutSC;
 
-                string json = File.ReadAllText(DirPathCS + "\\InUseIn.json");
-                InUseIn = JsonConvert.DeserializeObject<Dictionary<int, int>>(json);
+                    string json = File.ReadAllText(DirPathCS + "\\InUseIn.json");
+                    InUseIn = JsonConvert.DeserializeObject<Dictionary<int, int>>(json);
 
-                json = File.ReadAllText(DirPathCS + "\\InUseOut.json");
-                InUseOut = JsonConvert.DeserializeObject<Dictionary<int, int>>(json);
+                    json = File.ReadAllText(DirPathCS + "\\InUseOut.json");
+                    InUseOut = JsonConvert.DeserializeObject<Dictionary<int, int>>(json);
 
-                json = File.ReadAllText(DirPathCS + "\\IsRenameDestination.json");
-                IsRenameDestination = JsonConvert.DeserializeObject<Dictionary<int, bool>>(json);
+                    json = File.ReadAllText(DirPathCS + "\\IsRenameDestination.json");
+                    IsRenameDestination = JsonConvert.DeserializeObject<Dictionary<int, bool>>(json);
 
-                json = File.ReadAllText(DirPathCS + "\\StructureSourceCS.json");
-                StructureSourceCS = JsonConvert.DeserializeObject<Dictionary<int, List<string>>>(json);
+                    json = File.ReadAllText(DirPathCS + "\\StructureSourceCS.json");
+                    StructureSourceCS = JsonConvert.DeserializeObject<Dictionary<int, List<string>>>(json);
 
-                json = File.ReadAllText(DirPathCS + "\\StructureSourceSC.json");
-                StructureSourceSC = JsonConvert.DeserializeObject<Dictionary<int, List<string>>>(json);
+                    json = File.ReadAllText(DirPathCS + "\\StructureSourceSC.json");
+                    StructureSourceSC = JsonConvert.DeserializeObject<Dictionary<int, List<string>>>(json);
 
-                json = File.ReadAllText(DirPathCS + "\\StructureDestinationCS.json");
-                StructureDestinationCS = JsonConvert.DeserializeObject<Dictionary<int, List<string>>>(json);
+                    json = File.ReadAllText(DirPathCS + "\\StructureDestinationCS.json");
+                    StructureDestinationCS = JsonConvert.DeserializeObject<Dictionary<int, List<string>>>(json);
 
-                json = File.ReadAllText(DirPathCS + "\\StructureDestinationSC.json");
-                StructureDestinationSC = JsonConvert.DeserializeObject<Dictionary<int, List<string>>>(json);
+                    json = File.ReadAllText(DirPathCS + "\\StructureDestinationSC.json");
+                    StructureDestinationSC = JsonConvert.DeserializeObject<Dictionary<int, List<string>>>(json);
 
-                json = File.ReadAllText(DirPathCS + "\\XrefsIn.json");
-                XrefsIn = JsonConvert.DeserializeObject<Dictionary<int, List<string>>>(json);
+                    json = File.ReadAllText(DirPathCS + "\\XrefsIn.json");
+                    XrefsIn = JsonConvert.DeserializeObject<Dictionary<int, List<string>>>(json);
 
-                json = File.ReadAllText(DirPathCS + "\\XrefsOut.json");
-                XrefsOut = JsonConvert.DeserializeObject<Dictionary<int, List<string>>>(json);
+                    json = File.ReadAllText(DirPathCS + "\\XrefsOut.json");
+                    XrefsOut = JsonConvert.DeserializeObject<Dictionary<int, List<string>>>(json);
 
-                BtnLoadIn_Copy.IsEnabled = true;
-                BtnLoadIn.IsEnabled = true;
-                BtnCsLoadNameIn.IsEnabled = true;
-                BtnScLoadNameIn.IsEnabled = true;
-                ButtonSaveIn1.IsEnabled = true;
-                ButtonSaveIn2.IsEnabled = false;
-                BtnLoadOut.IsEnabled = true;
-                BtnCsLoadNameOut.IsEnabled = true;
-                BtnScLoadNameOut.IsEnabled = true;
-                ButtonSaveOut1.IsEnabled = true;
-                ButtonSaveOut2.IsEnabled = false;
-                ButtonCsCompare.IsEnabled = true;
-                ButtonScCompare.IsEnabled = false;
+                    BtnLoadIn_Copy.IsEnabled = true;
+                    BtnLoadIn.IsEnabled = true;
+                    BtnCsLoadNameIn.IsEnabled = true;
+                    BtnScLoadNameIn.IsEnabled = true;
+                    ButtonSaveIn1.IsEnabled = true;
+                    ButtonSaveIn2.IsEnabled = false;
+                    BtnLoadOut.IsEnabled = true;
+                    BtnCsLoadNameOut.IsEnabled = true;
+                    BtnScLoadNameOut.IsEnabled = true;
+                    ButtonSaveOut1.IsEnabled = true;
+                    ButtonSaveOut2.IsEnabled = false;
+                    ButtonCsCompare.IsEnabled = true;
+                    ButtonScCompare.IsEnabled = false;
 
-                _isInCs = true;
-                _isOutCs = true;
+                    _isInCs = true;
+                    _isOutCs = true;
+                }
+                catch (Exception exception)
+                {
+                    MessageBox.Show(exception.Message, "Error", System.Windows.MessageBoxButton.OK, MessageBoxImage.Error);
+                }
             }
 
             Label_Semafor1.Background = Brushes.GreenYellow;
@@ -4976,137 +5019,144 @@ namespace NameFinder
             var lockObj = new object();
             lock (lockObj)
             {
-                DirPath = TextBoxPathIn.Text = File.ReadAllLines(Environment.CurrentDirectory + "\\WorkDir.cfg")[0].ToString();
-                DirPathCS = DirPath + "\\data\\cs";
-                DirPathSC = DirPath + "\\data\\sc";
+                try
+                {
+                    DirPath = File.ReadAllLines(Environment.CurrentDirectory + "\\WorkDir.cfg")[0].ToString();
+                    DirPathCS = DirPath + "\\data\\cs";
+                    DirPathSC = DirPath + "\\data\\sc";
 
-                TextBoxPathIn.Text = File.ReadAllLines(DirPathSC + "\\TextBoxPathIn")[0].ToString();
-                TextBoxPathOut.Text = File.ReadAllLines(DirPathSC + "\\TextBoxPathOut")[0].ToString();
+                    TextBoxPathIn.Text = File.ReadAllLines(DirPathSC + "\\TextBoxPathIn")[0].ToString();
+                    TextBoxPathOut.Text = File.ReadAllLines(DirPathSC + "\\TextBoxPathOut")[0].ToString();
 
-                TextBox11.Text = File.ReadAllLines(DirPathSC + "\\AddressForClientPacketsIn")[0].ToString();
-                TextBox12.Text = File.ReadAllLines(DirPathSC + "\\AddressForServerPacketsIn")[0].ToString();
+                    TextBox11.Text = File.ReadAllLines(DirPathSC + "\\AddressForClientPacketsIn")[0].ToString();
+                    TextBox12.Text = File.ReadAllLines(DirPathSC + "\\AddressForServerPacketsIn")[0].ToString();
 
-                TextBox21.Text = File.ReadAllLines(DirPathSC + "\\AddressForClientPacketsOut")[0].ToString();
-                TextBox22.Text = File.ReadAllLines(DirPathSC + "\\AddressForServerPacketsOut")[0].ToString();
+                    TextBox21.Text = File.ReadAllLines(DirPathSC + "\\AddressForClientPacketsOut")[0].ToString();
+                    TextBox22.Text = File.ReadAllLines(DirPathSC + "\\AddressForServerPacketsOut")[0].ToString();
 
-                TextBox17Copy.Text = File.ReadAllLines(DirPathSC + "\\NotFoundIn")[0].ToString();
-                TextBox17Copy1.Text = File.ReadAllLines(DirPathSC + "\\NotFoundOut")[0].ToString();
+                    TextBox17Copy.Text = File.ReadAllLines(DirPathSC + "\\NotFoundIn")[0].ToString();
+                    TextBox17Copy1.Text = File.ReadAllLines(DirPathSC + "\\NotFoundOut")[0].ToString();
 
-                isCompareCS = File.ReadAllLines(DirPathCS + "\\isCompareCS")[0] == "True";
-                isCompareSC = File.ReadAllLines(DirPathCS + "\\isCompareSC")[0] == "True";
+                    isCompareCS = File.ReadAllLines(DirPathCS + "\\isCompareCS")[0] == "True";
+                    isCompareSC = File.ReadAllLines(DirPathCS + "\\isCompareSC")[0] == "True";
 
-                InListSource = File.ReadAllLines(DirPath + "\\data\\InListSource").ToList();
-                ListView11.ItemsSource = InListSource;
-                InListDestination = File.ReadAllLines(DirPath + "\\data\\InListDestination").ToList();
-                ListView21.ItemsSource = InListDestination;
+                    InListSource = File.ReadAllLines(DirPath + "\\data\\InListSource").ToList();
+                    ListView11.ItemsSource = InListSource;
+                    InListDestination = File.ReadAllLines(DirPath + "\\data\\InListDestination").ToList();
+                    ListView21.ItemsSource = InListDestination;
 
-                ListNameSourceCS = File.ReadAllLines(DirPathSC + "\\ListNameSourceCS").ToList();
-                //ListView12.ItemsSource = ListNameSourceCS;
-                TextBox13.Text = ListNameSourceCS.Count.ToString();
+                    ListNameSourceCS = File.ReadAllLines(DirPathSC + "\\ListNameSourceCS").ToList();
+                    //ListView12.ItemsSource = ListNameSourceCS;
+                    TextBox13.Text = ListNameSourceCS.Count.ToString();
 
-                ListNameSourceSC = File.ReadAllLines(DirPathSC + "\\ListNameSourceSC").ToList();
-                ListView12.ItemsSource = ListNameSourceSC;
-                TextBox16.Text = ListNameSourceSC.Count.ToString();
+                    ListNameSourceSC = File.ReadAllLines(DirPathSC + "\\ListNameSourceSC").ToList();
+                    ListView12.ItemsSource = ListNameSourceSC;
+                    TextBox16.Text = ListNameSourceSC.Count.ToString();
 
-                ListSubSourceCS = File.ReadAllLines(DirPathSC + "\\ListSubSourceCS").ToList();
-                //ListView13.ItemsSource = ListSubSourceCS;
-                TextBox14.Text = ListSubSourceCS.Count.ToString();
+                    ListSubSourceCS = File.ReadAllLines(DirPathSC + "\\ListSubSourceCS").ToList();
+                    //ListView13.ItemsSource = ListSubSourceCS;
+                    TextBox14.Text = ListSubSourceCS.Count.ToString();
 
-                ListSubSourceSC = File.ReadAllLines(DirPathSC + "\\ListSubSourceSC").ToList();
-                ListView13.ItemsSource = ListSubSourceSC;
-                TextBox17.Text = ListSubSourceSC.Count.ToString();
+                    ListSubSourceSC = File.ReadAllLines(DirPathSC + "\\ListSubSourceSC").ToList();
+                    ListView13.ItemsSource = ListSubSourceSC;
+                    TextBox17.Text = ListSubSourceSC.Count.ToString();
 
-                ListOpcodeSourceCS = File.ReadAllLines(DirPathSC + "\\ListOpcodeSourceCS").ToList();
-                //ListView14.ItemsSource = ListOpcodeSourceCS;
-                //TextBox16Copy.Text = ListOpcodeSourceCS.Count.ToString();
+                    ListOpcodeSourceCS = File.ReadAllLines(DirPathSC + "\\ListOpcodeSourceCS").ToList();
+                    //ListView14.ItemsSource = ListOpcodeSourceCS;
+                    //TextBox16Copy.Text = ListOpcodeSourceCS.Count.ToString();
 
-                ListOpcodeSourceSC = File.ReadAllLines(DirPathSC + "\\ListOpcodeSourceSC").ToList();
-                ListView14.ItemsSource = ListOpcodeSourceSC;
-                TextBox16Copy.Text = ListOpcodeSourceSC.Count.ToString();
+                    ListOpcodeSourceSC = File.ReadAllLines(DirPathSC + "\\ListOpcodeSourceSC").ToList();
+                    ListView14.ItemsSource = ListOpcodeSourceSC;
+                    TextBox16Copy.Text = ListOpcodeSourceSC.Count.ToString();
 
-                ListNameDestinationCS = File.ReadAllLines(DirPathSC + "\\ListNameDestinationCS").ToList();
-                //ListView22.ItemsSource = ListNameDestinationCS;
-                TextBox23.Text = ListNameDestinationCS.Count.ToString();
+                    ListNameDestinationCS = File.ReadAllLines(DirPathSC + "\\ListNameDestinationCS").ToList();
+                    //ListView22.ItemsSource = ListNameDestinationCS;
+                    TextBox23.Text = ListNameDestinationCS.Count.ToString();
 
-                ListNameDestinationSC = File.ReadAllLines(DirPathSC + "\\ListNameDestinationSC").ToList();
-                ListView22.ItemsSource = ListNameDestinationSC;
-                TextBox26.Text = ListNameDestinationSC.Count.ToString();
+                    ListNameDestinationSC = File.ReadAllLines(DirPathSC + "\\ListNameDestinationSC").ToList();
+                    ListView22.ItemsSource = ListNameDestinationSC;
+                    TextBox26.Text = ListNameDestinationSC.Count.ToString();
 
-                ListSubDestinationCS = File.ReadAllLines(DirPathSC + "\\ListSubDestinationCS").ToList();
-                //ListView23.ItemsSource = ListSubDestinationCS;
-                TextBox24.Text = ListSubDestinationCS.Count.ToString();
+                    ListSubDestinationCS = File.ReadAllLines(DirPathSC + "\\ListSubDestinationCS").ToList();
+                    //ListView23.ItemsSource = ListSubDestinationCS;
+                    TextBox24.Text = ListSubDestinationCS.Count.ToString();
 
-                ListSubDestinationSC = File.ReadAllLines(DirPathSC + "\\ListSubDestinationSC").ToList();
-                ListView23.ItemsSource = ListSubDestinationSC;
-                TextBox27.Text = ListSubDestinationSC.Count.ToString();
+                    ListSubDestinationSC = File.ReadAllLines(DirPathSC + "\\ListSubDestinationSC").ToList();
+                    ListView23.ItemsSource = ListSubDestinationSC;
+                    TextBox27.Text = ListSubDestinationSC.Count.ToString();
 
-                ListOpcodeDestinationCS = File.ReadAllLines(DirPathSC + "\\ListOpcodeDestinationCS").ToList();
-                //ListView24.ItemsSource = ListOpcodeDestinationCS;
-                //TextBox16Copy1.Text = ListOpcodeDestinationCS.Count.ToString();
+                    ListOpcodeDestinationCS = File.ReadAllLines(DirPathSC + "\\ListOpcodeDestinationCS").ToList();
+                    //ListView24.ItemsSource = ListOpcodeDestinationCS;
+                    //TextBox16Copy1.Text = ListOpcodeDestinationCS.Count.ToString();
 
-                ListOpcodeDestinationSC = File.ReadAllLines(DirPathSC + "\\ListOpcodeDestinationSC").ToList();
-                ListView24.ItemsSource = ListOpcodeDestinationSC;
-                TextBox16Copy1.Text = ListOpcodeDestinationSC.Count.ToString();
+                    ListOpcodeDestinationSC = File.ReadAllLines(DirPathSC + "\\ListOpcodeDestinationSC").ToList();
+                    ListView24.ItemsSource = ListOpcodeDestinationSC;
+                    TextBox16Copy1.Text = ListOpcodeDestinationSC.Count.ToString();
 
-                ListNameCompareCS = File.ReadAllLines(DirPathSC + "\\ListNameCompareCS").ToList();
-                //ListView31.ItemsSource = ListNameCompareCS;
-                //TextBox31.Text = ListNameCompareCS.Count.ToString();
+                    ListNameCompareCS = File.ReadAllLines(DirPathSC + "\\ListNameCompareCS").ToList();
+                    //ListView31.ItemsSource = ListNameCompareCS;
+                    //TextBox31.Text = ListNameCompareCS.Count.ToString();
 
-                ListNameCompareSC = File.ReadAllLines(DirPathSC + "\\ListNameCompareSC").ToList();
-                ListView31.ItemsSource = ListNameCompareSC;
-                TextBox31.Text = ListNameCompareSC.Count.ToString();
+                    ListNameCompareSC = File.ReadAllLines(DirPathSC + "\\ListNameCompareSC").ToList();
+                    ListView31.ItemsSource = ListNameCompareSC;
+                    TextBox31.Text = ListNameCompareSC.Count.ToString();
 
-                ListNameCompare = File.ReadAllLines(DirPathSC + "\\ListNameCompare").ToList();
+                    ListNameCompare = File.ReadAllLines(DirPathSC + "\\ListNameCompare").ToList();
 
-                ListNameCompareOutCS = File.ReadAllLines(DirPathSC + "\\ListNameCompareOutCS").ToList();
-                //ListView32.ItemsSource = ListNameCompareOutCS;
+                    ListNameCompareOutCS = File.ReadAllLines(DirPathSC + "\\ListNameCompareOutCS").ToList();
+                    //ListView32.ItemsSource = ListNameCompareOutCS;
 
-                ListNameCompareOutSC = File.ReadAllLines(DirPathSC + "\\ListNameCompareOutSC").ToList();
-                ListView32.ItemsSource = ListNameCompareOutSC;
+                    ListNameCompareOutSC = File.ReadAllLines(DirPathSC + "\\ListNameCompareOutSC").ToList();
+                    ListView32.ItemsSource = ListNameCompareOutSC;
 
-                string json = File.ReadAllText(DirPathSC + "\\InUseIn.json");
-                InUseIn = JsonConvert.DeserializeObject<Dictionary<int, int>>(json);
+                    string json = File.ReadAllText(DirPathSC + "\\InUseIn.json");
+                    InUseIn = JsonConvert.DeserializeObject<Dictionary<int, int>>(json);
 
-                json = File.ReadAllText(DirPathSC + "\\InUseOut.json");
-                InUseOut = JsonConvert.DeserializeObject<Dictionary<int, int>>(json);
+                    json = File.ReadAllText(DirPathSC + "\\InUseOut.json");
+                    InUseOut = JsonConvert.DeserializeObject<Dictionary<int, int>>(json);
 
-                json = File.ReadAllText(DirPathSC + "\\IsRenameDestination.json");
-                IsRenameDestination = JsonConvert.DeserializeObject<Dictionary<int, bool>>(json);
+                    json = File.ReadAllText(DirPathSC + "\\IsRenameDestination.json");
+                    IsRenameDestination = JsonConvert.DeserializeObject<Dictionary<int, bool>>(json);
 
-                json = File.ReadAllText(DirPathSC + "\\StructureSourceCS.json");
-                StructureSourceCS = JsonConvert.DeserializeObject<Dictionary<int, List<string>>>(json);
+                    json = File.ReadAllText(DirPathSC + "\\StructureSourceCS.json");
+                    StructureSourceCS = JsonConvert.DeserializeObject<Dictionary<int, List<string>>>(json);
 
-                json = File.ReadAllText(DirPathSC + "\\StructureSourceSC.json");
-                StructureSourceSC = JsonConvert.DeserializeObject<Dictionary<int, List<string>>>(json);
+                    json = File.ReadAllText(DirPathSC + "\\StructureSourceSC.json");
+                    StructureSourceSC = JsonConvert.DeserializeObject<Dictionary<int, List<string>>>(json);
 
-                json = File.ReadAllText(DirPathSC + "\\StructureDestinationCS.json");
-                StructureDestinationCS = JsonConvert.DeserializeObject<Dictionary<int, List<string>>>(json);
+                    json = File.ReadAllText(DirPathSC + "\\StructureDestinationCS.json");
+                    StructureDestinationCS = JsonConvert.DeserializeObject<Dictionary<int, List<string>>>(json);
 
-                json = File.ReadAllText(DirPathSC + "\\StructureDestinationSC.json");
-                StructureDestinationSC = JsonConvert.DeserializeObject<Dictionary<int, List<string>>>(json);
+                    json = File.ReadAllText(DirPathSC + "\\StructureDestinationSC.json");
+                    StructureDestinationSC = JsonConvert.DeserializeObject<Dictionary<int, List<string>>>(json);
 
-                json = File.ReadAllText(DirPathSC + "\\XrefsIn.json");
-                XrefsIn = JsonConvert.DeserializeObject<Dictionary<int, List<string>>>(json);
+                    json = File.ReadAllText(DirPathSC + "\\XrefsIn.json");
+                    XrefsIn = JsonConvert.DeserializeObject<Dictionary<int, List<string>>>(json);
 
-                json = File.ReadAllText(DirPathSC + "\\XrefsOut.json");
-                XrefsOut = JsonConvert.DeserializeObject<Dictionary<int, List<string>>>(json);
+                    json = File.ReadAllText(DirPathSC + "\\XrefsOut.json");
+                    XrefsOut = JsonConvert.DeserializeObject<Dictionary<int, List<string>>>(json);
 
-                BtnLoadIn_Copy.IsEnabled = true;
-                BtnLoadIn.IsEnabled = true;
-                BtnCsLoadNameIn.IsEnabled = true;
-                BtnScLoadNameIn.IsEnabled = true;
-                ButtonSaveIn1.IsEnabled = false;
-                ButtonSaveIn2.IsEnabled = true;
-                BtnLoadOut.IsEnabled = true;
-                BtnCsLoadNameOut.IsEnabled = true;
-                BtnScLoadNameOut.IsEnabled = true;
-                ButtonSaveOut1.IsEnabled = false;
-                ButtonSaveOut2.IsEnabled = true;
-                ButtonCsCompare.IsEnabled = false;
-                ButtonScCompare.IsEnabled = true;
+                    BtnLoadIn_Copy.IsEnabled = true;
+                    BtnLoadIn.IsEnabled = true;
+                    BtnCsLoadNameIn.IsEnabled = true;
+                    BtnScLoadNameIn.IsEnabled = true;
+                    ButtonSaveIn1.IsEnabled = false;
+                    ButtonSaveIn2.IsEnabled = true;
+                    BtnLoadOut.IsEnabled = true;
+                    BtnCsLoadNameOut.IsEnabled = true;
+                    BtnScLoadNameOut.IsEnabled = true;
+                    ButtonSaveOut1.IsEnabled = false;
+                    ButtonSaveOut2.IsEnabled = true;
+                    ButtonCsCompare.IsEnabled = false;
+                    ButtonScCompare.IsEnabled = true;
 
-                _isInSc = true;
-                _isOutSc = true;
+                    _isInSc = true;
+                    _isOutSc = true;
+                }
+                catch (Exception exception)
+                {
+                    MessageBox.Show(exception.Message, "Error", System.Windows.MessageBoxButton.OK, MessageBoxImage.Error);
+                }
             }
 
             Label_Semafor1.Background = Brushes.GreenYellow;
@@ -5117,7 +5167,7 @@ namespace NameFinder
         {
             if (ListView24.SelectedItem != null)
             {
-                if (ButtonCsCompare.IsEnabled)
+                if (ButtonSaveOut1.IsEnabled)
                 {
                     ListOpcodeDestinationCS[ListView24.SelectedIndex] = TextBoxEditOutOpcode.Text;
                 }
