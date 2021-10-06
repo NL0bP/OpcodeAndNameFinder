@@ -20,6 +20,32 @@ using SaveFileDialog = Microsoft.Win32.SaveFileDialog;
 
 namespace NameFinder
 {
+    public enum TypeEnum
+    {
+        UInt64 = 0x38,
+        UInt32 = 0x3C,
+        UInt16 = 0x40,
+        Byte = 0x44,
+        Int64 = 0x48,
+        Int32 = 0x4C,
+        Int16 = 0x50,
+        SByte = 0x54,
+        Angles = 0x58, // float x, y, z
+        Quaternion = 0x5C, // float x, y, z, w
+        Vector3 = 0x64, // float x, y, z
+        Vector2 = 0x6C, // float x, y
+        Float = 0x74,
+        Bool = 0x78,
+        String = 0xC4,
+        Bc = 0xCC // 3 Bytes
+    }
+
+    public class Struc
+    {
+        public TypeEnum Type { get; set; }
+        public string Name { get; set; }
+    }
+
     /// <summary>
     /// Логика взаимодействия для MainWindow.xaml
     /// </summary>
@@ -57,8 +83,8 @@ namespace NameFinder
         public static List<string> ListSubSourceSC = new List<string>();
 
         // здесь будем собирать структуры пакетов, где index из listName1 и соответственно listSub1
-        public static Dictionary<int, List<string>> StructureSourceCS = new Dictionary<int, List<string>>();
-        public static Dictionary<int, List<string>> StructureSourceSC = new Dictionary<int, List<string>>();
+        public static Dictionary<int, List<Struc>> StructureSourceCS = new Dictionary<int, List<Struc>>();
+        public static Dictionary<int, List<Struc>> StructureSourceSC = new Dictionary<int, List<Struc>>();
 
 
         public static List<string> InListDestination = new List<string>();
@@ -69,8 +95,8 @@ namespace NameFinder
         public static List<string> ListSubDestinationSC = new List<string>();
 
         // здесь будем собирать структуры пакетов, где index из listName1 и соответственно listSub1
-        public static Dictionary<int, List<string>> StructureDestinationCS = new Dictionary<int, List<string>>();
-        public static Dictionary<int, List<string>> StructureDestinationSC = new Dictionary<int, List<string>>();
+        public static Dictionary<int, List<Struc>> StructureDestinationCS = new Dictionary<int, List<Struc>>();
+        public static Dictionary<int, List<Struc>> StructureDestinationSC = new Dictionary<int, List<Struc>>();
 
         public static Dictionary<int, List<string>> XrefsIn = new Dictionary<int, List<string>>();
         public static Dictionary<int, List<string>> XrefsOut = new Dictionary<int, List<string>>();
@@ -2167,9 +2193,9 @@ namespace NameFinder
             BtnLoadOut.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnLoadOut.IsEnabled = true; }));
         }
 
-        private List<string> FindStructureIn(string address)
+        private List<Struc> FindStructureIn(string address)
         {
-            var tmpLst = new List<string>();
+            var tmpLst = new List<Struc>();
             if (DepthIn == DepthMax)
             {
                 return tmpLst;
@@ -2194,9 +2220,7 @@ namespace NameFinder
                 // нашли начало подпрограммы, ищем структуры, пока не "endp"
                 var regexEndP = new Regex(@"\s+endp\s*", RegexOptions.IgnoreCase); // ищем конец подпрограммы
                 var foundEndp = false;
-                tmpLst = new List<string>();
-                //var str = "-->>";
-                //lst.Add(str);
+                tmpLst = new List<Struc>();
                 do
                 {
                     index++;
@@ -2220,7 +2244,16 @@ namespace NameFinder
                         }
                         else
                         {
-                            tmpLst.Add(match5.ToString()); // сохранили часть структуры пакета
+                            var aa = new Struc();
+                            aa.Name = match5.ToString();
+                            index--;
+                            var offset = InListSource[index].LastIndexOf("]", StringComparison.Ordinal) - 3;
+                            // проверка на bc
+                            var num = offset < 0 ? "CC" : InListSource[index].Substring(offset, 2);
+                            aa.Type = (TypeEnum)Convert.ToInt32(num, 16);
+                            index++;
+                            tmpLst.Add(aa); // сохранили часть структуры пакета
+                            //tmpLst.Add(match5.ToString()); // сохранили часть структуры пакета
                             found = true; // нашли структуру
                         }
                     }
@@ -2247,15 +2280,16 @@ namespace NameFinder
                 //lst = new List<string>();
                 //StructureSourceSC.Add(i, lst); // сохраним пустой список, так как не нашли ничего
                 DepthIn--;
-                return new List<string>();
+                return new List<Struc>();
             }
 
             return tmpLst;
         }
 
-        private List<string> FindStructureOut(string address)
+        private List<Struc> FindStructureOut(string address)
         {
-            var tmpLst = new List<string>();
+            var tmpLst = new List<Struc>();
+            var aa = new Struc();
             if (DepthOut == DepthMax)
             {
                 return tmpLst;
@@ -2282,7 +2316,7 @@ namespace NameFinder
                 // нашли начало подпрограммы, ищем структуры, пока не "endp"
                 var regexEndP = new Regex(@"\s+endp\s*", RegexOptions.IgnoreCase); // ищем конец подпрограммы
                 var foundEndp = false;
-                tmpLst = new List<string>();
+                tmpLst = new List<Struc>();
                 //var str = "-->>";
                 //lst.Add(str);
                 do
@@ -2308,7 +2342,15 @@ namespace NameFinder
                         }
                         else
                         {
-                            tmpLst.Add(match5.ToString()); // сохранили часть структуры пакета
+                            aa.Name = match5.ToString();
+                            index--;
+                            var offset = InListDestination[index].LastIndexOf("]", StringComparison.Ordinal) - 3;
+                            // проверка на bc
+                            var num = offset < 0 ? "CC" : InListDestination[index].Substring(offset, 2);
+                            aa.Type = (TypeEnum)Convert.ToInt32(num, 16);
+                            index++;
+                            tmpLst.Add(aa); // сохранили часть структуры пакета
+                            //tmpLst.Add(match5.ToString()); // сохранили часть структуры пакета
                             found = true; // нашли структуру
                         }
                     }
@@ -2324,8 +2366,6 @@ namespace NameFinder
 
                 //StructureSourceSC.Add(i, lst); // сохранили всю структуру пакета
                 DepthOut--;
-                //str = "<<--";
-                //lst.Add(str);
                 return tmpLst;
             }
 
@@ -2335,7 +2375,7 @@ namespace NameFinder
                 //lst = new List<string>();
                 //StructureSourceSC.Add(i, lst); // сохраним пустой список, так как не нашли ничего
                 DepthOut--;
-                return new List<string>();
+                return new List<Struc>();
             }
 
             return tmpLst;
@@ -2346,7 +2386,7 @@ namespace NameFinder
             var stopWatch = new Stopwatch();
             stopWatch.Start();
             // уничтожаем ненужный список
-            StructureSourceCS = new Dictionary<int, List<string>>();
+            StructureSourceCS = new Dictionary<int, List<Struc>>();
             ListNameSourceCS = new List<string>();
             ListSubSourceCS = new List<string>();
             XrefsIn = new Dictionary<int, List<string>>();
@@ -2375,7 +2415,6 @@ namespace NameFinder
             lock (lockObj)
             {
                 var regex = new Regex(@"^[a-zA-Z0-9_?@]+\s+dd\soffset\s" + str, RegexOptions.Compiled);
-                //var regexXREF = new Regex(@"(^\s+;[a-zA-Z:\s]*\s(sub_\w+|X2\w+))", RegexOptions.Compiled);
                 var regexXREF = new Regex(@"(^\s+;[a-zA-Z:\s]*\s(sub_\w+|X2\w+|w+))", RegexOptions.Compiled);
                 for (var index = 0; index < InListSource.Count; index++)
                 {
@@ -2392,7 +2431,6 @@ namespace NameFinder
                     do
                     {
                         tmpIdx++;
-                        //var regexXREF = new Regex(@"((sub_\w+\+\w{1,3}|loc_\w{8}))", RegexOptions.IgnoreCase);
                         // ищем "; DATA XREF: sub_3922E1C0+79↑o" или "; sub_3922E1C0:loc_3922E37F↑o"
                         var matchesXREF = regexXREF.Matches(InListSource[tmpIdx]);
                         if (matchesXREF.Count <= 0)
@@ -2446,8 +2484,7 @@ namespace NameFinder
                     // dd offset nullsub_18
                     // dd offset CSInteractGimmickPacket
                     // dd offset CSGmCommandPacket
-                    var regexBody = new Regex(@"(dd\soffset\snullsub|dd\soffset\ssub_\w+|dd\soffset\s\w+)",
-                        RegexOptions.Compiled);
+                    var regexBody = new Regex(@"(dd\soffset\snullsub|dd\soffset\ssub_\w+|dd\soffset\s\w+)", RegexOptions.Compiled);
                     var matchesBodys = regexBody.Match(InListSource[index]);
                     ListSubSourceCS.Add(matchesBodys.ToString().Substring(10)); // сохранили адрес подпрограммы
                 }
@@ -2468,8 +2505,7 @@ namespace NameFinder
                     //
                     // начнем с начала файла
                     var regexEndP = new Regex(@"\s+endp\s*", RegexOptions.Compiled); // ищем конец подпрограммы
-                    var regexCall = new Regex(@"(\x22[0-z._]+\x22)|(call\s+(sub_\w+)|(call\s+(\w+)))",
-                        RegexOptions.Compiled);
+                    var regexCall = new Regex(@"(\x22[0-z._]+\x22)|(call\s+(sub_\w+)|(call\s+(\w+)))", RegexOptions.Compiled);
                     /*
                        sub_395D3050    proc near               ; CODE XREF: sub_391DE5C0+47↑p
                        push    offset aBc      ; "bc"
@@ -2501,15 +2537,12 @@ namespace NameFinder
                        push    offset aData    ; "data"
                        push    offset aModified ; "modified"
                        sub_395E16B0    endp
-                       
                     */
 
                     for (var i = 0; i < ListSubSourceCS.Count; i++)
                     {
                         var found = false;
-                        var regexSub =
-                            new Regex(@"^" + ListSubSourceCS[i],
-                                RegexOptions.Compiled); // ищем начало подпрограммы, каждый раз с начала файла
+                        var regexSub = new Regex(@"^" + ListSubSourceCS[i], RegexOptions.Compiled); // ищем начало подпрограммы, каждый раз с начала файла
                         for (var index = 0; index < InListSource.Count; index++)
                         {
                             var matchesSub = regexSub.Matches(InListSource[index]);
@@ -2517,29 +2550,35 @@ namespace NameFinder
                             {
                                 continue;
                             }
-
                             // нашли начало подпрограммы, ищем структуры, пока не "endp"
                             var foundEndp = false;
-                            var lst = new List<string>();
+                            //var lst = new List<string>();
+                            var lst = new List<Struc>();
+                            var aa = new Struc();
                             do
                             {
                                 index++;
                                 var matchesCalls = regexCall.Matches(InListSource[index]);
                                 foreach (var matchCall in matchesCalls)
                                 {
-                                    if (matchCall.ToString().Length >= 4 &&
-                                        matchCall.ToString().Substring(0, 4) == "call")
+                                    if (matchCall.ToString().Length >= 4 && matchCall.ToString().Substring(0, 4) == "call")
                                     {
                                         var findList = FindStructureIn(matchCall.ToString().Substring(8));
                                         if (findList.Count > 0)
                                         {
-                                            lst.AddRange(
-                                                findList); // сохранили несколько строк структуры пакета найденной в подпрограмме
+                                            lst.AddRange(findList); // сохранили несколько строк структуры пакета найденной в подпрограмме
                                         }
                                     }
                                     else
                                     {
-                                        lst.Add(matchCall.ToString()); // сохранили одну строку структуры пакета
+                                        aa.Name = matchCall.ToString();
+                                        index--;
+                                        var offset = InListSource[index].LastIndexOf("]", StringComparison.Ordinal) - 3;
+                                        // проверка на bc
+                                        var num = offset < 0 ? "CC" : InListSource[index].Substring(offset, 2);
+                                        aa.Type = (TypeEnum)Convert.ToInt32(num, 16);
+                                        lst.Add(aa); // сохранили одну строку структуры пакета
+                                        index++;
                                     }
                                 }
 
@@ -2560,7 +2599,7 @@ namespace NameFinder
                         if (!found)
                         {
                             // не нашли структуру
-                            var lst = new List<string>();
+                            var lst = new List<Struc>();
                             StructureSourceCS.Add(i, lst); // сохраним пустой список, так как ничего не нашли 
                         }
 
@@ -2597,7 +2636,7 @@ namespace NameFinder
             var stopWatch = new Stopwatch();
             stopWatch.Start();
             // уничтожаем ненужный список
-            StructureSourceSC = new Dictionary<int, List<string>>();
+            StructureSourceSC = new Dictionary<int, List<Struc>>();
             ListNameSourceSC = new List<string>();
             ListSubSourceSC = new List<string>();
             XrefsIn = new Dictionary<int, List<string>>();
@@ -2768,7 +2807,8 @@ namespace NameFinder
 
                             // нашли начало подпрограммы, ищем структуры, пока не "endp"
                             var foundEndp = false;
-                            var lst = new List<string>();
+                            var lst = new List<Struc>();
+                            var aa = new Struc();
                             do
                             {
                                 index++;
@@ -2781,13 +2821,19 @@ namespace NameFinder
                                         var findList = FindStructureIn(matchCall.ToString().Substring(8));
                                         if (findList.Count > 0)
                                         {
-                                            lst.AddRange(
-                                                findList); // сохранили несколько строк структуры пакета найденной в подпрограмме
+                                            lst.AddRange(findList); // сохранили несколько строк структуры пакета найденной в подпрограмме
                                         }
                                     }
                                     else
                                     {
-                                        lst.Add(matchCall.ToString()); // сохранили одну строку структуры пакета
+                                        aa.Name = matchCall.ToString();
+                                        index--;
+                                        var offset = InListSource[index].LastIndexOf("]", StringComparison.Ordinal) - 3;
+                                        // проверка на bc
+                                        var num = offset < 0 ? "CC" : InListSource[index].Substring(offset, 2);
+                                        aa.Type = (TypeEnum)Convert.ToInt32(num, 16);
+                                        lst.Add(aa); // сохранили одну строку структуры пакета
+                                        index++;
                                     }
                                 }
 
@@ -2808,7 +2854,7 @@ namespace NameFinder
                         if (!found)
                         {
                             // не нашли структуру
-                            var lst = new List<string>();
+                            var lst = new List<Struc>();
                             StructureSourceSC.Add(i, lst); // сохраним пустой список, так как ничего не нашли 
                         }
 
@@ -2847,7 +2893,7 @@ namespace NameFinder
             var stopWatch = new Stopwatch();
             stopWatch.Start();
             // уничтожаем ненужный список
-            StructureDestinationCS = new Dictionary<int, List<string>>();
+            StructureDestinationCS = new Dictionary<int, List<Struc>>();
             ListNameDestinationCS = new List<string>();
             ListSubDestinationCS = new List<string>();
             XrefsOut = new Dictionary<int, List<string>>();
@@ -3017,7 +3063,8 @@ namespace NameFinder
 
                             // нашли начало подпрограммы, ищем структуры, пока не "endp"
                             var foundEndp = false;
-                            var lst = new List<string>();
+                            var lst = new List<Struc>();
+                            var aa = new Struc();
                             do
                             {
                                 index++;
@@ -3030,13 +3077,19 @@ namespace NameFinder
                                         var findList = FindStructureOut(matchCall.ToString().Substring(8));
                                         if (findList.Count > 0)
                                         {
-                                            lst.AddRange(
-                                                findList); // сохранили несколько строк структуры пакета найденной в подпрограмме
+                                            lst.AddRange(findList); // сохранили несколько строк структуры пакета найденной в подпрограмме
                                         }
                                     }
                                     else
                                     {
-                                        lst.Add(matchCall.ToString()); // сохранили одну строку структуры пакета
+                                        aa.Name = matchCall.ToString();
+                                        index--;
+                                        var offset = InListDestination[index].LastIndexOf("]", StringComparison.Ordinal) - 3;
+                                        // проверка на bc
+                                        var num = offset < 0 ? "CC" : InListDestination[index].Substring(offset, 2);
+                                        aa.Type = (TypeEnum)Convert.ToInt32(num, 16);
+                                        lst.Add(aa); // сохранили одну строку структуры пакета
+                                        index++;
                                     }
                                 }
 
@@ -3057,7 +3110,7 @@ namespace NameFinder
                         if (!found)
                         {
                             // не нашли структуру
-                            var lst = new List<string>();
+                            var lst = new List<Struc>();
                             StructureDestinationCS.Add(i, lst); // сохраним пустой список, так как ничего не нашли 
                         }
 
@@ -3094,7 +3147,7 @@ namespace NameFinder
             var stopWatch = new Stopwatch();
             stopWatch.Start();
             // уничтожаем ненужный список
-            StructureDestinationSC = new Dictionary<int, List<string>>();
+            StructureDestinationSC = new Dictionary<int, List<Struc>>();
             ListNameDestinationSC = new List<string>();
             ListSubDestinationSC = new List<string>();
             XrefsOut = new Dictionary<int, List<string>>();
@@ -3266,7 +3319,8 @@ namespace NameFinder
 
                             // нашли начало подпрограммы, ищем структуры, пока не "endp"
                             var foundEndp = false;
-                            var lst = new List<string>();
+                            var lst = new List<Struc>();
+                            var aa = new Struc();
                             do
                             {
                                 index++;
@@ -3279,13 +3333,19 @@ namespace NameFinder
                                         var findList = FindStructureOut(matchCall.ToString().Substring(8));
                                         if (findList.Count > 0)
                                         {
-                                            lst.AddRange(
-                                                findList); // сохранили несколько строк структуры пакета найденной в подпрограмме
+                                            lst.AddRange(findList); // сохранили несколько строк структуры пакета найденной в подпрограмме
                                         }
                                     }
                                     else
                                     {
-                                        lst.Add(matchCall.ToString()); // сохранили одну строку структуры пакета
+                                        aa.Name = matchCall.ToString();
+                                        index--;
+                                        var offset = InListDestination[index].LastIndexOf("]", StringComparison.Ordinal) - 3;
+                                        // проверка на bc
+                                        var num = offset < 0 ? "CC" : InListDestination[index].Substring(offset, 2);
+                                        aa.Type = (TypeEnum)Convert.ToInt32(num, 16);
+                                        lst.Add(aa); // сохранили одну строку структуры пакета
+                                        index++;
                                     }
                                 }
 
@@ -3306,7 +3366,7 @@ namespace NameFinder
                         if (!found)
                         {
                             // не нашли структуру
-                            var lst = new List<string>();
+                            var lst = new List<Struc>();
                             StructureDestinationSC.Add(i, lst); // сохраним пустой список, так как ничего не нашли 
                         }
 
@@ -3697,8 +3757,8 @@ namespace NameFinder
         }
 
         private void CompareSourceStructuresCS(ref List<string> listNameSource, ref List<string> listNameDestination,
-            ref List<string> listSubDestination, ref Dictionary<int, List<string>> dictSource,
-            ref Dictionary<int, List<string>> dictDestination, List<string> listOpcodes)
+            ref List<string> listSubDestination, ref Dictionary<int, List<Struc>> dictSource,
+            ref Dictionary<int, List<Struc>> dictDestination, List<string> listOpcodes)
         {
             // подготовим список
             ListNameCompareCS = new List<string>();
@@ -3865,8 +3925,8 @@ namespace NameFinder
         }
 
         private void CompareSourceStructuresSC(ref List<string> listNameSource, ref List<string> listNameDestination,
-            ref List<string> listSubDestination, ref Dictionary<int, List<string>> dictSource,
-            ref Dictionary<int, List<string>> dictDestination, List<string> listOpcodes)
+            ref List<string> listSubDestination, ref Dictionary<int, List<Struc>> dictSource,
+            ref Dictionary<int, List<Struc>> dictDestination, List<string> listOpcodes)
         {
             // подготовим список
             ListNameCompareSC = new List<string>();
@@ -4030,7 +4090,8 @@ namespace NameFinder
             if (!isCompareCS)
             {
                 // результат работы метода в ListNameCompareCS
-                CompareSourceStructuresCS(ref ListNameSourceCS, ref ListNameDestinationCS, ref ListSubDestinationCS, ref StructureSourceCS, ref StructureDestinationCS, ListOpcodeDestinationCS);
+                CompareSourceStructuresCS(ref ListNameSourceCS, ref ListNameDestinationCS,
+                    ref ListSubDestinationCS, ref StructureSourceCS, ref StructureDestinationCS, ListOpcodeDestinationCS);
                 // сравнение пакетов проведено
             }
             else
@@ -4232,8 +4293,8 @@ namespace NameFinder
             var dd = 0;
             var key = 0;
             var lst = "";
-            List<string> src;
-            List<string> dst;
+            List<Struc> src;
+            List<Struc> dst;
             for (var i = 0; i < ListNameCompareCS.Count; i++)
             {
                 ss = 0;
@@ -4249,15 +4310,15 @@ namespace NameFinder
 
                 tmp.Add(lst);
 
-                src = InUseOut.ContainsKey(i) ? StructureSourceCS[InUseOut[i]] : new List<string>();
+                src = InUseOut.ContainsKey(i) ? StructureSourceCS[InUseOut[i]] : new List<Struc>();
                 dst = StructureDestinationCS[i];
 
                 var count = Math.Max(src.Count, dst.Count);
                 // проходим по самому длинному списку
                 do
                 {
-                    var str1 = ss < src.Count ? src[ss] : "";
-                    var str2 = dd < dst.Count ? dst[dd] : "";
+                    var str1 = ss < src.Count ? src[ss].Name : "";
+                    var str2 = dd < dst.Count ? dst[dd].Name : "";
 
                     lst = ss + ": " + str1 + "\t\t" + ss + ": " + str2;
                     tmp.Add(lst);
@@ -4283,8 +4344,8 @@ namespace NameFinder
             var dd = 0;
             var key = 0;
             var lst = "";
-            List<string> src;
-            List<string> dst;
+            List<Struc> src;
+            List<Struc> dst;
             for (var i = 0; i < ListNameCompareSC.Count; i++)
             {
                 ss = 0;
@@ -4300,15 +4361,15 @@ namespace NameFinder
 
                 tmp.Add(lst);
 
-                src = InUseOut.ContainsKey(i) ? StructureSourceSC[InUseOut[i]] : new List<string>();
+                src = InUseOut.ContainsKey(i) ? StructureSourceSC[InUseOut[i]] : new List<Struc>();
                 dst = StructureDestinationSC[i];
 
                 var count = Math.Max(src.Count, dst.Count);
                 // проходим по самому длинному списку
                 do
                 {
-                    var str1 = ss < src.Count ? src[ss] : "";
-                    var str2 = dd < dst.Count ? dst[dd] : "";
+                    var str1 = ss < src.Count ? src[ss].Name : "";
+                    var str2 = dd < dst.Count ? dst[dd].Name : "";
 
                     lst = ss + ": " + str1 + "\t\t" + ss + ": " + str2;
                     tmp.Add(lst);
@@ -4966,16 +5027,16 @@ namespace NameFinder
                     IsRenameDestination = JsonConvert.DeserializeObject<Dictionary<int, bool>>(json);
 
                     json = File.ReadAllText(DirPathCS + "\\StructureSourceCS.json");
-                    StructureSourceCS = JsonConvert.DeserializeObject<Dictionary<int, List<string>>>(json);
+                    StructureSourceCS = JsonConvert.DeserializeObject<Dictionary<int, List<Struc>>>(json);
 
                     json = File.ReadAllText(DirPathCS + "\\StructureSourceSC.json");
-                    StructureSourceSC = JsonConvert.DeserializeObject<Dictionary<int, List<string>>>(json);
+                    StructureSourceSC = JsonConvert.DeserializeObject<Dictionary<int, List<Struc>>>(json);
 
                     json = File.ReadAllText(DirPathCS + "\\StructureDestinationCS.json");
-                    StructureDestinationCS = JsonConvert.DeserializeObject<Dictionary<int, List<string>>>(json);
+                    StructureDestinationCS = JsonConvert.DeserializeObject<Dictionary<int, List<Struc>>>(json);
 
                     json = File.ReadAllText(DirPathCS + "\\StructureDestinationSC.json");
-                    StructureDestinationSC = JsonConvert.DeserializeObject<Dictionary<int, List<string>>>(json);
+                    StructureDestinationSC = JsonConvert.DeserializeObject<Dictionary<int, List<Struc>>>(json);
 
                     json = File.ReadAllText(DirPathCS + "\\XrefsIn.json");
                     XrefsIn = JsonConvert.DeserializeObject<Dictionary<int, List<string>>>(json);
@@ -5119,16 +5180,16 @@ namespace NameFinder
                     IsRenameDestination = JsonConvert.DeserializeObject<Dictionary<int, bool>>(json);
 
                     json = File.ReadAllText(DirPathSC + "\\StructureSourceCS.json");
-                    StructureSourceCS = JsonConvert.DeserializeObject<Dictionary<int, List<string>>>(json);
+                    StructureSourceCS = JsonConvert.DeserializeObject<Dictionary<int, List<Struc>>>(json);
 
                     json = File.ReadAllText(DirPathSC + "\\StructureSourceSC.json");
-                    StructureSourceSC = JsonConvert.DeserializeObject<Dictionary<int, List<string>>>(json);
+                    StructureSourceSC = JsonConvert.DeserializeObject<Dictionary<int, List<Struc>>>(json);
 
                     json = File.ReadAllText(DirPathSC + "\\StructureDestinationCS.json");
-                    StructureDestinationCS = JsonConvert.DeserializeObject<Dictionary<int, List<string>>>(json);
+                    StructureDestinationCS = JsonConvert.DeserializeObject<Dictionary<int, List<Struc>>>(json);
 
                     json = File.ReadAllText(DirPathSC + "\\StructureDestinationSC.json");
-                    StructureDestinationSC = JsonConvert.DeserializeObject<Dictionary<int, List<string>>>(json);
+                    StructureDestinationSC = JsonConvert.DeserializeObject<Dictionary<int, List<Struc>>>(json);
 
                     json = File.ReadAllText(DirPathSC + "\\XrefsIn.json");
                     XrefsIn = JsonConvert.DeserializeObject<Dictionary<int, List<string>>>(json);
@@ -5280,18 +5341,131 @@ namespace NameFinder
             ListView32.ScrollIntoView(ListView32.SelectedItem);
         }
 
-        private void BtnGotoNameIn_Click(object sender, RoutedEventArgs e)
+        private string FilePath0 { get; set; }
+        private string FilePath { get; set; }
+
+        public bool SavePktFileDialog(string name)
+        {
+            var saveFileDialog = new SaveFileDialog
+            {
+                Filter = "Packet File|*.cs",
+                FileName = name + ".cs",
+                Title = "Save As Text File"
+            };
+
+            if (saveFileDialog.ShowDialog() == true)
+            {
+                var offset = saveFileDialog.FileName.LastIndexOf("\\", StringComparison.Ordinal) + 1;
+                FilePath = saveFileDialog.FileName.Substring(0, offset);
+                FilePath0 = saveFileDialog.FileName;
+                return true;
+            }
+
+            return false;
+        }
+
+        private void BtnMakePktIn_Click(object sender, RoutedEventArgs e)
         {
             if (ListView12.SelectedItem != null)
             {
                 Label_Semafor1.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { Label_Semafor1.Background = Brushes.Yellow; }));
                 var name = ListView12.SelectedItem.ToString();
-                GotoNameIn(name);
+                //GotoNameIn(name);
+                if (ButtonSaveIn1.IsEnabled)
+                {
+                    // сохраняем в виде файла
+                    for (int i = 0; i < ListNameSourceCS.Count; i++)
+                    {
+                        var tmp = new List<string>();
+                        string lst = "";
+                        lst = "using AAEmu.Commons.Network;";
+                        tmp.Add(lst);
+                        lst = "using AAEmu.Game.Core.Network.Game;";
+                        tmp.Add(lst);
+                        lst = "";
+                        tmp.Add(lst);
+                        lst = "namespace AAEmu.Game.Core.Packets.C2G";
+                        tmp.Add(lst);
+                        lst = "{";
+                        tmp.Add(lst);
+                        lst = "    public class " + ListNameSourceCS[i] + " : GamePacket";
+                        tmp.Add(lst);
+                        lst = "    {";
+                        tmp.Add(lst);
+                        lst = "        public " + ListNameSourceCS[i] + " : base(CSOffsets." + ListNameSourceCS[i] + ", 1)";
+                        tmp.Add(lst);
+                        lst = "        {";
+                        tmp.Add(lst);
+                        lst = "        }";
+                        tmp.Add(lst);
+                        lst = "";
+                        tmp.Add(lst);
+                        lst = "        public override void Read(PacketStream stream)";
+                        tmp.Add(lst);
+                        lst = "        {";
+                        tmp.Add(lst);
+                        foreach (var str in StructureSourceCS[i])
+                        {
+                            lst = "            var " + str.Name.Replace("\"", "") + " = stream.Read" + str.Type + "();";
+                            tmp.Add(lst);
+                        }
+                        lst = "        }";
+                        tmp.Add(lst);
+                        lst = "    }";
+                        tmp.Add(lst);
+                        lst = "}";
+                        tmp.Add(lst);
+                        if (FilePath != null)
+                        {
+                            File.WriteAllLines(FilePath + ListNameSourceCS[i] + ".cs", tmp);
+                        }
+                        else
+                        {
+                            if (SavePktFileDialog(ListNameSourceCS[i]))
+                            {
+                                File.WriteAllLines(FilePath0, tmp);
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    /*
+                        using AAEmu.Commons.Network;
+                        using AAEmu.Game.Core.Network.Game;
+                        using AAEmu.Game.Models.Game.Skills;
+                        
+                        namespace AAEmu.Game.Core.Packets.G2C
+                        {
+                            public class SCAbilityExpChangedPacket : GamePacket
+                            {
+                                private readonly uint _objId;
+                                private readonly byte _ability;
+                                private readonly int _exp;
+                        
+                                public SCAbilityExpChangedPacket(uint objId, AbilityType ability, int exp) : base(SCOffsets.SCAbilityExpChangedPacket, 1)
+                                {
+                                    _objId = objId;
+                                    _ability = (byte) ability;
+                                    _exp = exp;
+                                }
+                        
+                                public override PacketStream Write(PacketStream stream)
+                                {
+                                    stream.WriteBc(_objId);
+                                    stream.Write(_ability);
+                                    stream.Write(_exp);
+                                    return stream;
+                                }
+                            }
+                        }                   
+                     */
+                }
                 Label_Semafor1.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { Label_Semafor1.Background = Brushes.GreenYellow; }));
             }
         }
 
-        private int loopIn = 1;
+        private int loopIn = 0;
         private int prevIn = 0;
         private int currIn = 0;
 
@@ -5299,97 +5473,101 @@ namespace NameFinder
         {
             if (ListView12.SelectedItem == null) return;
 
+            var regexXREF = new Regex(@"^\s+;[a-zA-Z:\s]*\s(sub_\w+)|(X2\w+)|(w+)", RegexOptions.Compiled);
             Label_Semafor1.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { Label_Semafor1.Background = Brushes.Yellow; }));
             var name = ListView12.SelectedItem.ToString();
             var idx = GotoNameIn(name);
+            if (loopIn == 0)
+            {
+                loopIn = 1;
+                prevIn = idx;
+                Label_Semafor1.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { Label_Semafor1.Background = Brushes.GreenYellow; }));
+                return;
+            }
+
+            if (prevIn != idx)
+            {
+                loopIn = 1;
+                prevIn = idx;
+                Label_Semafor1.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { Label_Semafor1.Background = Brushes.GreenYellow; }));
+                return;
+            }
             if (idx > 0)
             {
-                currIn = idx;
-                var regexXREF = new Regex(@"^\s+;[a-zA-Z:\s]*\s(sub_\w+)|(X2\w+)|(w+)", RegexOptions.Compiled);
-                if (prevIn != currIn)
+                switch (loopIn)
                 {
-                    loopIn = 1;
-                    idx += loopIn;
-                    // ищем "; DATA XREF: sub_3922E1C0+79↑o" или "; sub_3922E1C0:loc_3922E37F↑o"
-                    var matchesXREF = regexXREF.Match(InListSource[idx]);
-                    var ss = "";
-                    //group 1 = sub_\w+
-                    if (matchesXREF.Groups[1].Length > 0)
-                    {
-                        ss = matchesXREF.Groups[1].ToString();
-                        GotoNameIn(ss);
-                    }
-                    //group 2 = X2\w+
-                    else if (matchesXREF.Groups[2].Length > 0)
-                    {
-                        ss = matchesXREF.Groups[2].ToString();
-                        GotoNameIn(ss);
-                    }
-                    //group 3 = w+
-                    else if (matchesXREF.Groups[3].Length > 0)
-                    {
-                        ss = matchesXREF.Groups[3].ToString();
-                        GotoNameIn(ss);
-                    }
+                    case 1:
+                        {
+                            currIn = idx;
+                            idx += loopIn;
+                            // ищем "; DATA XREF: sub_3922E1C0+79↑o" или "; sub_3922E1C0:loc_3922E37F↑o"
+                            var matchesXREF = regexXREF.Match(InListSource[idx]);
+                            if (matchesXREF.Groups.Count <= 1)
+                            {
+                                prevIn = idx - loopIn;
+                                loopIn = 0;
+                                break;
+                            }
+                            var ss = "";
+                            //group 1 = sub_\w+
+                            if (matchesXREF.Groups[1].Length > 0)
+                            {
+                                ss = matchesXREF.Groups[1].ToString();
+                                GotoNameIn(ss);
+                            }
+                            //group 2 = X2\w+
+                            else if (matchesXREF.Groups[2].Length > 0)
+                            {
+                                ss = matchesXREF.Groups[2].ToString();
+                                GotoNameIn(ss);
+                            }
+                            //group 3 = w+
+                            else if (matchesXREF.Groups[3].Length > 0)
+                            {
+                                ss = matchesXREF.Groups[3].ToString();
+                                GotoNameIn(ss);
+                            }
 
-                    loopIn = 2;
-                    prevIn = currIn;
-                }
-                else if (loopIn == 1)
-                {
-                    idx += loopIn;
-                    // ищем "; DATA XREF: sub_3922E1C0+79↑o" или "; sub_3922E1C0:loc_3922E37F↑o"
-                    var matchesXREF = regexXREF.Match(InListSource[idx]);
-                    var ss = "";
-                    //group 1 = sub_\w+
-                    if (matchesXREF.Groups[1].Length > 0)
-                    {
-                        ss = matchesXREF.Groups[1].ToString();
-                        GotoNameIn(ss);
-                    }
-                    //group 2 = X2\w+
-                    else if (matchesXREF.Groups[2].Length > 0)
-                    {
-                        ss = matchesXREF.Groups[2].ToString();
-                        GotoNameIn(ss);
-                    }
-                    //group 3 = w+
-                    else if (matchesXREF.Groups[3].Length > 0)
-                    {
-                        ss = matchesXREF.Groups[3].ToString();
-                        GotoNameIn(ss);
-                    }
+                            loopIn = 2;
+                            prevIn = currIn;
 
-                    loopIn = 2;
-                    prevIn = currIn;
-                }
-                else
-                {
-                    idx += loopIn;
-                    // ищем "; DATA XREF: sub_3922E1C0+79↑o" или "; sub_3922E1C0:loc_3922E37F↑o"
-                    var matchesXREF = regexXREF.Match(InListSource[idx]);
-                    var ss = "";
-                    //group 1 = sub_\w+
-                    if (matchesXREF.Groups[1].Length > 0)
-                    {
-                        ss = matchesXREF.Groups[1].ToString();
-                        GotoNameIn(ss);
-                    }
-                    //group 2 = X2\w+
-                    else if (matchesXREF.Groups[2].Length > 0)
-                    {
-                        ss = matchesXREF.Groups[2].ToString();
-                        GotoNameIn(ss);
-                    }
-                    //group 3 = w+
-                    else if (matchesXREF.Groups[3].Length > 0)
-                    {
-                        ss = matchesXREF.Groups[3].ToString();
-                        GotoNameIn(ss);
-                    }
+                            break;
+                        }
+                    case 2:
+                        {
+                            idx += loopIn;
+                            // ищем "; DATA XREF: sub_3922E1C0+79↑o" или "; sub_3922E1C0:loc_3922E37F↑o"
+                            var matchesXREF = regexXREF.Match(InListSource[idx]);
+                            if (matchesXREF.Groups.Count <= 1)
+                            {
+                                prevIn = idx - loopIn;
+                                loopIn = 1;
+                                break;
+                            }
+                            var ss = "";
+                            //group 1 = sub_\w+
+                            if (matchesXREF.Groups[1].Length > 0)
+                            {
+                                ss = matchesXREF.Groups[1].ToString();
+                                GotoNameIn(ss);
+                            }
+                            //group 2 = X2\w+
+                            else if (matchesXREF.Groups[2].Length > 0)
+                            {
+                                ss = matchesXREF.Groups[2].ToString();
+                                GotoNameIn(ss);
+                            }
+                            //group 3 = w+
+                            else if (matchesXREF.Groups[3].Length > 0)
+                            {
+                                ss = matchesXREF.Groups[3].ToString();
+                                GotoNameIn(ss);
+                            }
 
-                    loopIn = 1;
-                    prevIn = currIn;
+                            loopIn = 0;
+                            prevIn = currIn;
+                            break;
+                        }
                 }
             }
             Label_Semafor1.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { Label_Semafor1.Background = Brushes.GreenYellow; }));
@@ -5397,11 +5575,20 @@ namespace NameFinder
 
         private int GotoNameIn(string name)
         {
+            Regex regex;
+
             var str = name;
             str = str.Replace("?", ".");
             str = str.Replace("@", ".");
             str = str.Replace("+", ".");
-            var regex = new Regex(@"^" + str, RegexOptions.Compiled);
+            if (loopIn == 0)
+            {
+                regex = new Regex(@"^" + str + @"\sdd\soffset", RegexOptions.Compiled);
+            }
+            else
+            {
+                regex = new Regex(@"^" + str, RegexOptions.Compiled);
+            }
             for (var i = 0; i < InListSource.Count; i++)
             {
                 var matches = regex.Matches(InListSource[i]);
@@ -5429,115 +5616,127 @@ namespace NameFinder
             }
         }
 
-        private int loopOut = 1;
+        private int loopOut = 0;
         private int prevOut = 0;
         private int currOut = 0;
         private void BtnGotoOpcodeOut_Click(object sender, RoutedEventArgs e)
         {
             if (ListView22.SelectedItem == null) return;
 
+            var regexXREF = new Regex(@"^\s+;[a-zA-Z:\s]*\s(sub_\w+)|(X2\w+)|(w+)", RegexOptions.Compiled);
             Label_Semafor2.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { Label_Semafor2.Background = Brushes.Yellow; }));
             var name = ListView22.SelectedItem.ToString();
             var idx = GotoNameOut(name);
+            if (loopOut == 0)
+            {
+                loopOut = 1;
+                prevOut = idx;
+                Label_Semafor2.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { Label_Semafor2.Background = Brushes.GreenYellow; }));
+                return;
+            }
+            else if (prevOut != idx)
+            {
+                loopOut = 1;
+                prevOut = idx;
+                Label_Semafor2.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { Label_Semafor2.Background = Brushes.GreenYellow; }));
+                return;
+            }
             if (idx > 0)
             {
-                currOut = idx;
-                var regexXREF = new Regex(@"^\s+;[a-zA-Z:\s]*\s(sub_\w+)|(X2\w+)|(w+)", RegexOptions.Compiled);
-                if (prevOut != currOut)
+                switch (loopOut)
                 {
-                    loopOut = 1;
-                    idx += loopIn;
-                    // ищем "; DATA XREF: sub_3922E1C0+79↑o" или "; sub_3922E1C0:loc_3922E37F↑o"
-                    var matchesXREF = regexXREF.Match(InListDestination[idx]);
-                    var ss = "";
-                    //group 1 = sub_\w+
-                    if (matchesXREF.Groups[1].Length > 0)
-                    {
-                        ss = matchesXREF.Groups[1].ToString();
-                        GotoNameOut(ss);
-                    }
-                    //group 2 = X2\w+
-                    else if (matchesXREF.Groups[2].Length > 0)
-                    {
-                        ss = matchesXREF.Groups[2].ToString();
-                        GotoNameOut(ss);
-                    }
-                    //group 3 = w+
-                    else if (matchesXREF.Groups[3].Length > 0)
-                    {
-                        ss = matchesXREF.Groups[3].ToString();
-                        GotoNameOut(ss);
-                    }
+                    case 1:
+                        {
+                            currOut = idx;
+                            idx += loopOut;
+                            // ищем "; DATA XREF: sub_3922E1C0+79↑o" или "; sub_3922E1C0:loc_3922E37F↑o"
+                            var matchesXREF = regexXREF.Match(InListDestination[idx]);
+                            if (matchesXREF.Groups.Count <= 1)
+                            {
+                                prevOut = idx - loopOut;
+                                loopOut = 0;
+                                break;
+                            }
+                            var ss = "";
+                            //group 1 = sub_\w+
+                            if (matchesXREF.Groups[1].Length > 0)
+                            {
+                                ss = matchesXREF.Groups[1].ToString();
+                                GotoNameOut(ss);
+                            }
+                            //group 2 = X2\w+
+                            else if (matchesXREF.Groups[2].Length > 0)
+                            {
+                                ss = matchesXREF.Groups[2].ToString();
+                                GotoNameOut(ss);
+                            }
+                            //group 3 = w+
+                            else if (matchesXREF.Groups[3].Length > 0)
+                            {
+                                ss = matchesXREF.Groups[3].ToString();
+                                GotoNameOut(ss);
+                            }
 
-                    loopOut = 2;
-                    prevOut = currOut;
-                }
-                else if (loopOut == 1)
-                {
-                    idx += loopOut;
-                    // ищем "; DATA XREF: sub_3922E1C0+79↑o" или "; sub_3922E1C0:loc_3922E37F↑o"
-                    var matchesXREF = regexXREF.Match(InListDestination[idx]);
-                    var ss = "";
-                    //group 1 = sub_\w+
-                    if (matchesXREF.Groups[1].Length > 0)
-                    {
-                        ss = matchesXREF.Groups[1].ToString();
-                        GotoNameOut(ss);
-                    }
-                    //group 2 = X2\w+
-                    else if (matchesXREF.Groups[2].Length > 0)
-                    {
-                        ss = matchesXREF.Groups[2].ToString();
-                        GotoNameOut(ss);
-                    }
-                    //group 3 = w+
-                    else if (matchesXREF.Groups[3].Length > 0)
-                    {
-                        ss = matchesXREF.Groups[3].ToString();
-                        GotoNameOut(ss);
-                    }
+                            loopOut = 2;
+                            prevOut = currOut;
 
-                    loopOut = 2;
-                    prevOut = currOut;
-                }
-                else
-                {
-                    idx += loopOut;
-                    // ищем "; DATA XREF: sub_3922E1C0+79↑o" или "; sub_3922E1C0:loc_3922E37F↑o"
-                    var matchesXREF = regexXREF.Match(InListDestination[idx]);
-                    var ss = "";
-                    //group 1 = sub_\w+
-                    if (matchesXREF.Groups[1].Length > 0)
-                    {
-                        ss = matchesXREF.Groups[1].ToString();
-                        GotoNameOut(ss);
-                    }
-                    //group 2 = X2\w+
-                    else if (matchesXREF.Groups[2].Length > 0)
-                    {
-                        ss = matchesXREF.Groups[2].ToString();
-                        GotoNameOut(ss);
-                    }
-                    //group 3 = w+
-                    else if (matchesXREF.Groups[3].Length > 0)
-                    {
-                        ss = matchesXREF.Groups[3].ToString();
-                        GotoNameOut(ss);
-                    }
+                            break;
+                        }
+                    case 2:
+                        {
+                            idx += loopOut;
+                            // ищем "; DATA XREF: sub_3922E1C0+79↑o" или "; sub_3922E1C0:loc_3922E37F↑o"
+                            var matchesXREF = regexXREF.Match(InListDestination[idx]);
+                            if (matchesXREF.Groups.Count <= 1)
+                            {
+                                prevOut = idx - loopOut;
+                                loopOut = 1;
+                                break;
+                            }
+                            var ss = "";
+                            //group 1 = sub_\w+
+                            if (matchesXREF.Groups[1].Length > 0)
+                            {
+                                ss = matchesXREF.Groups[1].ToString();
+                                GotoNameOut(ss);
+                            }
+                            //group 2 = X2\w+
+                            else if (matchesXREF.Groups[2].Length > 0)
+                            {
+                                ss = matchesXREF.Groups[2].ToString();
+                                GotoNameOut(ss);
+                            }
+                            //group 3 = w+
+                            else if (matchesXREF.Groups[3].Length > 0)
+                            {
+                                ss = matchesXREF.Groups[3].ToString();
+                                GotoNameOut(ss);
+                            }
 
-                    loopOut = 1;
-                    prevOut = currOut;
+                            loopOut = 0;
+                            prevOut = currOut;
+                            break;
+                        }
                 }
             }
             Label_Semafor2.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { Label_Semafor2.Background = Brushes.GreenYellow; }));
         }
         private int GotoNameOut(string name)
         {
+            Regex regex;
+
             var str = name;
             str = str.Replace("?", ".");
             str = str.Replace("@", ".");
             str = str.Replace("+", ".");
-            var regex = new Regex(@"^" + str, RegexOptions.Compiled);
+            if (loopOut == 0)
+            {
+                regex = new Regex(@"^" + str + @"\sdd\soffset", RegexOptions.Compiled);
+            }
+            else
+            {
+                regex = new Regex(@"^" + str, RegexOptions.Compiled);
+            }
             for (var i = 0; i < InListDestination.Count; i++)
             {
                 var matches = regex.Matches(InListDestination[i]);

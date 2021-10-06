@@ -26,8 +26,8 @@ namespace NameFinder
         public static List<string> ListNameSource = new List<string>();
         public static List<string> ListNameDestination = new List<string>();
         public static List<string> ListSubDestination = new List<string>();
-        public static Dictionary<int, List<string>> StructureSource = new Dictionary<int, List<string>>();
-        public static Dictionary<int, List<string>> StructureDestination = new Dictionary<int, List<string>>();
+        public static Dictionary<int, List<Struc>> StructureSource = new Dictionary<int, List<Struc>>();
+        public static Dictionary<int, List<Struc>> StructureDestination = new Dictionary<int, List<Struc>>();
         public static List<string> ListOpcodeDestination = new List<string>();
         public static bool isRemoveOpcode = false;
 
@@ -36,16 +36,16 @@ namespace NameFinder
             ref List<string> listNameDestination,
             ref List<string> listNameCompare,
             ref List<string> listSubDestination,
-            ref Dictionary<int, List<string>> structureSource,
-            ref Dictionary<int, List<string>> structureDestination,
+            ref Dictionary<int, List<Struc>> structureSource,
+            ref Dictionary<int, List<Struc>> structureDestination,
             List<string> listOpcodeDestination)
         {
             ListNameCompare = new List<string>(listNameCompare);
             ListNameSource = new List<string>(listNameSource);
             ListNameDestination = new List<string>(listNameDestination);
             ListSubDestination = new List<string>(listSubDestination);
-            StructureSource = new Dictionary<int, List<string>>(structureSource);
-            StructureDestination = new Dictionary<int, List<string>>(structureDestination);
+            StructureSource = new Dictionary<int, List<Struc>>(structureSource);
+            StructureDestination = new Dictionary<int, List<Struc>>(structureDestination);
             ListOpcodeDestination = new List<string>(listOpcodeDestination);
 
             MainWindow.ListNameCompare = new List<string>(ListNameCompare);

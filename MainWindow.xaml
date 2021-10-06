@@ -185,9 +185,9 @@
         <TextBox x:Name="TextBoxEditOutOpcode" HorizontalAlignment="Left" Height="21" Margin="1358,651,0,0" TextWrapping="Wrap" Text="0x000" VerticalAlignment="Top" Width="75"/>
         <CheckBox x:Name="CheckBoxRemoveOpcode" Content="Remove opcodes in packet name" HorizontalAlignment="Left" Margin="1710,47,0,0" VerticalAlignment="Top" Checked="checkBox_Checked_In" Width="197" IsChecked="False"/>
         <CheckBox x:Name="CheckBoxRename" Content="Rename packets in source" HorizontalAlignment="Left" Margin="1710,27,0,0" VerticalAlignment="Top" Checked="checkBox_Checked_In" Width="197" IsChecked="False"/>
-        <Button x:Name="BtnGotoNameIn" Content="Goto Name" HorizontalAlignment="Left" Height="30" Margin="306,610,0,0" VerticalAlignment="Top" Width="75" IsEnabled="True" Click="BtnGotoNameIn_Click"/>
-        <Button x:Name="BtnGotoOpcodeIn" Content="Goto Opcode" HorizontalAlignment="Left" Height="30" Margin="492,610,0,0" VerticalAlignment="Top" Width="75" IsEnabled="True" Click="BtnGotoOpcodeIn_Click"/>
-        <Button x:Name="BtnGotoNameOut" Content="Goto Name" HorizontalAlignment="Left" Height="30" Margin="1087,610,0,0" VerticalAlignment="Top" Width="75" IsEnabled="True" Click="BtnGotoNameOut_Click"/>
-        <Button x:Name="BtnGotoOpcodeOut" Content="Goto Opcode" HorizontalAlignment="Left" Height="30" Margin="1272,610,0,0" VerticalAlignment="Top" Width="75" IsEnabled="True" Click="BtnGotoOpcodeOut_Click"/>
+        <Button x:Name="BtnMakePktIn" Content="Make Pkt" HorizontalAlignment="Left" Height="30" Margin="306,610,0,0" VerticalAlignment="Top" Width="75" IsEnabled="True" Click="BtnMakePktIn_Click"/>
+        <Button x:Name="BtnGotoOpcodeIn" Content="Goto" HorizontalAlignment="Left" Height="30" Margin="492,610,0,0" VerticalAlignment="Top" Width="75" IsEnabled="True" Click="BtnGotoOpcodeIn_Click"/>
+        <Button x:Name="BtnMakePktOut" Content="Make Pkt" HorizontalAlignment="Left" Height="30" Margin="1087,610,0,0" VerticalAlignment="Top" Width="75" IsEnabled="True" Click="BtnMakePktIn_Click"/>
+        <Button x:Name="BtnGotoOpcodeOut" Content="Goto" HorizontalAlignment="Left" Height="30" Margin="1272,610,0,0" VerticalAlignment="Top" Width="75" IsEnabled="True" Click="BtnGotoOpcodeOut_Click"/>
     </Grid>
 </Window>
