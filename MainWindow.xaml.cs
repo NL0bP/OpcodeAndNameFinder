@@ -5640,6 +5640,230 @@ namespace NameFinder
                 Label_Semafor1.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { Label_Semafor1.Background = Brushes.GreenYellow; }));
             }
         }
+        private void BtnMakePktOut_Click(object sender, RoutedEventArgs e)
+        {
+            FilePath = null;
+            if (ListView22.SelectedItem != null)
+            {
+                Label_Semafor2.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { Label_Semafor2.Background = Brushes.Yellow; }));
+                var name = ListView22.SelectedItem.ToString();
+                //GotoNameIn(name);
+                if (ButtonSaveOut1.IsEnabled)
+                {
+                    // сохраняем в виде файла
+                    for (var i = 0; i < ListNameDestinationCS.Count; i++)
+                    {
+                        // удалим опкоды в конце имени
+                        string nameSource;
+                        if (CheckBoxRemoveOpcode.IsChecked == true)
+                        {
+                            // удаляем оконечные опкоды в имени пакета
+                            var offset = ListNameDestinationCS[i].LastIndexOf("_", StringComparison.Ordinal);
+                            if (offset > 0)
+                            {
+                                nameSource = ListNameDestinationCS[i].Substring(0, offset);
+                            }
+                            else
+                            {
+                                nameSource = ListNameDestinationCS[i];
+                            }
+                        }
+                        else
+                        {
+                            nameSource = ListNameDestinationCS[i];
+                        }
+                        
+                        var tmp = new List<string>();
+                        var lst = "";
+                        lst = "using AAEmu.Commons.Network;";
+                        tmp.Add(lst);
+                        lst = "using AAEmu.Game.Core.Network.Game;";
+                        tmp.Add(lst);
+                        lst = "";
+                        tmp.Add(lst);
+                        lst = "namespace AAEmu.Game.Core.Packets.C2G";
+                        tmp.Add(lst);
+                        lst = "{";
+                        tmp.Add(lst);
+                        lst = "    public class " + nameSource + " : GamePacket";
+                        tmp.Add(lst);
+                        lst = "    {";
+                        tmp.Add(lst);
+                        lst = "        public " + nameSource + " : base(CSOffsets." + nameSource + ", 1)";
+                        tmp.Add(lst);
+                        lst = "        {";
+                        tmp.Add(lst);
+                        lst = "        }";
+                        tmp.Add(lst);
+                        lst = "";
+                        tmp.Add(lst);
+                        lst = "        public override void Read(PacketStream stream)";
+                        tmp.Add(lst);
+                        lst = "        {";
+                        tmp.Add(lst);
+                        foreach (var str in StructureDestinationCS[i])
+                        {
+                            lst = "            var " + str.Name.Replace("\"", "") + " = stream.Read" + str.Type + "();";
+                            tmp.Add(lst);
+                        }
+                        lst = "        }";
+                        tmp.Add(lst);
+                        lst = "    }";
+                        tmp.Add(lst);
+                        lst = "}";
+                        tmp.Add(lst);
+                        if (FilePath != null)
+                        {
+                            File.WriteAllLines(FilePath + nameSource + ".cs", tmp);
+                        }
+                        else
+                        {
+                            if (SavePktFileDialog(nameSource))
+                            {
+                                File.WriteAllLines(FilePathName, tmp);
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    /*
+                        using AAEmu.Commons.Network;
+                        using AAEmu.Game.Core.Network.Game;
+                        
+                        namespace AAEmu.Game.Core.Packets.G2C
+                        {
+                            public class SCAbilityExpChangedPacket : GamePacket
+                            {
+                                private readonly uint _objId;
+                                private readonly byte _ability;
+                                private readonly int _exp;
+                        
+                                public SCAbilityExpChangedPacket(uint objId, byte ability, int exp) : base(SCOffsets.SCAbilityExpChangedPacket, 1)
+                                {
+                                    _objId = objId;
+                                    _ability = (byte) ability;
+                                    _exp = exp;
+                                }
+                        
+                                public override PacketStream Write(PacketStream stream)
+                                {
+                                    stream.WriteBc(_objId);
+                                    stream.Write(_ability);
+                                    stream.Write(_exp);
+                                    return stream;
+                                }
+                            }
+                        }                   
+                     */
+                    // сохраняем в виде файла
+                    for (var i = 0; i < ListNameDestinationSC.Count; i++)
+                    {
+                        // удалим опкоды в конце имени
+                        string nameSource;
+                        if (CheckBoxRemoveOpcode.IsChecked == true)
+                        {
+                            // удаляем оконечные опкоды в имени пакета
+                            var offset = ListNameDestinationSC[i].LastIndexOf("_", StringComparison.Ordinal);
+                            if (offset > 0)
+                            {
+                                nameSource = ListNameDestinationSC[i].Substring(0, offset);
+                            }
+                            else
+                            {
+                                nameSource = ListNameDestinationSC[i];
+                            }
+                        }
+                        else
+                        {
+                            nameSource = ListNameDestinationSC[i];
+                        }
+
+                        var tmp = new List<string>();
+                        var lst = "";
+                        lst = "using AAEmu.Commons.Network;";
+                        tmp.Add(lst);
+                        lst = "using AAEmu.Game.Core.Network.Game;";
+                        tmp.Add(lst);
+                        lst = "";
+                        tmp.Add(lst);
+                        lst = "namespace AAEmu.Game.Core.Packets.G2C";
+                        tmp.Add(lst);
+                        lst = "{";
+                        tmp.Add(lst);
+                        lst = "    public class " + nameSource + " : GamePacket";
+                        tmp.Add(lst);
+                        lst = "    {";
+                        tmp.Add(lst);
+                        foreach (var str in StructureDestinationSC[i])
+                        {
+                            lst = "        private readonly " + str.Type + " _" + str.Name.Replace("\"", "") + ";";
+                            tmp.Add(lst);
+                        }
+                        lst = "";
+                        tmp.Add(lst);
+
+                        lst = "        public " + nameSource + "(";
+                        var li = StructureDestinationSC[i];
+                        for (var j = 0; j < li.Count; j++)
+                        {
+                            lst += "" + li[j].Type + " " + li[j].Name.Replace("\"", "");
+                            if (j < li.Count - 1)
+                            {
+                                lst += ", ";
+                            }
+                        }
+                        lst += ") : base(SCOffsets." + nameSource + ", 1)";
+                        tmp.Add(lst);
+                        lst = "        {";
+                        tmp.Add(lst);
+
+                        foreach (var str in StructureDestinationSC[i])
+                        {
+                            lst = "            _" + str.Name.Replace("\"", "") + " = " + str.Name.Replace("\"", "") + ";";
+                            tmp.Add(lst);
+                        }
+                        
+                        lst = "        }";
+                        tmp.Add(lst);
+
+                        lst = "";
+                        tmp.Add(lst);
+                        lst = "        public override void Write(PacketStream stream)";
+                        tmp.Add(lst);
+                        lst = "        {";
+                        tmp.Add(lst);
+                        foreach (var str in StructureDestinationSC[i])
+                        {
+                            lst = "            stream.Write(_" + str.Name.Replace("\"", "") + ");";
+                            tmp.Add(lst);
+                        }
+                        lst = "";
+                        tmp.Add(lst);
+                        lst = "            return stream;";
+                        tmp.Add(lst);
+                        lst = "        }";
+                        tmp.Add(lst);
+                        lst = "    }";
+                        tmp.Add(lst);
+                        lst = "}";
+                        tmp.Add(lst);
+                        if (FilePath != null)
+                        {
+                            File.WriteAllLines(FilePath + nameSource + ".cs", tmp);
+                        }
+                        else
+                        {
+                            if (SavePktFileDialog(nameSource))
+                            {
+                                File.WriteAllLines(FilePathName, tmp);
+                            }
+                        }
+                    }
+                }
+                Label_Semafor2.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { Label_Semafor2.Background = Brushes.GreenYellow; }));
+            }
+        }
 
         private int loopIn = 0;
         private int prevIn = 0;

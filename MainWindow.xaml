@@ -187,7 +187,7 @@
         <CheckBox x:Name="CheckBoxRename" Content="Rename packets in source" HorizontalAlignment="Left" Margin="1710,27,0,0" VerticalAlignment="Top" Checked="checkBox_Checked_In" Width="197" IsChecked="False"/>
         <Button x:Name="BtnMakePktIn" Content="Make Pkt" HorizontalAlignment="Left" Height="30" Margin="306,610,0,0" VerticalAlignment="Top" Width="75" IsEnabled="True" Click="BtnMakePktIn_Click"/>
         <Button x:Name="BtnGotoOpcodeIn" Content="Goto" HorizontalAlignment="Left" Height="30" Margin="492,610,0,0" VerticalAlignment="Top" Width="75" IsEnabled="True" Click="BtnGotoOpcodeIn_Click"/>
-        <Button x:Name="BtnMakePktOut" Content="Make Pkt" HorizontalAlignment="Left" Height="30" Margin="1087,610,0,0" VerticalAlignment="Top" Width="75" IsEnabled="True" Click="BtnMakePktIn_Click"/>
+        <Button x:Name="BtnMakePktOut" Content="Make Pkt" HorizontalAlignment="Left" Height="30" Margin="1087,610,0,0" VerticalAlignment="Top" Width="75" IsEnabled="True" Click="BtnMakePktOut_Click"/>
         <Button x:Name="BtnGotoOpcodeOut" Content="Goto" HorizontalAlignment="Left" Height="30" Margin="1272,610,0,0" VerticalAlignment="Top" Width="75" IsEnabled="True" Click="BtnGotoOpcodeOut_Click"/>
     </Grid>
 </Window>
