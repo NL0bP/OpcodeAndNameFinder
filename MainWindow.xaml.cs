@@ -37,7 +37,10 @@ namespace NameFinder
         Float = 0x74,
         Bool = 0x78,
         String = 0xC4,
-        Bc = 0xCC // 3 Bytes
+        String1 = 0xD8,
+        String2 = 0xDC,
+        Bc = 0xCC, // 3 Bytes
+        Bytes = 0xD0 // 3 Bytes
     }
 
     public class Struc
@@ -1469,7 +1472,8 @@ namespace NameFinder
             var tmpLst = new List<string>();
             var regexProcNear = new Regex(@"(proc\s+near)", RegexOptions.Compiled); // ищем начало подпрограммы
             var regexEndP = new Regex(@"\s+endp\s*", RegexOptions.Compiled); // ищем конец подпрограммы
-            var regexSub = new Regex(@"push\s+offset\s|call\s+\w+|call\s+sub_\w+|mov\s+\[\w+\+\w+\],\soffset\s|mov\s+dword\sptr\s\[\w+\+\w+\],\soffset\s|mov\s+\[\w+\+\w+\],\s([1-9]|[0-9A-F]{2,3}h)|mov\s+dword\sptr\s\[\w+\+\w+\],\s([1-9]|[0-9A-F]{2,3}h)|mov\s+dword\sptr\s\[\w+\+\w+\+\w+\],\s([1-9]|[0-9A-F]{2,3}h)|mov\s+dword\sptr\s\[\w+\],\soffset\s|mov\s+dword\sptr\s\[\w+\-\w+\],\soffset\s|mov\s+dword\sptr\s\[\w+\-\w+\],\s([1-9]|[0-9A-F]{2,3}h)|mov\s+e[abcd]x,\s\[e[abcd]x\+([1-9]|[0-9A-F]{2,3}h)\]", RegexOptions.Compiled);
+            //var regexSub = new Regex(@"push\s+offset\s|call\s+\w+|call\s+sub_\w+|mov\s+\[\w+\+\w+\],\soffset\s|mov\s+dword\sptr\s\[\w+\+\w+\],\soffset\s|mov\s+\[\w+\+\w+\],\s([1-9]|[0-9A-F]{2,3}h)|mov\s+dword\sptr\s\[\w+\+\w+\],\s([1-9]|[0-9A-F]{2,3}h)|mov\s+dword\sptr\s\[\w+\+\w+\+\w+\],\s([1-9]|[0-9A-F]{2,3}h)|mov\s+dword\sptr\s\[\w+\],\soffset\s|mov\s+dword\sptr\s\[\w+\-\w+\],\soffset\s|mov\s+dword\sptr\s\[\w+\-\w+\],\s([1-9]|[0-9A-F]{2,3}h)|mov\s+e[abcd]x,\s\[e[abcd]x\+([1-9]|[0-9A-F]{2,3}h)\]", RegexOptions.Compiled);
+            var regexSub = new Regex(@"push\s+offset\s|call\s+\w+|call\s+sub_\w+|mov\s+\[\w+\+\w+\],\soffset\s|mov\s+dword\sptr\s\[\w+\+\w+\],\soffset\s|mov\s+\[\w+\+\w+\],\s([1-9]|[0-9A-F]{2,3}h)|mov\s+dword\sptr\s\[\w+\+\w+\],\s([1-9]|[0-9A-F]{2,3}h)|mov\s+dword\sptr\s\[\w+\+\w+\+\w+\],\s([1-9]|[0-9A-F]{2,3}h)|mov\s+dword\sptr\s\[\w+\],\soffset\s|mov\s+dword\sptr\s\[\w+\-\w+\],\soffset\s|mov\s+dword\sptr\s\[\w+\-\w+\],\s([1-9]|[0-9A-F]{2,3}h)|mov\s+e[abcd]x,\s\[e[abcd]x\+([0-9A-F]{2}h)\]", RegexOptions.Compiled);
             for (var index = idx; index < maxCount; index++)
             {
                 if (index % progress == 0)
@@ -1780,7 +1784,8 @@ namespace NameFinder
             var regexProcNear = new Regex(@"(proc\s+near)", RegexOptions.Compiled); // ищем начало подпрограммы
             var regexEndP = new Regex(@"\s+endp\s*", RegexOptions.Compiled); // ищем конец подпрограммы
             //var regexSub = new Regex(@"push\s+offset\s|call\s+sub_\w+|mov\s+\[\w+\+\w+\],\soffset\s|mov\s+\[\w+\+\w+\],\s([1-9]|[0-9A-F]{2,3}h)|mov\s+dword\sptr\s\[\w+\+\w+\],\s([1-9]|[0-9A-F]{2,3}h)|mov\s+dword\sptr\s\[\w+\+\w+\+\w+\],\s([1-9]|[0-9A-F]{2,3}h)|mov\s+dword\sptr\s\[\w+\],\soffset\s|mov\s+dword\sptr\s\[\w+\-\w+\],\soffset\s|mov\s+dword\sptr\s\[\w+\-\w+\],\s([1-9]|[0-9A-F]{2,3}h)", RegexOptions.Compiled);
-            var regexSub = new Regex(@"push\s+offset\s|call\s+\w+|call\s+sub_\w+|mov\s+\[\w+\+\w+\],\soffset\s|mov\s+dword\sptr\s\[\w+\+\w+\],\soffset\s|mov\s+\[\w+\+\w+\],\s([1-9]|[0-9A-F]{2,3}h)|mov\s+dword\sptr\s\[\w+\+\w+\],\s([1-9]|[0-9A-F]{2,3}h)|mov\s+dword\sptr\s\[\w+\+\w+\+\w+\],\s([1-9]|[0-9A-F]{2,3}h)|mov\s+dword\sptr\s\[\w+\],\soffset\s|mov\s+dword\sptr\s\[\w+\-\w+\],\soffset\s|mov\s+dword\sptr\s\[\w+\-\w+\],\s([1-9]|[0-9A-F]{2,3}h)", RegexOptions.Compiled);
+            //var regexSub = new Regex(@"push\s+offset\s|call\s+\w+|call\s+sub_\w+|mov\s+\[\w+\+\w+\],\soffset\s|mov\s+dword\sptr\s\[\w+\+\w+\],\soffset\s|mov\s+\[\w+\+\w+\],\s([1-9]|[0-9A-F]{2,3}h)|mov\s+dword\sptr\s\[\w+\+\w+\],\s([1-9]|[0-9A-F]{2,3}h)|mov\s+dword\sptr\s\[\w+\+\w+\+\w+\],\s([1-9]|[0-9A-F]{2,3}h)|mov\s+dword\sptr\s\[\w+\],\soffset\s|mov\s+dword\sptr\s\[\w+\-\w+\],\soffset\s|mov\s+dword\sptr\s\[\w+\-\w+\],\s([1-9]|[0-9A-F]{2,3}h)", RegexOptions.Compiled);
+            var regexSub = new Regex(@"push\s+offset\s|call\s+\w+|call\s+sub_\w+|mov\s+\[\w+\+\w+\],\soffset\s|mov\s+dword\sptr\s\[\w+\+\w+\],\soffset\s|mov\s+\[\w+\+\w+\],\s([1-9]|[0-9A-F]{2,3}h)|mov\s+dword\sptr\s\[\w+\+\w+\],\s([1-9]|[0-9A-F]{2,3}h)|mov\s+dword\sptr\s\[\w+\+\w+\+\w+\],\s([1-9]|[0-9A-F]{2,3}h)|mov\s+dword\sptr\s\[\w+\],\soffset\s|mov\s+dword\sptr\s\[\w+\-\w+\],\soffset\s|mov\s+dword\sptr\s\[\w+\-\w+\],\s([1-9]|[0-9A-F]{2,3}h)|mov\s+e[abcd]x,\s\[e[abcd]x\+([0-9A-F]{2}h)\]", RegexOptions.Compiled);
             for (var index = idx; index < maxCount; index++)
             {
                 if (index % progress == 0)
@@ -2055,7 +2060,8 @@ namespace NameFinder
 
             InListSource = new List<string>();
             string s;
-            var regexClr = new Regex(@"\;\ssub_\d+|\;\sDATA\sXREF\:|proc\s+near|\s+endp\s*|\soffset\s|call\s+\w+|call\s+sub_\w+|mov\s+\[\w+\+\w+\],\s([1-9]|[0-9A-F]{2,3}h)|mov\s+dword\sptr\s\[\w+\+\w+\],\s([1-9]|[0-9A-F]{2,3}h)|mov\s+dword\sptr\s\[\w+\+\w+\+\w+\],\s([1-9]|[0-9A-F]{2,3}h)|mov\s+dword\sptr\s\[\w+\-\w+\],\s([1-9]|[0-9A-F]{2,3}h)|mov\s+e[abcd]x,\s\[e[abcd]x\+([1-9]|[0-9A-F]{2,3}h)\]", RegexOptions.Compiled);
+            //var regexClr = new Regex(@"\;\ssub_\d+|\;\sDATA\sXREF\:|proc\s+near|\s+endp\s*|\soffset\s|call\s+\w+|call\s+sub_\w+|mov\s+\[\w+\+\w+\],\s([1-9]|[0-9A-F]{2,3}h)|mov\s+dword\sptr\s\[\w+\+\w+\],\s([1-9]|[0-9A-F]{2,3}h)|mov\s+dword\sptr\s\[\w+\+\w+\+\w+\],\s([1-9]|[0-9A-F]{2,3}h)|mov\s+dword\sptr\s\[\w+\-\w+\],\s([1-9]|[0-9A-F]{2,3}h)|mov\s+e[abcd]x,\s\[e[abcd]x\+([1-9]|[0-9A-F]{2,3}h)\]", RegexOptions.Compiled);
+            var regexClr = new Regex(@"\;\ssub_\d+|\;\sDATA\sXREF\:|proc\s+near|\s+endp\s*|\soffset\s|call\s+\w+|call\s+sub_\w+|mov\s+\[\w+\+\w+\],\s([1-9]|[0-9A-F]{2,3}h)|mov\s+dword\sptr\s\[\w+\+\w+\],\s([1-9]|[0-9A-F]{2,3}h)|mov\s+dword\sptr\s\[\w+\+\w+\+\w+\],\s([1-9]|[0-9A-F]{2,3}h)|mov\s+dword\sptr\s\[\w+\-\w+\],\s([1-9]|[0-9A-F]{2,3}h)|mov\s+e[abcd]x,\s\[e[abcd]x\+([0-9A-F]{2}h)\]", RegexOptions.Compiled);
             // узнаем количество строк в файле
             var maxCount = File.ReadLines(FilePathIn1).Count();
             var progress = CalcProgress(maxCount);
@@ -2225,17 +2231,17 @@ namespace NameFinder
                 {
                     index++;
                     var matches5 = regexCall.Matches(InListSource[index]);
-                    foreach (var match5 in matches5)
+                    foreach (var matchCall in matches5)
                     {
-                        if (match5.ToString() == "call    eax" || match5.ToString() == "call    ebx" ||
-                            match5.ToString() == "call    edx" || match5.ToString() == "call    ecx")
+                        if (matchCall.ToString() == "call    eax" || matchCall.ToString() == "call    ebx" ||
+                            matchCall.ToString() == "call    edx" || matchCall.ToString() == "call    ecx")
                         {
                             continue;
                         }
 
-                        if (match5.ToString().Length >= 4 && match5.ToString().Substring(0, 4) == "call")
+                        if (matchCall.ToString().Length >= 4 && matchCall.ToString().Substring(0, 4) == "call")
                         {
-                            var findList = FindStructureIn(match5.ToString().Substring(8));
+                            var findList = FindStructureIn(matchCall.ToString().Substring(8));
                             if (findList.Count > 0)
                             {
                                 tmpLst.AddRange(findList);
@@ -2245,12 +2251,21 @@ namespace NameFinder
                         else
                         {
                             var aa = new Struc();
-                            aa.Name = match5.ToString();
+                            aa.Name = matchCall.ToString().Replace("\"", "");
                             index--;
                             var offset = InListSource[index].LastIndexOf("]", StringComparison.Ordinal) - 3;
                             // проверка на bc
-                            var num = offset < 0 ? "CC" : InListSource[index].Substring(offset, 2);
-                            aa.Type = (TypeEnum)Convert.ToInt32(num, 16);
+                            string num;
+                            try
+                            {
+                                num = offset < 0 ? "CC" : InListSource[index].Substring(offset, 2);
+                                aa.Type = (TypeEnum)Convert.ToInt32(num, 16);
+                            }
+                            catch (Exception)
+                            {
+                                num = "CC";
+                                aa.Type = (TypeEnum)Convert.ToInt32(num, 16);
+                            }
                             index++;
                             tmpLst.Add(aa); // сохранили часть структуры пакета
                             //tmpLst.Add(match5.ToString()); // сохранили часть структуры пакета
@@ -2289,7 +2304,6 @@ namespace NameFinder
         private List<Struc> FindStructureOut(string address)
         {
             var tmpLst = new List<Struc>();
-            var aa = new Struc();
             if (DepthOut == DepthMax)
             {
                 return tmpLst;
@@ -2301,10 +2315,8 @@ namespace NameFinder
             //
             // начнем с начала файла
             var found = false;
-            var regexSub =
-                new Regex(@"^" + address, RegexOptions.Compiled); // ищем начало подпрограммы, каждый раз с начала файла
-            var regexCall = new Regex(@"(\x22[0-z._]+\x22)|(call\s{4}(sub_\w+)|(call\s{4}(\w+)))",
-                RegexOptions.Compiled);
+            var regexSub = new Regex(@"^" + address, RegexOptions.Compiled); // ищем начало подпрограммы, каждый раз с начала файла
+            var regexCall = new Regex(@"(\x22[0-z._]+\x22)|(call\s{4}(sub_\w+)|(call\s{4}(\w+)))", RegexOptions.Compiled);
             for (var index = 0; index < InListDestination.Count; index++)
             {
                 var matches4 = regexSub.Matches(InListDestination[index]);
@@ -2317,23 +2329,20 @@ namespace NameFinder
                 var regexEndP = new Regex(@"\s+endp\s*", RegexOptions.IgnoreCase); // ищем конец подпрограммы
                 var foundEndp = false;
                 tmpLst = new List<Struc>();
-                //var str = "-->>";
-                //lst.Add(str);
                 do
                 {
                     index++;
                     var matches5 = regexCall.Matches(InListDestination[index]);
-                    foreach (var match5 in matches5)
+                    foreach (var matchCall in matches5)
                     {
-                        if (match5.ToString() == "call    eax" || match5.ToString() == "call    ebx" ||
-                            match5.ToString() == "call    edx" || match5.ToString() == "call    ecx")
+                        if (matchCall.ToString() == "call    eax" || matchCall.ToString() == "call    ebx" || matchCall.ToString() == "call    edx" || matchCall.ToString() == "call    ecx")
                         {
                             continue;
                         }
 
-                        if (match5.ToString().Length >= 4 && match5.ToString().Substring(0, 4) == "call")
+                        if (matchCall.ToString().Length >= 4 && matchCall.ToString().Substring(0, 4) == "call")
                         {
-                            var findList = FindStructureOut(match5.ToString().Substring(8));
+                            var findList = FindStructureOut(matchCall.ToString().Substring(8));
                             if (findList.Count > 0)
                             {
                                 tmpLst.AddRange(findList);
@@ -2342,15 +2351,24 @@ namespace NameFinder
                         }
                         else
                         {
-                            aa.Name = match5.ToString();
+                            var aa = new Struc();
+                            aa.Name = matchCall.ToString().Replace("\"", "");
                             index--;
                             var offset = InListDestination[index].LastIndexOf("]", StringComparison.Ordinal) - 3;
                             // проверка на bc
-                            var num = offset < 0 ? "CC" : InListDestination[index].Substring(offset, 2);
-                            aa.Type = (TypeEnum)Convert.ToInt32(num, 16);
+                            string num;
+                            try
+                            {
+                                num = offset < 0 ? "CC" : InListDestination[index].Substring(offset, 2);
+                                aa.Type = (TypeEnum)Convert.ToInt32(num, 16);
+                            }
+                            catch (Exception)
+                            {
+                                num = "CC";
+                                aa.Type = (TypeEnum)Convert.ToInt32(num, 16);
+                            }
                             index++;
                             tmpLst.Add(aa); // сохранили часть структуры пакета
-                            //tmpLst.Add(match5.ToString()); // сохранили часть структуры пакета
                             found = true; // нашли структуру
                         }
                     }
@@ -2364,7 +2382,6 @@ namespace NameFinder
                     foundEndp = true;
                 } while (!foundEndp);
 
-                //StructureSourceSC.Add(i, lst); // сохранили всю структуру пакета
                 DepthOut--;
                 return tmpLst;
             }
@@ -2520,6 +2537,7 @@ namespace NameFinder
                        push    offset aType    ; "type"
                        push    offset aType    ; "type"
                        push    offset aType    ; "type"
+                       mov     eax, [edx+38h]
                        push    offset aModified ; "modified"
                        sub_395E18A0    endp
                        
@@ -2528,6 +2546,7 @@ namespace NameFinder
                        push    offset asc_396AFCE0 ; "x"
                        push    offset aY       ; "y"
                        push    offset aZ_0     ; "z"
+                       mov     eax, [edx+38h]
                        push    offset aModified ; "modified"
                        sub_395E1730    endp
                        
@@ -2535,6 +2554,7 @@ namespace NameFinder
                        push    offset aType    ; "type"
                        push    offset aData    ; "data"
                        push    offset aData    ; "data"
+                       mov     eax, [edx+38h]
                        push    offset aModified ; "modified"
                        sub_395E16B0    endp
                     */
@@ -2554,7 +2574,6 @@ namespace NameFinder
                             var foundEndp = false;
                             //var lst = new List<string>();
                             var lst = new List<Struc>();
-                            var aa = new Struc();
                             do
                             {
                                 index++;
@@ -2571,12 +2590,22 @@ namespace NameFinder
                                     }
                                     else
                                     {
-                                        aa.Name = matchCall.ToString();
+                                        var aa = new Struc();
+                                        aa.Name = matchCall.ToString().Replace("\"", "");
                                         index--;
                                         var offset = InListSource[index].LastIndexOf("]", StringComparison.Ordinal) - 3;
                                         // проверка на bc
-                                        var num = offset < 0 ? "CC" : InListSource[index].Substring(offset, 2);
-                                        aa.Type = (TypeEnum)Convert.ToInt32(num, 16);
+                                        string num;
+                                        try
+                                        {
+                                            num = offset < 0 ? "CC" : InListSource[index].Substring(offset, 2);
+                                            aa.Type = (TypeEnum)Convert.ToInt32(num, 16);
+                                        }
+                                        catch (Exception)
+                                        {
+                                            num = "CC";
+                                            aa.Type = (TypeEnum)Convert.ToInt32(num, 16);
+                                        }
                                         lst.Add(aa); // сохранили одну строку структуры пакета
                                         index++;
                                     }
@@ -2735,8 +2764,7 @@ namespace NameFinder
                     // dd offset nullsub_18
                     // dd offset CSInteractGimmickPacket
                     // dd offset CSGmCommandPacket
-                    var regexBody = new Regex(@"(dd\soffset\snullsub|dd\soffset\ssub_\w+|dd\soffset\s\w+)",
-                        RegexOptions.Compiled);
+                    var regexBody = new Regex(@"(dd\soffset\snullsub|dd\soffset\ssub_\w+|dd\soffset\s\w+)", RegexOptions.Compiled);
                     var matchesBodys = regexBody.Match(InListSource[index]);
                     ListSubSourceSC.Add(matchesBodys.ToString().Substring(10)); // сохранили адрес подпрограммы
                 }
@@ -2757,8 +2785,7 @@ namespace NameFinder
                     //
                     // начнем с начала файла
                     var regexEndP = new Regex(@"\s+endp\s*", RegexOptions.Compiled); // ищем конец подпрограммы
-                    var regexCall = new Regex(@"(\x22[0-z._]+\x22)|(call\s+(sub_\w+)|(call\s+(\w+)))",
-                        RegexOptions.Compiled);
+                    var regexCall = new Regex(@"(\x22[0-z._]+\x22)|(call\s+(sub_\w+)|(call\s+(\w+)))", RegexOptions.Compiled);
                     /*
                        sub_395D3050    proc near               ; CODE XREF: sub_391DE5C0+47↑p
                        push    offset aBc      ; "bc"
@@ -2808,15 +2835,13 @@ namespace NameFinder
                             // нашли начало подпрограммы, ищем структуры, пока не "endp"
                             var foundEndp = false;
                             var lst = new List<Struc>();
-                            var aa = new Struc();
                             do
                             {
                                 index++;
                                 var matchesCalls = regexCall.Matches(InListSource[index]);
                                 foreach (var matchCall in matchesCalls)
                                 {
-                                    if (matchCall.ToString().Length >= 4 &&
-                                        matchCall.ToString().Substring(0, 4) == "call")
+                                    if (matchCall.ToString().Length >= 4 && matchCall.ToString().Substring(0, 4) == "call")
                                     {
                                         var findList = FindStructureIn(matchCall.ToString().Substring(8));
                                         if (findList.Count > 0)
@@ -2826,12 +2851,22 @@ namespace NameFinder
                                     }
                                     else
                                     {
-                                        aa.Name = matchCall.ToString();
+                                        var aa = new Struc();
+                                        aa.Name = matchCall.ToString().Replace("\"", "");
                                         index--;
                                         var offset = InListSource[index].LastIndexOf("]", StringComparison.Ordinal) - 3;
                                         // проверка на bc
-                                        var num = offset < 0 ? "CC" : InListSource[index].Substring(offset, 2);
-                                        aa.Type = (TypeEnum)Convert.ToInt32(num, 16);
+                                        string num;
+                                        try
+                                        {
+                                            num = offset < 0 ? "CC" : InListSource[index].Substring(offset, 2);
+                                            aa.Type = (TypeEnum)Convert.ToInt32(num, 16);
+                                        }
+                                        catch (Exception)
+                                        {
+                                            num = "CC";
+                                            aa.Type = (TypeEnum)Convert.ToInt32(num, 16);
+                                        }
                                         lst.Add(aa); // сохранили одну строку структуры пакета
                                         index++;
                                     }
@@ -3013,8 +3048,7 @@ namespace NameFinder
                     //
                     // начнем с начала файла
                     var regexEndP = new Regex(@"\s+endp\s*", RegexOptions.Compiled); // ищем конец подпрограммы
-                    var regexCall = new Regex(@"(\x22[0-z._]+\x22)|(call\s{4}(sub_\w+)|(call\s{4}(\w+)))",
-                        RegexOptions.Compiled);
+                    var regexCall = new Regex(@"(\x22[0-z._]+\x22)|(call\s{4}(sub_\w+)|(call\s{4}(\w+)))", RegexOptions.Compiled);
                     /*
                        sub_395D3050    proc near               ; CODE XREF: sub_391DE5C0+47↑p
                        push    offset aBc      ; "bc"
@@ -3064,15 +3098,13 @@ namespace NameFinder
                             // нашли начало подпрограммы, ищем структуры, пока не "endp"
                             var foundEndp = false;
                             var lst = new List<Struc>();
-                            var aa = new Struc();
                             do
                             {
                                 index++;
                                 var matchesCalls = regexCall.Matches(InListDestination[index]);
                                 foreach (var matchCall in matchesCalls)
                                 {
-                                    if (matchCall.ToString().Length >= 4 &&
-                                        matchCall.ToString().Substring(0, 4) == "call")
+                                    if (matchCall.ToString().Length >= 4 && matchCall.ToString().Substring(0, 4) == "call")
                                     {
                                         var findList = FindStructureOut(matchCall.ToString().Substring(8));
                                         if (findList.Count > 0)
@@ -3082,12 +3114,22 @@ namespace NameFinder
                                     }
                                     else
                                     {
-                                        aa.Name = matchCall.ToString();
+                                        var aa = new Struc();
+                                        aa.Name = matchCall.ToString().Replace("\"", "");
                                         index--;
                                         var offset = InListDestination[index].LastIndexOf("]", StringComparison.Ordinal) - 3;
                                         // проверка на bc
-                                        var num = offset < 0 ? "CC" : InListDestination[index].Substring(offset, 2);
-                                        aa.Type = (TypeEnum)Convert.ToInt32(num, 16);
+                                        string num;
+                                        try
+                                        {
+                                            num = offset < 0 ? "CC" : InListDestination[index].Substring(offset, 2);
+                                            aa.Type = (TypeEnum)Convert.ToInt32(num, 16);
+                                        }
+                                        catch (Exception)
+                                        {
+                                            num = "CC";
+                                            aa.Type = (TypeEnum)Convert.ToInt32(num, 16);
+                                        }
                                         lst.Add(aa); // сохранили одну строку структуры пакета
                                         index++;
                                     }
@@ -3246,8 +3288,7 @@ namespace NameFinder
                     // dd offset nullsub_18
                     // dd offset CSInteractGimmickPacket
                     // dd offset CSGmCommandPacket
-                    var regexBody = new Regex(@"(dd\soffset\snullsub|dd\soffset\ssub_\w+|dd\soffset\s\w+)",
-                        RegexOptions.Compiled);
+                    var regexBody = new Regex(@"(dd\soffset\snullsub|dd\soffset\ssub_\w+|dd\soffset\s\w+)", RegexOptions.Compiled);
                     var matchesBodys = regexBody.Match(InListDestination[index]);
                     ListSubDestinationSC.Add(matchesBodys.ToString().Substring(10)); // сохранили адрес подпрограммы
                 }
@@ -3269,8 +3310,7 @@ namespace NameFinder
                     //
                     // начнем с начала файла
                     var regexEndP = new Regex(@"\s+endp\s*", RegexOptions.Compiled); // ищем конец подпрограммы
-                    var regexCall = new Regex(@"(\x22[0-z._]+\x22)|(call\s+(sub_\w+)|(call\s+(\w+)))",
-                        RegexOptions.Compiled);
+                    var regexCall = new Regex(@"(\x22[0-z._]+\x22)|(call\s+(sub_\w+)|(call\s+(\w+)))", RegexOptions.Compiled);
                     /*
                        sub_395D3050    proc near               ; CODE XREF: sub_391DE5C0+47↑p
                        push    offset aBc      ; "bc"
@@ -3320,15 +3360,17 @@ namespace NameFinder
                             // нашли начало подпрограммы, ищем структуры, пока не "endp"
                             var foundEndp = false;
                             var lst = new List<Struc>();
-                            var aa = new Struc();
                             do
                             {
                                 index++;
                                 var matchesCalls = regexCall.Matches(InListDestination[index]);
                                 foreach (var matchCall in matchesCalls)
                                 {
-                                    if (matchCall.ToString().Length >= 4 &&
-                                        matchCall.ToString().Substring(0, 4) == "call")
+                                    if (matchCall.ToString() == "call    eax" || matchCall.ToString() == "call    ebx" || matchCall.ToString() == "call    edx" || matchCall.ToString() == "call    ecx")
+                                    {
+                                        continue;
+                                    }
+                                    if (matchCall.ToString().Length >= 4 && matchCall.ToString().Substring(0, 4) == "call")
                                     {
                                         var findList = FindStructureOut(matchCall.ToString().Substring(8));
                                         if (findList.Count > 0)
@@ -3338,12 +3380,22 @@ namespace NameFinder
                                     }
                                     else
                                     {
-                                        aa.Name = matchCall.ToString();
+                                        var aa = new Struc();
+                                        aa.Name = matchCall.ToString().Replace("\"", "");
                                         index--;
                                         var offset = InListDestination[index].LastIndexOf("]", StringComparison.Ordinal) - 3;
                                         // проверка на bc
-                                        var num = offset < 0 ? "CC" : InListDestination[index].Substring(offset, 2);
-                                        aa.Type = (TypeEnum)Convert.ToInt32(num, 16);
+                                        string num;
+                                        try
+                                        {
+                                            num = offset < 0 ? "CC" : InListDestination[index].Substring(offset, 2);
+                                            aa.Type = (TypeEnum)Convert.ToInt32(num, 16);
+                                        }
+                                        catch (Exception)
+                                        {
+                                            num = "CC";
+                                            aa.Type = (TypeEnum)Convert.ToInt32(num, 16);
+                                        }
                                         lst.Add(aa); // сохранили одну строку структуры пакета
                                         index++;
                                     }
@@ -3840,7 +3892,7 @@ namespace NameFinder
                                         for (var i = 0; i < ddList.Count; i++)
                                         {
                                             // сверим на одинаковость
-                                            if (ddList[i] == dsList[i])
+                                            if (ddList[i].Name == dsList[i].Name)
                                             {
                                                 foundName = true;
                                             }
@@ -4006,7 +4058,7 @@ namespace NameFinder
                                     for (var i = 0; i < ddList.Count; i++)
                                     {
                                         // сверим на одинаковость
-                                        if (ddList[i] == dsList[i])
+                                        if (ddList[i].Name == dsList[i].Name)
                                         {
                                             foundName = true;
                                         }
@@ -5341,7 +5393,7 @@ namespace NameFinder
             ListView32.ScrollIntoView(ListView32.SelectedItem);
         }
 
-        private string FilePath0 { get; set; }
+        private string FilePathName { get; set; }
         private string FilePath { get; set; }
 
         public bool SavePktFileDialog(string name)
@@ -5357,7 +5409,7 @@ namespace NameFinder
             {
                 var offset = saveFileDialog.FileName.LastIndexOf("\\", StringComparison.Ordinal) + 1;
                 FilePath = saveFileDialog.FileName.Substring(0, offset);
-                FilePath0 = saveFileDialog.FileName;
+                FilePathName = saveFileDialog.FileName;
                 return true;
             }
 
@@ -5366,6 +5418,7 @@ namespace NameFinder
 
         private void BtnMakePktIn_Click(object sender, RoutedEventArgs e)
         {
+            FilePath = null;
             if (ListView12.SelectedItem != null)
             {
                 Label_Semafor1.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { Label_Semafor1.Background = Brushes.Yellow; }));
@@ -5374,10 +5427,30 @@ namespace NameFinder
                 if (ButtonSaveIn1.IsEnabled)
                 {
                     // сохраняем в виде файла
-                    for (int i = 0; i < ListNameSourceCS.Count; i++)
+                    for (var i = 0; i < ListNameSourceCS.Count; i++)
                     {
+                        // удалим опкоды в конце имени
+                        string nameSource;
+                        if (CheckBoxRemoveOpcode.IsChecked == true)
+                        {
+                            // удаляем оконечные опкоды в имени пакета
+                            var offset = ListNameSourceCS[i].LastIndexOf("_", StringComparison.Ordinal);
+                            if (offset > 0)
+                            {
+                                nameSource = ListNameSourceCS[i].Substring(0, offset);
+                            }
+                            else
+                            {
+                                nameSource = ListNameSourceCS[i];
+                            }
+                        }
+                        else
+                        {
+                            nameSource = ListNameSourceCS[i];
+                        }
+                        
                         var tmp = new List<string>();
-                        string lst = "";
+                        var lst = "";
                         lst = "using AAEmu.Commons.Network;";
                         tmp.Add(lst);
                         lst = "using AAEmu.Game.Core.Network.Game;";
@@ -5388,11 +5461,11 @@ namespace NameFinder
                         tmp.Add(lst);
                         lst = "{";
                         tmp.Add(lst);
-                        lst = "    public class " + ListNameSourceCS[i] + " : GamePacket";
+                        lst = "    public class " + nameSource + " : GamePacket";
                         tmp.Add(lst);
                         lst = "    {";
                         tmp.Add(lst);
-                        lst = "        public " + ListNameSourceCS[i] + " : base(CSOffsets." + ListNameSourceCS[i] + ", 1)";
+                        lst = "        public " + nameSource + " : base(CSOffsets." + nameSource + ", 1)";
                         tmp.Add(lst);
                         lst = "        {";
                         tmp.Add(lst);
@@ -5417,13 +5490,13 @@ namespace NameFinder
                         tmp.Add(lst);
                         if (FilePath != null)
                         {
-                            File.WriteAllLines(FilePath + ListNameSourceCS[i] + ".cs", tmp);
+                            File.WriteAllLines(FilePath + nameSource + ".cs", tmp);
                         }
                         else
                         {
-                            if (SavePktFileDialog(ListNameSourceCS[i]))
+                            if (SavePktFileDialog(nameSource))
                             {
-                                File.WriteAllLines(FilePath0, tmp);
+                                File.WriteAllLines(FilePathName, tmp);
                             }
                         }
                     }
@@ -5433,7 +5506,6 @@ namespace NameFinder
                     /*
                         using AAEmu.Commons.Network;
                         using AAEmu.Game.Core.Network.Game;
-                        using AAEmu.Game.Models.Game.Skills;
                         
                         namespace AAEmu.Game.Core.Packets.G2C
                         {
@@ -5443,7 +5515,7 @@ namespace NameFinder
                                 private readonly byte _ability;
                                 private readonly int _exp;
                         
-                                public SCAbilityExpChangedPacket(uint objId, AbilityType ability, int exp) : base(SCOffsets.SCAbilityExpChangedPacket, 1)
+                                public SCAbilityExpChangedPacket(uint objId, byte ability, int exp) : base(SCOffsets.SCAbilityExpChangedPacket, 1)
                                 {
                                     _objId = objId;
                                     _ability = (byte) ability;
@@ -5460,6 +5532,110 @@ namespace NameFinder
                             }
                         }                   
                      */
+                    // сохраняем в виде файла
+                    for (var i = 0; i < ListNameSourceSC.Count; i++)
+                    {
+                        // удалим опкоды в конце имени
+                        string nameSource;
+                        if (CheckBoxRemoveOpcode.IsChecked == true)
+                        {
+                            // удаляем оконечные опкоды в имени пакета
+                            var offset = ListNameSourceSC[i].LastIndexOf("_", StringComparison.Ordinal);
+                            if (offset > 0)
+                            {
+                                nameSource = ListNameSourceSC[i].Substring(0, offset);
+                            }
+                            else
+                            {
+                                nameSource = ListNameSourceSC[i];
+                            }
+                        }
+                        else
+                        {
+                            nameSource = ListNameSourceSC[i];
+                        }
+
+                        var tmp = new List<string>();
+                        var lst = "";
+                        lst = "using AAEmu.Commons.Network;";
+                        tmp.Add(lst);
+                        lst = "using AAEmu.Game.Core.Network.Game;";
+                        tmp.Add(lst);
+                        lst = "";
+                        tmp.Add(lst);
+                        lst = "namespace AAEmu.Game.Core.Packets.G2C";
+                        tmp.Add(lst);
+                        lst = "{";
+                        tmp.Add(lst);
+                        lst = "    public class " + nameSource + " : GamePacket";
+                        tmp.Add(lst);
+                        lst = "    {";
+                        tmp.Add(lst);
+                        foreach (var str in StructureSourceSC[i])
+                        {
+                            lst = "        private readonly " + str.Type + " _" + str.Name.Replace("\"", "") + ";";
+                            tmp.Add(lst);
+                        }
+                        lst = "";
+                        tmp.Add(lst);
+
+                        lst = "        public " + nameSource + "(";
+                        var li = StructureSourceSC[i];
+                        for (var j = 0; j < li.Count; j++)
+                        {
+                            lst += "" + li[j].Type + " " + li[j].Name.Replace("\"", "");
+                            if (j < li.Count - 1)
+                            {
+                                lst += ", ";
+                            }
+                        }
+                        lst += ") : base(SCOffsets." + nameSource + ", 1)";
+                        tmp.Add(lst);
+                        lst = "        {";
+                        tmp.Add(lst);
+
+                        foreach (var str in StructureSourceSC[i])
+                        {
+                            lst = "            _" + str.Name.Replace("\"", "") + " = " + str.Name.Replace("\"", "") + ";";
+                            tmp.Add(lst);
+                        }
+                        
+                        lst = "        }";
+                        tmp.Add(lst);
+
+                        lst = "";
+                        tmp.Add(lst);
+                        lst = "        public override void Write(PacketStream stream)";
+                        tmp.Add(lst);
+                        lst = "        {";
+                        tmp.Add(lst);
+                        foreach (var str in StructureSourceSC[i])
+                        {
+                            lst = "            stream.Write(_" + str.Name.Replace("\"", "") + ");";
+                            tmp.Add(lst);
+                        }
+                        lst = "";
+                        tmp.Add(lst);
+                        lst = "            return stream;";
+                        tmp.Add(lst);
+                        lst = "        }";
+                        tmp.Add(lst);
+                        lst = "    }";
+                        tmp.Add(lst);
+                        lst = "}";
+                        tmp.Add(lst);
+                        if (FilePath != null)
+                        {
+                            File.WriteAllLines(FilePath + nameSource + ".cs", tmp);
+                        }
+                        else
+                        {
+                            if (SavePktFileDialog(nameSource))
+                            {
+                                File.WriteAllLines(FilePathName, tmp);
+                            }
+                        }
+                    }
                 }
                 Label_Semafor1.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { Label_Semafor1.Background = Brushes.GreenYellow; }));
             }

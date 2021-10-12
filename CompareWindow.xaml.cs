@@ -173,7 +173,13 @@ namespace NameFinder
             }
             else
             {
-                ListView11.ItemsSource = StructureSource[IdxS].ToList();
+                var lis = StructureSource[IdxS];
+                var source = new List<string>();
+                foreach (var li in lis)
+                {
+                    source.Add(li.Type + " " + li.Name);
+                }
+                ListView11.ItemsSource = source.ToList();
             }
 
             TextBox21.Text = ListNameCompare[IdxD];
@@ -187,7 +193,13 @@ namespace NameFinder
             }
             else
             {
-                ListView21.ItemsSource = StructureDestination[IdxD].ToList();
+                var lis = StructureDestination[IdxD];
+                var source = new List<string>();
+                foreach (var li in lis)
+                {
+                    source.Add(li.Type + " " + li.Name);
+                }
+                ListView21.ItemsSource = source.ToList();
             }
 
             // проверим, что имя не занято
@@ -239,14 +251,12 @@ namespace NameFinder
             {
                 if (ListOpcodeDestination.Count > 0)
                 {
-                    var lst = "Packet name: " + ListNameCompare[i] + ", PacketBodyReader: " + ListSubDestination[i] +
-                              ", Opcode: " + ListOpcodeDestination[i];
+                    var lst = "Packet name: " + ListNameCompare[i] + ", PacketBodyReader: " + ListSubDestination[i] + ", Opcode: " + ListOpcodeDestination[i];
                     tmp.Add(lst);
                 }
                 else
                 {
-                    var lst = "Packet name: " + ListNameCompare[i] + ", PacketBodyReader: " + ListSubDestination[i] +
-                              ", Opcode: 0xfff";
+                    var lst = "Packet name: " + ListNameCompare[i] + ", PacketBodyReader: " + ListSubDestination[i] + ", Opcode: 0xfff";
                     tmp.Add(lst);
                 }
             }
