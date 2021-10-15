@@ -272,7 +272,16 @@ namespace NameFinder
             {
                 if (ListOpcodeDestination.Count > 0)
                 {
-                    var lst = "        <packet type=\"" + ListOpcodeDestination[i] + "\" desc=\"" + ListNameCompare[i] + "\">";
+                    var nameCompare = "";
+                    if (ListNameCompare[i][0].ToString() != "o" || ListNameCompare[i][1].ToString() != "f" || ListNameCompare[i][2].ToString() != "f")
+                    {
+                        nameCompare = ListNameCompare[i].Replace("Packet", "");
+                    }
+                    else
+                    {
+                        nameCompare = ListNameCompare[i];
+                    }
+                    var lst = "        <packet type=\"" + ListOpcodeDestination[i] + "\" desc=\"" + nameCompare + "\">";
                     tmp.Add(lst);
                 }
                 else

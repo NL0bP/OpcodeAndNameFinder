@@ -2501,9 +2501,16 @@ namespace NameFinder
                     // dd offset nullsub_18
                     // dd offset CSInteractGimmickPacket
                     // dd offset CSGmCommandPacket
-                    var regexBody = new Regex(@"(dd\soffset\snullsub|dd\soffset\ssub_\w+|dd\soffset\s\w+)", RegexOptions.Compiled);
-                    var matchesBodys = regexBody.Match(InListSource[index]);
-                    ListSubSourceCS.Add(matchesBodys.ToString().Substring(10)); // сохранили адрес подпрограммы
+                    try
+                    {
+                        var regexBody = new Regex(@"(dd\soffset\snullsub|dd\soffset\ssub_\w+|dd\soffset\s\w+)", RegexOptions.Compiled);
+                        var matchesBodys = regexBody.Match(InListSource[index]);
+                        ListSubSourceCS.Add(matchesBodys.ToString().Substring(10)); // сохранили адрес подпрограммы
+                    }
+                    catch (Exception)
+                    {
+                        MessageBox.Show("Проверте исходные данные файла в IDA, где-то в строке:" + index + "!", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    }
                 }
 
                 // закончили предварительную работу по поиску имен и ссылок на подпрограммы со структурами
@@ -2764,9 +2771,16 @@ namespace NameFinder
                     // dd offset nullsub_18
                     // dd offset CSInteractGimmickPacket
                     // dd offset CSGmCommandPacket
-                    var regexBody = new Regex(@"(dd\soffset\snullsub|dd\soffset\ssub_\w+|dd\soffset\s\w+)", RegexOptions.Compiled);
-                    var matchesBodys = regexBody.Match(InListSource[index]);
-                    ListSubSourceSC.Add(matchesBodys.ToString().Substring(10)); // сохранили адрес подпрограммы
+                    try
+                    {
+                        var regexBody = new Regex(@"(dd\soffset\snullsub|dd\soffset\ssub_\w+|dd\soffset\s\w+)", RegexOptions.Compiled);
+                        var matchesBodys = regexBody.Match(InListSource[index]);
+                        ListSubSourceSC.Add(matchesBodys.ToString().Substring(10)); // сохранили адрес подпрограммы
+                    }
+                    catch (Exception)
+                    {
+                        MessageBox.Show("Проверте исходные данные файла в IDA, где-то в строке:" + index + "!", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    }
                 }
 
                 // закончили предварительную работу по поиску имен и ссылок на подпрограммы со структурами
@@ -3027,9 +3041,16 @@ namespace NameFinder
                     // dd offset nullsub_18
                     // dd offset CSInteractGimmickPacket
                     // dd offset CSGmCommandPacket
-                    var regexBody = new Regex(@"(dd\soffset\snullsub|dd\soffset\ssub_\w+|dd\soffset\s\w+)", RegexOptions.Compiled);
-                    var matchesBodys = regexBody.Match(InListDestination[index]);
-                    ListSubDestinationCS.Add(matchesBodys.ToString().Substring(10)); // сохранили адрес подпрограммы
+                    try
+                    {
+                        var regexBody = new Regex(@"(dd\soffset\snullsub|dd\soffset\ssub_\w+|dd\soffset\s\w+)", RegexOptions.Compiled);
+                        var matchesBodys = regexBody.Match(InListDestination[index]);
+                        ListSubDestinationCS.Add(matchesBodys.ToString().Substring(10)); // сохранили адрес подпрограммы
+                    }
+                    catch (Exception)
+                    {
+                        MessageBox.Show("Проверте исходные данные файла в IDA, где-то в строке:" + index + "!", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    }
                 }
 
                 // закончили предварительную работу по поиску имен и ссылок на подпрограммы со структурами
@@ -3288,9 +3309,16 @@ namespace NameFinder
                     // dd offset nullsub_18
                     // dd offset CSInteractGimmickPacket
                     // dd offset CSGmCommandPacket
-                    var regexBody = new Regex(@"(dd\soffset\snullsub|dd\soffset\ssub_\w+|dd\soffset\s\w+)", RegexOptions.Compiled);
-                    var matchesBodys = regexBody.Match(InListDestination[index]);
-                    ListSubDestinationSC.Add(matchesBodys.ToString().Substring(10)); // сохранили адрес подпрограммы
+                    try
+                    {
+                        var regexBody = new Regex(@"(dd\soffset\snullsub|dd\soffset\ssub_\w+|dd\soffset\s\w+)", RegexOptions.Compiled);
+                        var matchesBodys = regexBody.Match(InListDestination[index]);
+                        ListSubDestinationSC.Add(matchesBodys.ToString().Substring(10)); // сохранили адрес подпрограммы
+                    }
+                    catch (Exception)
+                    {
+                        MessageBox.Show("Проверте исходные данные файла в IDA, где-то в строке:" + index + "!", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    }
                 }
 
                 // закончили предварительную работу по поиску имен и ссылок на подпрограммы со структурами
@@ -3924,25 +3952,25 @@ namespace NameFinder
                                             InUseOut.Add(IdxD, IdxS); // отметим, что найденное имя занято
                                         }
 
-                                        // запишем новое имя на место неизвестного, которое нашли
-                                        if (CheckBoxRemoveOpcode.IsChecked == true)
-                                        {
-                                            // удаляем оконечные опкоды в имени пакета
-                                            var offset = listNameSource[IdxS].LastIndexOf("_", StringComparison.Ordinal);
-                                            if (offset > 0)
-                                            {
-                                                var nameSource = listNameSource[IdxS].Substring(0, offset);
-                                                ListNameCompareCS[IdxD] = nameSource;
-                                            }
-                                            else
-                                            {
-                                                ListNameCompareCS[IdxD] = listNameSource[IdxS];
-                                            }
-                                        }
-                                        else
-                                        {
-                                            ListNameCompareCS[IdxD] = listNameSource[IdxS];
-                                        }
+                                        //// запишем новое имя на место неизвестного, которое нашли
+                                        //if (CheckBoxRemoveOpcode.IsChecked == true)
+                                        //{
+                                        //    // удаляем оконечные опкоды в имени пакета
+                                        //    var offset = listNameSource[IdxS].LastIndexOf("_", StringComparison.Ordinal);
+                                        //    if (offset > 0)
+                                        //    {
+                                        //        var nameSource = listNameSource[IdxS].Substring(0, offset);
+                                        //        ListNameCompareCS[IdxD] = nameSource;
+                                        //    }
+                                        //    else
+                                        //    {
+                                        //        ListNameCompareCS[IdxD] = listNameSource[IdxS];
+                                        //    }
+                                        //}
+                                        //else
+                                        //{
+                                        ListNameCompareCS[IdxD] = listNameSource[IdxS];
+                                        //}
 
                                         repeat = false; // болше не повторять поиск
                                     }
@@ -4091,24 +4119,24 @@ namespace NameFinder
                                     }
 
                                     // запишем новое имя на место неизвестного, которое нашли
-                                    if (CheckBoxRemoveOpcode.IsChecked == true)
-                                    {
-                                        // удаляем оконечные опкоды в имени пакета
-                                        var offset = listNameSource[IdxS].LastIndexOf("_", StringComparison.Ordinal);
-                                        if (offset > 0)
-                                        {
-                                            var nameSource = listNameSource[IdxS].Substring(0, offset);
-                                            ListNameCompareSC[IdxD] = nameSource;
-                                        }
-                                        else
-                                        {
-                                            ListNameCompareSC[IdxD] = listNameSource[IdxS];
-                                        }
-                                    }
-                                    else
-                                    {
-                                        ListNameCompareSC[IdxD] = listNameSource[IdxS];
-                                    }
+                                    //if (CheckBoxRemoveOpcode.IsChecked == true)
+                                    //{
+                                    //    // удаляем оконечные опкоды в имени пакета
+                                    //    var offset = listNameSource[IdxS].LastIndexOf("_", StringComparison.Ordinal);
+                                    //    if (offset > 0)
+                                    //    {
+                                    //        var nameSource = listNameSource[IdxS].Substring(0, offset);
+                                    //        ListNameCompareSC[IdxD] = nameSource;
+                                    //    }
+                                    //    else
+                                    //    {
+                                    //        ListNameCompareSC[IdxD] = listNameSource[IdxS];
+                                    //    }
+                                    //}
+                                    //else
+                                    //{
+                                    ListNameCompareSC[IdxD] = listNameSource[IdxS];
+                                    //}
 
                                     repeat = false; // болше не повторять поиск
                                 }
@@ -4142,13 +4170,85 @@ namespace NameFinder
             if (!isCompareCS)
             {
                 // результат работы метода в ListNameCompareCS
-                CompareSourceStructuresCS(ref ListNameSourceCS, ref ListNameDestinationCS,
-                    ref ListSubDestinationCS, ref StructureSourceCS, ref StructureDestinationCS, ListOpcodeDestinationCS);
+                CompareSourceStructuresCS(ref ListNameSourceCS, ref ListNameDestinationCS, ref ListSubDestinationCS, ref StructureSourceCS, ref StructureDestinationCS, ListOpcodeDestinationCS);
                 // сравнение пакетов проведено
             }
             else
             {
                 ListNameCompareCS = new List<string>(ListNameCompare);
+            }
+
+            // удаляем оконечные опкоды в имени пакета
+            if (CheckBoxRemoveOpcode.IsChecked == true)
+            {
+                for (var i = 0; i < ListNameCompareCS.Count; i++)
+                {
+                    if (ListNameCompareCS[i][0].ToString() != "o" || ListNameCompareCS[i][1].ToString() != "f" || ListNameCompareCS[i][2].ToString() != "f")
+                    {
+                        var offset = ListNameCompareCS[i].LastIndexOf("_", StringComparison.Ordinal);
+                        if (offset > 0)
+                        {
+                            ListNameCompareCS[i] = ListNameCompareCS[i].Substring(0, offset);
+                        }
+                    }
+                }
+            }
+
+            // CheckBoxRemovePacket
+            if (CheckBoxRemovePacket.IsChecked == true)
+            {
+                for (var i = 0; i < ListNameCompareCS.Count; i++)
+                {
+                    if (ListNameCompareCS[i][0].ToString() != "o" || ListNameCompareCS[i][1].ToString() != "f" || ListNameCompareCS[i][2].ToString() != "f")
+                    {
+                        ListNameCompareCS[i] = ListNameCompareCS[i].ToLower().Replace("cs", "");
+                        ListNameCompareCS[i] = ListNameCompareCS[i].ToLower().Replace("packet", "");
+                    }
+                }
+            }
+
+            // CheckBoxToTitleCase
+            if (CheckBoxToTitleCase.IsChecked == true)
+            {
+                for (var i = 0; i < ListNameCompareCS.Count; i++)
+                {
+                    if (ListNameCompareCS[i][0].ToString() != "o" || ListNameCompareCS[i][1].ToString() != "f" || ListNameCompareCS[i][2].ToString() != "f")
+                    {
+                        ListNameCompareCS[i] = System.Globalization.CultureInfo.CurrentCulture.TextInfo.ToTitleCase(ListNameCompareCS[i].ToLower());
+                        ListNameCompareCS[i] = ListNameCompareCS[i].Replace("_", "");
+                    }
+                }
+            }
+            CheckBoxToTitleCase.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { CheckBoxToTitleCase.IsChecked = false; }));
+
+
+            // Добавим 'Packet' в конец имени пакета
+            if (CheckBoxAdd.IsChecked == true)
+            {
+                for (var i = 0; i < ListNameCompareCS.Count; i++)
+                {
+                    if (ListNameCompareCS[i][0].ToString() != "o" || ListNameCompareCS[i][1].ToString() != "f" || ListNameCompareCS[i][2].ToString() != "f")
+                    {
+                        var offset = ListNameCompareCS[i].LastIndexOf("Packet", StringComparison.Ordinal);
+                        if (offset <= 0)
+                        {
+                            ListNameCompareCS[i] += "Packet";
+                        }
+                        else
+                        {
+                            ListNameCompareCS[i] = ListNameCompareCS[i].Substring(0, offset);
+                            ListNameCompareCS[i] += "Packet";
+                        }
+
+                        if (ListNameCompareCS[i][0].ToString() != "C" || ListNameCompareCS[i][1].ToString() != "S")
+                        {
+                            if (ListNameCompareCS[i][0].ToString() != "X" || ListNameCompareCS[i][1].ToString() != "2")
+                            {
+                                ListNameCompareCS[i] = "CS" + ListNameCompareCS[i];
+                            }
+                        }
+                    }
+                }
             }
 
             ListView31.ItemsSource = ListNameCompareCS;
@@ -4206,6 +4306,78 @@ namespace NameFinder
             else
             {
                 ListNameCompareSC = new List<string>(ListNameCompare);
+            }
+
+            // удаляем оконечные опкоды в имени пакета
+            if (CheckBoxRemoveOpcode.IsChecked == true)
+            {
+                for (var i = 0; i < ListNameCompareSC.Count; i++)
+                {
+                    if (ListNameCompareSC[i][0].ToString() != "o" || ListNameCompareSC[i][1].ToString() != "f" || ListNameCompareSC[i][2].ToString() != "f")
+                    {
+                        var offset = ListNameCompareSC[i].LastIndexOf("_", StringComparison.Ordinal);
+                        if (offset > 0)
+                        {
+                            ListNameCompareSC[i] = ListNameCompareSC[i].Substring(0, offset);
+                        }
+                    }
+                }
+            }
+
+            // CheckBoxRemovePacket
+            if (CheckBoxRemovePacket.IsChecked == true)
+            {
+                for (var i = 0; i < ListNameCompareSC.Count; i++)
+                {
+                    if (ListNameCompareSC[i][0].ToString() != "o" || ListNameCompareSC[i][1].ToString() != "f" || ListNameCompareSC[i][2].ToString() != "f")
+                    {
+                        ListNameCompareSC[i] = ListNameCompareSC[i].ToLower().Replace("sc", "");
+                        ListNameCompareSC[i] = ListNameCompareSC[i].ToLower().Replace("packet", "");
+                    }
+                }
+            }
+
+            // CheckBoxToTitleCase
+            if (CheckBoxToTitleCase.IsChecked == true)
+            {
+                for (var i = 0; i < ListNameCompareSC.Count; i++)
+                {
+                    if (ListNameCompareSC[i][0].ToString() != "o" || ListNameCompareSC[i][1].ToString() != "f" || ListNameCompareSC[i][2].ToString() != "f")
+                    {
+                        ListNameCompareSC[i] = System.Globalization.CultureInfo.CurrentCulture.TextInfo.ToTitleCase(ListNameCompareSC[i].ToLower());
+                        ListNameCompareSC[i] = ListNameCompareSC[i].Replace("_", "");
+                    }
+                }
+            }
+            CheckBoxToTitleCase.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { CheckBoxToTitleCase.IsChecked = false; }));
+
+            // Добавим 'Packet' в конец имени пакета
+            if (CheckBoxAdd.IsChecked == true)
+            {
+                for (var i = 0; i < ListNameCompareSC.Count; i++)
+                {
+                    if (ListNameCompareSC[i][0].ToString() != "o" || ListNameCompareSC[i][1].ToString() != "f" || ListNameCompareSC[i][2].ToString() != "f")
+                    {
+                        var offset = ListNameCompareSC[i].LastIndexOf("Packet", StringComparison.Ordinal);
+                        if (offset <= 0)
+                        {
+                            ListNameCompareSC[i] += "Packet";
+                        }
+                        else
+                        {
+                            ListNameCompareSC[i] = ListNameCompareSC[i].Substring(0, offset);
+                            ListNameCompareSC[i] += "Packet";
+                        }
+
+                        if (ListNameCompareSC[i][0].ToString() != "S" || ListNameCompareSC[i][1].ToString() != "C")
+                        {
+                            if (ListNameCompareSC[i][0].ToString() != "X" || ListNameCompareSC[i][1].ToString() != "2")
+                            {
+                                ListNameCompareSC[i] = "SC" + ListNameCompareSC[i];
+                            }
+                        }
+                    }
+                }
             }
 
             ListView31.ItemsSource = ListNameCompareSC;
@@ -5328,6 +5500,18 @@ namespace NameFinder
                 ListView31.SelectedIndex = ListView32.SelectedIndex;
                 ListView31.UpdateLayout();
                 ListView31.ScrollIntoView(ListView31.SelectedItem);
+
+                ListView22.SelectedIndex = ListView32.SelectedIndex;
+                ListView22.UpdateLayout();
+                ListView22.ScrollIntoView(ListView22.SelectedItem);
+
+                ListView23.SelectedIndex = ListView32.SelectedIndex;
+                ListView23.UpdateLayout();
+                ListView23.ScrollIntoView(ListView23.SelectedItem);
+                
+                ListView24.SelectedIndex = ListView32.SelectedIndex;
+                ListView24.UpdateLayout();
+                ListView24.ScrollIntoView(ListView24.SelectedItem);
             }
         }
 
@@ -5391,6 +5575,18 @@ namespace NameFinder
             ListView32.SelectedIndex = ListView31.SelectedIndex;
             ListView32.UpdateLayout();
             ListView32.ScrollIntoView(ListView32.SelectedItem);
+        
+            ListView22.SelectedIndex = ListView31.SelectedIndex;
+            ListView22.UpdateLayout();
+            ListView22.ScrollIntoView(ListView22.SelectedItem);
+
+            ListView23.SelectedIndex = ListView31.SelectedIndex;
+            ListView23.UpdateLayout();
+            ListView23.ScrollIntoView(ListView23.SelectedItem);
+                
+            ListView24.SelectedIndex = ListView31.SelectedIndex;
+            ListView24.UpdateLayout();
+            ListView24.ScrollIntoView(ListView24.SelectedItem);
         }
 
         private string FilePathName { get; set; }
@@ -5448,7 +5644,7 @@ namespace NameFinder
                         {
                             nameSource = ListNameSourceCS[i];
                         }
-                        
+
                         var tmp = new List<string>();
                         var lst = "";
                         lst = "using AAEmu.Commons.Network;";
@@ -5599,7 +5795,7 @@ namespace NameFinder
                             lst = "            _" + str.Name.Replace("\"", "") + " = " + str.Name.Replace("\"", "") + ";";
                             tmp.Add(lst);
                         }
-                        
+
                         lst = "        }";
                         tmp.Add(lst);
 
@@ -5672,7 +5868,7 @@ namespace NameFinder
                         {
                             nameSource = ListNameDestinationCS[i];
                         }
-                        
+
                         var tmp = new List<string>();
                         var lst = "";
                         lst = "using AAEmu.Commons.Network;";
@@ -5823,7 +6019,7 @@ namespace NameFinder
                             lst = "            _" + str.Name.Replace("\"", "") + " = " + str.Name.Replace("\"", "") + ";";
                             tmp.Add(lst);
                         }
-                        
+
                         lst = "        }";
                         tmp.Add(lst);
 
