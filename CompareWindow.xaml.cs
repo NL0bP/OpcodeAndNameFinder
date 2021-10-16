@@ -137,6 +137,86 @@ namespace NameFinder
             {
                 ListNameCompare[IdxD] = ListNameSource[IdxS];
             }
+
+            // удаляем оконечные опкоды в имени пакета
+            if (CheckBoxRemoveOpcode.IsChecked == true)
+            {
+                if (ListNameCompare[IdxD][0].ToString() != "o" || ListNameCompare[IdxD][1].ToString() != "f" || ListNameCompare[IdxD][2].ToString() != "f")
+                {
+                    var offset = ListNameCompare[IdxD].LastIndexOf("_", StringComparison.Ordinal);
+                    if (offset > 0)
+                    {
+                        ListNameCompare[IdxD] = ListNameCompare[IdxD].Substring(0, offset);
+                    }
+                }
+            }
+
+            // Remove Packet
+            if (CheckBoxAdd.IsChecked == true)
+            {
+                if (ListNameCompare[IdxD][0].ToString() != "o" || ListNameCompare[IdxD][1].ToString() != "f" || ListNameCompare[IdxD][2].ToString() != "f")
+                {
+                    if (MainWindow.isCompareCS)
+                    {
+                        ListNameCompare[IdxD] = ListNameCompare[IdxD].ToLower().Replace("cs", "");
+                    }
+                    else
+                    {
+                        ListNameCompare[IdxD] = ListNameCompare[IdxD].ToLower().Replace("sc", "");
+                    }
+                    ListNameCompare[IdxD] = ListNameCompare[IdxD].ToLower().Replace("packet", "");
+                }
+            }
+
+            //  ToTitleCase
+            if (CheckBoxToTitleCase.IsChecked == true)
+            {
+                if (ListNameCompare[IdxD][0].ToString() != "o" || ListNameCompare[IdxD][1].ToString() != "f" || ListNameCompare[IdxD][2].ToString() != "f")
+                {
+                    ListNameCompare[IdxD] = System.Globalization.CultureInfo.CurrentCulture.TextInfo.ToTitleCase(ListNameCompare[IdxD].ToLower());
+                    ListNameCompare[IdxD] = ListNameCompare[IdxD].Replace("_", "");
+                }
+            }
+
+            // Добавим 'Packet' в конец имени пакета
+            if (CheckBoxAdd.IsChecked == true)
+            {
+                if (ListNameCompare[IdxD][0].ToString() != "o" || ListNameCompare[IdxD][1].ToString() != "f" || ListNameCompare[IdxD][2].ToString() != "f")
+                {
+                    var offset = ListNameCompare[IdxD].LastIndexOf("Packet", StringComparison.Ordinal);
+                    if (offset <= 0)
+                    {
+                        ListNameCompare[IdxD] += "Packet";
+                    }
+                    else
+                    {
+                        ListNameCompare[IdxD] = ListNameCompare[IdxD].Substring(0, offset);
+                        ListNameCompare[IdxD] += "Packet";
+                    }
+
+                    if (MainWindow.isCompareCS)
+                    {
+                        if (ListNameCompare[IdxD][0].ToString() != "C" || ListNameCompare[IdxD][1].ToString() != "S")
+                        {
+                            if (ListNameCompare[IdxD][0].ToString() != "X" || ListNameCompare[IdxD][1].ToString() != "2")
+                            {
+                                ListNameCompare[IdxD] = "CS" + ListNameCompare[IdxD];
+                            }
+                        }
+                    }
+                    else
+                    {
+                        if (ListNameCompare[IdxD][0].ToString() != "S" || ListNameCompare[IdxD][1].ToString() != "C")
+                        {
+                            if (ListNameCompare[IdxD][0].ToString() != "X" || ListNameCompare[IdxD][1].ToString() != "2")
+                            {
+                                ListNameCompare[IdxD] = "SC" + ListNameCompare[IdxD];
+                            }
+                        }
+                    }
+                }
+            }
+
             // отобразим на форме результаты
             ShowList();
         }

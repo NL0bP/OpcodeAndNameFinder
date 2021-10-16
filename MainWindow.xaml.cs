@@ -69,8 +69,8 @@ namespace NameFinder
         private bool FindOpcodeOut = true;
         private bool FindStructIn = true;
         private bool FindStructOut = true;
-        public bool isCompareCS = false;
-        public bool isCompareSC = false;
+        public static bool isCompareCS = false;
+        public static bool isCompareSC = false;
         public static bool isRemoveOpcode = false;
 
         //public static Dictionary<int, int> InUseSource { get; set; } = new Dictionary<int, int>();
@@ -4194,7 +4194,7 @@ namespace NameFinder
                 }
             }
 
-            // CheckBoxRemovePacket
+            // RemovePacket
             if (CheckBoxRemovePacket.IsChecked == true)
             {
                 for (var i = 0; i < ListNameCompareCS.Count; i++)
@@ -4207,7 +4207,7 @@ namespace NameFinder
                 }
             }
 
-            // CheckBoxToTitleCase
+            // ToTitleCase
             if (CheckBoxToTitleCase.IsChecked == true)
             {
                 for (var i = 0; i < ListNameCompareCS.Count; i++)
@@ -4324,7 +4324,7 @@ namespace NameFinder
                 }
             }
 
-            // CheckBoxRemovePacket
+            // RemovePacket
             if (CheckBoxRemovePacket.IsChecked == true)
             {
                 for (var i = 0; i < ListNameCompareSC.Count; i++)
@@ -4337,7 +4337,7 @@ namespace NameFinder
                 }
             }
 
-            // CheckBoxToTitleCase
+            // ToTitleCase
             if (CheckBoxToTitleCase.IsChecked == true)
             {
                 for (var i = 0; i < ListNameCompareSC.Count; i++)
@@ -4916,16 +4916,6 @@ namespace NameFinder
             }
 
             return new string(c, 0, c.Length);
-        }
-
-        private void checkBox_Checked_In(object sender, RoutedEventArgs e)
-        {
-            //FindOpcodeIn = checkBoxOut.IsChecked == true;
-        }
-
-        private void checkBox_Checked_Out(object sender, RoutedEventArgs e)
-        {
-            //FindOpcodeOut = checkBoxOut.IsChecked == true;
         }
 
         private string DirPath = ".\\data";
@@ -5854,10 +5844,17 @@ namespace NameFinder
                         if (CheckBoxRemoveOpcode.IsChecked == true)
                         {
                             // удаляем оконечные опкоды в имени пакета
-                            var offset = ListNameDestinationCS[i].LastIndexOf("_", StringComparison.Ordinal);
-                            if (offset > 0)
+                            if (ListNameDestinationCS[i][0].ToString() != "o" || ListNameDestinationCS[i][1].ToString() != "f" || ListNameDestinationCS[i][2].ToString() != "f")
                             {
-                                nameSource = ListNameDestinationCS[i].Substring(0, offset);
+                                var offset = ListNameDestinationCS[i].LastIndexOf("_", StringComparison.Ordinal);
+                                if (offset > 0)
+                                {
+                                    nameSource = ListNameDestinationCS[i].Substring(0, offset);
+                                }
+                                else
+                                {
+                                    nameSource = ListNameDestinationCS[i];
+                                }
                             }
                             else
                             {
@@ -5923,35 +5920,6 @@ namespace NameFinder
                 }
                 else
                 {
-                    /*
-                        using AAEmu.Commons.Network;
-                        using AAEmu.Game.Core.Network.Game;
-                        
-                        namespace AAEmu.Game.Core.Packets.G2C
-                        {
-                            public class SCAbilityExpChangedPacket : GamePacket
-                            {
-                                private readonly uint _objId;
-                                private readonly byte _ability;
-                                private readonly int _exp;
-                        
-                                public SCAbilityExpChangedPacket(uint objId, byte ability, int exp) : base(SCOffsets.SCAbilityExpChangedPacket, 1)
-                                {
-                                    _objId = objId;
-                                    _ability = (byte) ability;
-                                    _exp = exp;
-                                }
-                        
-                                public override PacketStream Write(PacketStream stream)
-                                {
-                                    stream.WriteBc(_objId);
-                                    stream.Write(_ability);
-                                    stream.Write(_exp);
-                                    return stream;
-                                }
-                            }
-                        }                   
-                     */
                     // сохраняем в виде файла
                     for (var i = 0; i < ListNameDestinationSC.Count; i++)
                     {
@@ -5960,10 +5928,17 @@ namespace NameFinder
                         if (CheckBoxRemoveOpcode.IsChecked == true)
                         {
                             // удаляем оконечные опкоды в имени пакета
-                            var offset = ListNameDestinationSC[i].LastIndexOf("_", StringComparison.Ordinal);
-                            if (offset > 0)
+                            if (ListNameDestinationSC[i][0].ToString() != "o" || ListNameDestinationSC[i][1].ToString() != "f" || ListNameDestinationSC[i][2].ToString() != "f")
                             {
-                                nameSource = ListNameDestinationSC[i].Substring(0, offset);
+                                var offset = ListNameDestinationSC[i].LastIndexOf("_", StringComparison.Ordinal);
+                                if (offset > 0)
+                                {
+                                    nameSource = ListNameDestinationSC[i].Substring(0, offset);
+                                }
+                                else
+                                {
+                                    nameSource = ListNameDestinationSC[i];
+                                }
                             }
                             else
                             {

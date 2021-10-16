@@ -124,8 +124,8 @@
         <Label x:Name="LabelPathOut" Content="File path without names:" HorizontalAlignment="Left" Height="26" Margin="11,701,0,0" VerticalAlignment="Top" Width="144"/>
         <ProgressBar x:Name="ProgressBar12" HorizontalAlignment="Left" Height="10" Margin="393,595,0,0" VerticalAlignment="Top" Width="175"/>
         <ProgressBar x:Name="ProgressBar22" HorizontalAlignment="Left" Height="10" Margin="1172,595,0,0" VerticalAlignment="Top" Width="175"/>
-        <CheckBox x:Name="CheckBoxFindOpcodeOut" Content="Search opcodes" HorizontalAlignment="Left" Margin="1425,67,0,0" VerticalAlignment="Top" Checked="checkBox_Checked_In" IsChecked="True"/>
-        <CheckBox x:Name="CheckBoxFindOpcodeIn" Content="Search opcodes" HorizontalAlignment="Left" Margin="643,69,0,0" VerticalAlignment="Top" Checked="checkBox_Checked_Out" IsChecked="True"/>
+        <CheckBox x:Name="CheckBoxFindOpcodeOut" Content="Search opcodes" HorizontalAlignment="Left" Margin="1425,67,0,0" VerticalAlignment="Top" IsChecked="True"/>
+        <CheckBox x:Name="CheckBoxFindOpcodeIn" Content="Search opcodes" HorizontalAlignment="Left" Margin="643,69,0,0" VerticalAlignment="Top" IsChecked="True"/>
         <Label x:Name="Label16Copy" Content="Total opcodes:" HorizontalAlignment="Left" Margin="595,102,0,0" VerticalAlignment="Top"/>
         <TextBox x:Name="TextBox16Copy" HorizontalAlignment="Left" Height="22" Margin="681,104,0,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top" Width="65"/>
         <Label x:Name="Label17Copy" Content="Not found:" HorizontalAlignment="Left" Margin="614,137,0,0" VerticalAlignment="Top"/>
@@ -168,11 +168,11 @@
         <TextBox x:Name="TextBox32" HorizontalAlignment="Left" Height="22" Margin="1844,139,0,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top" Width="65"/>
         <Label x:Name="Label33" Content="Time consuming:" HorizontalAlignment="Left" Height="25" Margin="1745,177,0,0" VerticalAlignment="Top" Width="99"/>
         <TextBox x:Name="TextBox33" HorizontalAlignment="Left" Height="21" Margin="1844,179,0,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top" Width="65"/>
-        <CheckBox x:Name="CheckBoxCompareManual" Content="Compare structures manually" HorizontalAlignment="Left" Margin="1710,66,0,0" VerticalAlignment="Top" Checked="checkBox_Checked_In" Width="197" IsChecked="False"/>
+        <CheckBox x:Name="CheckBoxCompareManual" Content="Compare structures manually" HorizontalAlignment="Left" Margin="1710,66,0,0" VerticalAlignment="Top" Width="197" IsChecked="False"/>
         <Button x:Name="ButtonCopy2_Copy" Content="SC Struct" HorizontalAlignment="Left" Height="30" Margin="1736,722,0,0" VerticalAlignment="Top" Width="75" Click="button_SaveStructSC_Click" IsEnabled="False"/>
         <Button x:Name="Button2Copy2_Copy" Content="CS Struct" HorizontalAlignment="Left" Height="30" Margin="1640,722,0,0" VerticalAlignment="Top" Width="75" Click="button_SaveStructCS_Click" IsEnabled="False"/>
         <CheckBox x:Name="CheckBoxFindStructIn" Content="Looking for structures" HorizontalAlignment="Left" Margin="643,49,0,0" VerticalAlignment="Top" IsChecked="True"/>
-        <CheckBox x:Name="CheckBoxFindStructOut" Content="Looking for structures" HorizontalAlignment="Left" Margin="1425,47,0,0" VerticalAlignment="Top" Checked="checkBox_Checked_In" IsChecked="True"/>
+        <CheckBox x:Name="CheckBoxFindStructOut" Content="Looking for structures" HorizontalAlignment="Left" Margin="1425,47,0,0" VerticalAlignment="Top" IsChecked="True"/>
         <CheckBox x:Name="CheckBoxCleaningIn" Content="Clean up the source" HorizontalAlignment="Left" Margin="22,141,0,0" VerticalAlignment="Top" IsChecked="False"/>
         <CheckBox x:Name="CheckBoxCleaningOut" Content="Clean up the source" HorizontalAlignment="Left" Margin="788,143,0,0" VerticalAlignment="Top" IsChecked="False"/>
         <Label x:Name="Label_Semafor1" Content="" HorizontalAlignment="Left" Margin="89,47,0,0" VerticalAlignment="Top" Height="58" Background="Red" Width="58"/>
@@ -183,14 +183,14 @@
         <Button x:Name="BtnLoadSnapshotSC" Content="Load Snapshot SC" HorizontalAlignment="Left" Height="60" Margin="1364,693,0,0" VerticalAlignment="Top" Width="100" Click="btn_LoadSnapshotSC_Click"/>
         <Button x:Name="ButtonEditOutOpcode" Content="Set Opcode" HorizontalAlignment="Left" Height="30" Margin="1457,645,0,0" VerticalAlignment="Top" Width="75" Click="button_EditOutOpcode_Click" IsEnabled="True"/>
         <TextBox x:Name="TextBoxEditOutOpcode" HorizontalAlignment="Left" Height="21" Margin="1358,651,0,0" TextWrapping="Wrap" Text="0x000" VerticalAlignment="Top" Width="75"/>
-        <CheckBox x:Name="CheckBoxRemoveOpcode" Content="Remove opcodes in packet name" HorizontalAlignment="Left" Margin="1710,5,0,0" VerticalAlignment="Top" Checked="checkBox_Checked_In" Width="197" IsChecked="False"/>
-        <CheckBox x:Name="CheckBoxRename" Content="Rename packets in source" HorizontalAlignment="Left" Margin="1710,81,0,0" VerticalAlignment="Top" Checked="checkBox_Checked_In" Width="197" IsChecked="False"/>
+        <CheckBox x:Name="CheckBoxRemoveOpcode" Content="Remove opcodes in packet name" HorizontalAlignment="Left" Margin="1710,5,0,0" VerticalAlignment="Top" Width="197" IsChecked="False"/>
+        <CheckBox x:Name="CheckBoxRename" Content="Rename packets in source" HorizontalAlignment="Left" Margin="1710,81,0,0" VerticalAlignment="Top" Width="197" IsChecked="False"/>
         <Button x:Name="BtnMakePktIn" Content="Make Pkt" HorizontalAlignment="Left" Height="30" Margin="306,610,0,0" VerticalAlignment="Top" Width="75" IsEnabled="True" Click="BtnMakePktIn_Click"/>
         <Button x:Name="BtnGotoOpcodeIn" Content="Goto" HorizontalAlignment="Left" Height="30" Margin="492,610,0,0" VerticalAlignment="Top" Width="75" IsEnabled="True" Click="BtnGotoOpcodeIn_Click"/>
         <Button x:Name="BtnMakePktOut" Content="Make Pkt" HorizontalAlignment="Left" Height="30" Margin="1087,610,0,0" VerticalAlignment="Top" Width="75" IsEnabled="True" Click="BtnMakePktOut_Click"/>
         <Button x:Name="BtnGotoOpcodeOut" Content="Goto" HorizontalAlignment="Left" Height="30" Margin="1272,610,0,0" VerticalAlignment="Top" Width="75" IsEnabled="True" Click="BtnGotoOpcodeOut_Click"/>
-        <CheckBox x:Name="CheckBoxAdd" Content="Add 'Packet' to end of name" HorizontalAlignment="Left" Margin="1710,50,0,0" VerticalAlignment="Top" Checked="checkBox_Checked_In" Width="197" IsChecked="False"/>
-        <CheckBox x:Name="CheckBoxRemovePacket" Content="Remove 'Packet' in packet name" HorizontalAlignment="Left" Margin="1710,20,0,0" VerticalAlignment="Top" Checked="checkBox_Checked_In" Width="197" IsChecked="False"/>
-        <CheckBox x:Name="CheckBoxToTitleCase" Content="Converted to a ToTitleCase" HorizontalAlignment="Left" Margin="1710,35,0,0" VerticalAlignment="Top" Checked="checkBox_Checked_In" Width="197" IsChecked="False"/>
+        <CheckBox x:Name="CheckBoxAdd" Content="Add 'Packet' to end of name" HorizontalAlignment="Left" Margin="1710,50,0,0" VerticalAlignment="Top" Width="197" IsChecked="False"/>
+        <CheckBox x:Name="CheckBoxRemovePacket" Content="Remove 'Packet' in packet name" HorizontalAlignment="Left" Margin="1710,20,0,0" VerticalAlignment="Top" Width="197" IsChecked="False"/>
+        <CheckBox x:Name="CheckBoxToTitleCase" Content="Converted to a ToTitleCase" HorizontalAlignment="Left" Margin="1710,35,0,0" VerticalAlignment="Top" Width="197" IsChecked="False"/>
     </Grid>
 </Window>
