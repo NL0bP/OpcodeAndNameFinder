@@ -5926,6 +5926,10 @@ namespace NameFinder
                 }
                 Label_Semafor1.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { Label_Semafor1.Background = Brushes.GreenYellow; }));
             }
+            else
+            {
+                MessageBox.Show("Выберите любое имя пакета!", "Information", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
         }
         private void BtnMakePktOut_Click(object sender, RoutedEventArgs e)
         {
@@ -6155,6 +6159,10 @@ namespace NameFinder
                     }
                 }
                 Label_Semafor2.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { Label_Semafor2.Background = Brushes.GreenYellow; }));
+            }
+            else
+            {
+                MessageBox.Show("Выберите любое имя пакета!", "Information", MessageBoxButton.OK, MessageBoxImage.Information);
             }
         }
 

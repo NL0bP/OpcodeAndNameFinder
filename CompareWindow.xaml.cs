@@ -461,6 +461,10 @@ namespace NameFinder
 
             File.WriteAllLines(FilePath + "_PDEC.txt", tmp);
 
+            if (FilePath == null)
+            {
+                return; // выходим, если нажали Cancel в выборе имени файла
+            }
             // сохраняем в виде файла для внесения опкодов в AAEMU
             var offset = FilePath.LastIndexOf("\\", StringComparison.Ordinal) + 1;
             var name = FilePath.Substring(offset);
