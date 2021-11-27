@@ -86,12 +86,14 @@ namespace NameFinder
             // проверим что имя не используется
             var useIn = 0;
             var useOut = 0;
+            var offset = 0;
             if (MainWindow.InUseIn.ContainsKey(IdxS))
             {
                 useOut = MainWindow.InUseIn[IdxS];
                 //var useIn = MainWindow.InUseOut[useOut];
                 //MainWindow.InUseIn.Remove(IdxS);
                 MainWindow.InUseOut.Remove(useOut);
+                //ListNameCompareSC[IdxD] = listNameSource[IdxS];
                 ListNameCompare[useOut] = ListNameDestination[useOut];
                 //TextBox21.Text = ListNameDestination[IdxD];
             }
@@ -122,20 +124,40 @@ namespace NameFinder
             if (isRemoveOpcode)
             {
                 // удаляем оконечные опкоды в имени пакета
-                var offset = ListNameSource[IdxS].LastIndexOf("_", StringComparison.Ordinal);
-                if (offset > 0)
+                offset = ListNameSource[IdxS].LastIndexOf("_", StringComparison.Ordinal);
+                if (offset > 3)
                 {
                     var nameSource = ListNameSource[IdxS].Substring(0, offset);
                     ListNameCompare[IdxD] = nameSource;
                 }
                 else
                 {
-                    ListNameCompare[IdxD] = ListNameSource[IdxS];
+                    if (ListNameSource[IdxS][0].ToString() == "o" ||
+                        ListNameSource[IdxS][1].ToString() == "f" ||
+                        ListNameSource[IdxS][2].ToString() == "f")
+                    {
+                        // не переименовываем если имя начинается off_
+                        ListNameCompare[IdxD] = ListNameDestination[IdxD];
+                    }
+                    else
+                    {
+                        ListNameCompare[IdxD] = ListNameSource[IdxS];
+                    }
                 }
             }
             else
             {
-                ListNameCompare[IdxD] = ListNameSource[IdxS];
+                if (ListNameSource[IdxS][0].ToString() == "o" ||
+                    ListNameSource[IdxS][1].ToString() == "f" ||
+                    ListNameSource[IdxS][2].ToString() == "f")
+                {
+                    // не переименовываем если имя начинается off_
+                    ListNameCompare[IdxD] = ListNameDestination[IdxD];
+                }
+                else
+                {
+                    ListNameCompare[IdxD] = ListNameSource[IdxS];
+                }
             }
 
             // удаляем оконечные опкоды в имени пакета
@@ -143,7 +165,7 @@ namespace NameFinder
             {
                 //if (ListNameCompare[IdxD][0].ToString() != "o" || ListNameCompare[IdxD][1].ToString() != "f" || ListNameCompare[IdxD][2].ToString() != "f")
                 {
-                    var offset = ListNameCompare[IdxD].LastIndexOf("_", StringComparison.Ordinal);
+                    offset = ListNameCompare[IdxD].LastIndexOf("_", StringComparison.Ordinal);
                     if (offset > 3)
                     {
                         ListNameCompare[IdxD] = ListNameCompare[IdxD].Substring(0, offset);
@@ -160,7 +182,6 @@ namespace NameFinder
                     ListNameCompare[IdxD] = ListNameCompare[IdxD].Replace("_", "");
                 }
             }
-
             // Remove Packet
             if (CheckBoxAdd.IsChecked == true)
             {
@@ -168,18 +189,52 @@ namespace NameFinder
                 {
                     if (MainWindow.isCS)
                     {
-                        ListNameCompare[IdxD] = ListNameCompare[IdxD].Replace("CS", "");
-                        ListNameCompare[IdxD] = ListNameCompare[IdxD].Replace("Cs", "");
+                        // удаляем CS|SC только в начале имени
+                        offset = ListNameCompare[IdxD].LastIndexOf("CS", StringComparison.Ordinal);
+                        if (offset > 0)
+                        {
+                            ListNameCompare[IdxD] = ListNameCompare[IdxD].Substring(offset, ListNameCompare[IdxD].Length - offset);
+                        }
+                        offset = ListNameCompare[IdxD].LastIndexOf("Cs", StringComparison.Ordinal);
+                        if (offset > 0)
+                        {
+                            ListNameCompare[IdxD] = ListNameCompare[IdxD].Substring(offset, ListNameCompare[IdxD].Length - offset);
+                        }
+                        offset = ListNameCompare[IdxD].LastIndexOf("cs", StringComparison.Ordinal);
+                        if (offset > 0)
+                        {
+                            ListNameCompare[IdxD] = ListNameCompare[IdxD].Substring(offset, ListNameCompare[IdxD].Length - offset);
+                        }
                     }
                     else
                     {
-                        ListNameCompare[IdxD] = ListNameCompare[IdxD].Replace("SC", "");
-                        ListNameCompare[IdxD] = ListNameCompare[IdxD].Replace("Sc", "");
+                        // удаляем CS|SC только в начале имени
+                        offset = ListNameCompare[IdxD].LastIndexOf("SC", StringComparison.Ordinal);
+                        if (offset > 0)
+                        {
+                            ListNameCompare[IdxD] = ListNameCompare[IdxD].Substring(offset, ListNameCompare[IdxD].Length - offset);
+                        }
+                        offset = ListNameCompare[IdxD].LastIndexOf("Sc", StringComparison.Ordinal);
+                        if (offset > 0)
+                        {
+                            ListNameCompare[IdxD] = ListNameCompare[IdxD].Substring(offset, ListNameCompare[IdxD].Length - offset);
+                        }
+                        offset = ListNameCompare[IdxD].LastIndexOf("cs", StringComparison.Ordinal);
+                        if (offset > 0)
+                        {
+                            ListNameCompare[IdxD] = ListNameCompare[IdxD].Substring(offset, ListNameCompare[IdxD].Length - offset);
+                        }
                     }
                     ListNameCompare[IdxD] = ListNameCompare[IdxD].Replace("PACKET", "");
                     ListNameCompare[IdxD] = ListNameCompare[IdxD].Replace("Packet", "");
                     ListNameCompare[IdxD] = ListNameCompare[IdxD].Replace("packet", "");
-                    ListNameCompare[IdxD] = ListNameCompare[IdxD].Replace("On", "");
+                    //ListNameCompare[IdxD] = ListNameCompare[IdxD].Replace("On", "");
+                    // удаляем "On" только в начале имени
+                    offset = ListNameCompare[IdxD].LastIndexOf("On", StringComparison.Ordinal);
+                    if (offset > 0)
+                    {
+                        ListNameCompare[IdxD] = ListNameCompare[IdxD].Substring(offset, ListNameCompare[IdxD].Length - offset);
+                    }
                     ListNameCompare[IdxD] = ListNameCompare[IdxD].Replace("_", "");
                 }
             }
@@ -189,7 +244,7 @@ namespace NameFinder
             {
                 if (ListNameCompare[IdxD][0].ToString() != "o" || ListNameCompare[IdxD][1].ToString() != "f" || ListNameCompare[IdxD][2].ToString() != "f")
                 {
-                    var offset = ListNameCompare[IdxD].LastIndexOf("Packet", StringComparison.Ordinal);
+                    offset = ListNameCompare[IdxD].LastIndexOf("Packet", StringComparison.Ordinal);
                     if (offset <= 0)
                     {
                         ListNameCompare[IdxD] += "Packet";

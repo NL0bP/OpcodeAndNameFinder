@@ -48,7 +48,7 @@
         <Button x:Name="button" Content="Clear" HorizontalAlignment="Left" Height="21" Margin="140,27,0,0" VerticalAlignment="Top" Width="45" Click="button_Click" RenderTransformOrigin="0.556,0.571"/>
         <Button x:Name="button1" Content="goto" HorizontalAlignment="Left" Height="22" Margin="560,86,0,0" VerticalAlignment="Top" Width="45" Click="button1_Click"/>
         <Button x:Name="button1_Copy" Content="goto" HorizontalAlignment="Left" Height="22" Margin="140,86,0,0" VerticalAlignment="Top" Width="45" Click="button1_Copy_Click"/>
-        <CheckBox x:Name="CheckBoxRemoveOpcode" Content="Remove opcodes in packet name" HorizontalAlignment="Left" Margin="229,6,0,0" VerticalAlignment="Top" Width="197" IsChecked="False"/>
+        <CheckBox x:Name="CheckBoxRemoveOpcode" Content="Remove opcodes in packet name" HorizontalAlignment="Left" Margin="229,6,0,0" VerticalAlignment="Top" Width="197" IsChecked="True"/>
         <CheckBox x:Name="CheckBoxAdd" Content="Add 'Packet' to end of name" HorizontalAlignment="Left" Margin="433,6,0,0" VerticalAlignment="Top" Width="172" IsChecked="False"/>
         <CheckBox x:Name="CheckBoxToTitleCase" Content="Converted to a ToTitleCase" HorizontalAlignment="Left" Margin="613,7,0,0" VerticalAlignment="Top" Width="166" IsChecked="False"/>
     </Grid>
