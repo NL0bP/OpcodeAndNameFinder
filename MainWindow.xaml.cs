@@ -149,10 +149,13 @@ namespace NameFinder
         public static int DepthOut = 0;
         public int IdxS = 0;
         public int IdxD = 0;
+        object lockObj;
 
         public MainWindow()
         {
             InitializeComponent();
+            // Создаем объект для блокировки.
+            lockObj = new object();
         }
 
         private void FindOpcodeSourceCS()
@@ -2454,8 +2457,6 @@ namespace NameFinder
             //"CS_PACKET_TODAY_ASSIGNMENT_11Ah dd offset SC_PACKETS_return_2"
             var indexRefs = 0;
 
-            // Создаем объект для блокировки.
-            var lockObj = new object();
             // Блокируем объект.
             lock (lockObj)
             {
@@ -2723,8 +2724,6 @@ namespace NameFinder
             //"CS_PACKET_TODAY_ASSIGNMENT_11Ah dd offset SC_PACKETS_return_2"
             var indexRefs = 0;
 
-            // Создаем объект для блокировки.
-            var lockObj = new object();
             // Блокируем объект.
             lock (lockObj)
             {
@@ -2993,10 +2992,8 @@ namespace NameFinder
             //"CS_PACKET_TODAY_ASSIGNMENT_11Ah dd offset SC_PACKETS_return_2"
             var indexRefs = 0;
 
-            // Создаем объект для блокировки.
-           // var lockObj = new object();
             // Блокируем объект.
-            //lock (lockObj)
+            lock (lockObj)
             {
                 var regex = new Regex(@"^[a-zA-Z0-9_?@]+\s+dd\soffset\s" + str, RegexOptions.Compiled);
                 var regexXREF = new Regex(@"(^\s+;[a-zA-Z:\s]*\s(sub_\w+|X2\w+))", RegexOptions.Compiled);
@@ -3261,8 +3258,6 @@ namespace NameFinder
             //"CS_PACKET_TODAY_ASSIGNMENT_11Ah dd offset SC_PACKETS_return_2"
             var indexRefs = 0;
 
-            // Создаем объект для блокировки.
-            var lockObj = new object();
             // Блокируем объект.
             lock (lockObj)
             {
@@ -3521,8 +3516,6 @@ namespace NameFinder
                 TextBoxPathIn.Text = FilePathIn1;
                 var stopWatch = new Stopwatch();
                 stopWatch.Start();
-                // Создаем объект для блокировки.
-                var lockObj = new object();
                 lock (lockObj)
                 {
                     InListSource = new List<string>();
@@ -3685,8 +3678,6 @@ namespace NameFinder
                 TextBoxPathIn.Text = FilePathIn1;
                 var stopWatch = new Stopwatch();
                 stopWatch.Start();
-                // Создаем объект для блокировки.
-                var lockObj = new object();
                 lock (lockObj)
                 {
                     new Thread(() =>
@@ -3753,8 +3744,6 @@ namespace NameFinder
                 TextBoxPathOut.Text = FilePathIn2;
                 var stopWatch = new Stopwatch();
                 stopWatch.Start();
-                // Создаем объект для блокировки.
-                var lockObj = new object();
                 lock (lockObj)
                 {
                     InListDestination = new List<string>();
@@ -3898,10 +3887,8 @@ namespace NameFinder
             // начнем с начала
             IdxD = 0;
 
-            // Создаем объект для блокировки.
-            //var lockObj = new object();
             // Блокируем объект.
-            //lock (lockObj)
+            lock (lockObj)
             {
                 if (IdxD >= dictDestination.Count)
                 {
@@ -4087,10 +4074,8 @@ namespace NameFinder
             // начнем с начала
             IdxD = 0;
 
-            // Создаем объект для блокировки.
-            //var lockObj = new object();
             // Блокируем объект.
-            //lock (lockObj)
+            lock (lockObj)
             {
                 if (IdxD >= dictDestination.Count)
                 {
@@ -5038,8 +5023,6 @@ namespace NameFinder
 
             var stopWatch = new Stopwatch();
             stopWatch.Start();
-            // Создаем объект для блокировки.
-            var lockObj = new object();
             lock (lockObj)
             {
                 using (var FBD = new FolderBrowserDialog())
@@ -5095,6 +5078,8 @@ namespace NameFinder
 
                         File.WriteAllLines(DirPathCS + "\\NotFoundIn", new List<string> { TextBox17Copy.Text });
                         File.WriteAllLines(DirPathCS + "\\NotFoundOut", new List<string> { TextBox17Copy1.Text });
+
+                        File.WriteAllLines(DirPathCS + "\\NameNotFound", new List<string> { TextBox32.Text });
 
                         File.WriteAllLines(DirPathCS + "\\isCompareCS", new List<string> { isCompareCS.ToString() });
                         File.WriteAllLines(DirPathCS + "\\isCompareSC", new List<string> { isCompareSC.ToString() });
@@ -5174,6 +5159,8 @@ namespace NameFinder
                         File.WriteAllLines(DirPathSC + "\\NotFoundIn", new List<string> { TextBox17Copy.Text });
                         File.WriteAllLines(DirPathSC + "\\NotFoundOut", new List<string> { TextBox17Copy1.Text });
 
+                        File.WriteAllLines(DirPathSC + "\\NameNotFound", new List<string> { TextBox32.Text });
+
                         File.WriteAllLines(DirPathCS + "\\isCompareCS", new List<string> { isCompareCS.ToString() });
                         File.WriteAllLines(DirPathCS + "\\isCompareSC", new List<string> { isCompareSC.ToString() });
 
@@ -5246,8 +5233,6 @@ namespace NameFinder
             Label_Semafor1.Background = Brushes.Red;
             Label_Semafor2.Background = Brushes.Red;
 
-            // Создаем объект для блокировки.
-            var lockObj = new object();
             lock (lockObj)
             {
                 try
@@ -5267,6 +5252,7 @@ namespace NameFinder
 
                     TextBox17Copy.Text = File.ReadAllLines(DirPathCS + "\\NotFoundIn")[0].ToString();
                     TextBox17Copy1.Text = File.ReadAllLines(DirPathCS + "\\NotFoundOut")[0].ToString();
+                    TextBox32.Text = File.ReadAllLines(DirPathCS + "\\NameNotFound")[0].ToString();
 
                     isCompareCS = File.ReadAllLines(DirPathCS + "\\isCompareCS")[0] == "True";
                     isCompareSC = File.ReadAllLines(DirPathCS + "\\isCompareSC")[0] == "True";
@@ -5402,8 +5388,6 @@ namespace NameFinder
             Label_Semafor1.Background = Brushes.Red;
             Label_Semafor2.Background = Brushes.Red;
 
-            // Создаем объект для блокировки.
-            var lockObj = new object();
             lock (lockObj)
             {
                 try
@@ -5423,6 +5407,7 @@ namespace NameFinder
 
                     TextBox17Copy.Text = File.ReadAllLines(DirPathSC + "\\NotFoundIn")[0].ToString();
                     TextBox17Copy1.Text = File.ReadAllLines(DirPathSC + "\\NotFoundOut")[0].ToString();
+                    TextBox32.Text = File.ReadAllLines(DirPathSC + "\\NameNotFound")[0].ToString();
 
                     isCompareCS = File.ReadAllLines(DirPathCS + "\\isCompareCS")[0] == "True";
                     isCompareSC = File.ReadAllLines(DirPathCS + "\\isCompareSC")[0] == "True";

@@ -51,5 +51,7 @@
         <CheckBox x:Name="CheckBoxRemoveOpcode" Content="Remove opcodes in packet name" HorizontalAlignment="Left" Margin="229,6,0,0" VerticalAlignment="Top" Width="197" IsChecked="True"/>
         <CheckBox x:Name="CheckBoxAdd" Content="Add 'Packet' to end of name" HorizontalAlignment="Left" Margin="433,6,0,0" VerticalAlignment="Top" Width="172" IsChecked="False"/>
         <CheckBox x:Name="CheckBoxToTitleCase" Content="Converted to a ToTitleCase" HorizontalAlignment="Left" Margin="613,7,0,0" VerticalAlignment="Top" Width="166" IsChecked="False"/>
+        <Button x:Name="BtnCsLoadNameIn_Copy1" Content="&gt;&gt;" HorizontalAlignment="Left" Height="30" Margin="206,729,0,0" VerticalAlignment="Top" Width="19" IsEnabled="True" Click="BtnNextR_Click"/>
+        <Button x:Name="BtnLoadIn_Copy1" Content="&lt;&lt;" HorizontalAlignment="Left" Height="30" Margin="164,729,0,0" VerticalAlignment="Top" Width="21" Click="BtnNextL_Click"/>
     </Grid>
 </Window>

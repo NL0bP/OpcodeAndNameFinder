@@ -63,6 +63,20 @@ namespace NameFinder
             ShowList();
         }
 
+        private void BtnNextL_Click(object sender, RoutedEventArgs e)
+        {
+            IdxS--; //взять следующий пакет
+            IdxD--; //взять следующий пакет
+            ShowList();
+        }
+        private void BtnNextR_Click(object sender, RoutedEventArgs e)
+        {
+            IdxS++; //взять следующий пакет
+            IdxD++; //взять следующий пакет
+            ShowList();
+        }
+
+
         private void BtnNextCsOut_Click(object sender, RoutedEventArgs e)
         {
             IdxD++; //взять следующий пакет
