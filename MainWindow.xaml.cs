@@ -42,10 +42,34 @@ namespace NameFinder
         Bc = 0xCC, // 3 Bytes
         Bytes = 0xD0 // 3 Bytes
     }
+    public enum TypeEnum2
+    {
+        UInt64 = 0x3C,
+        UInt32 = 0x40,
+        UInt16 = 0x44,
+        Byte = 0x48,
+        Int64 = 0x4C,
+        Int32 = 0x50,
+        Int16 = 0x54,
+        SByte = 0x58,
+        Angles = 0x5C, // float x, y, z
+        Quaternion = 0x60, // float x, y, z, w
+        times3Q = 0x64, // long x, y, z
+        Vector3 = 0x68, // float x, y, z
+        times2D = 0x6C, // uint x, y
+        Vector2 = 0x70, // float x, y
+        Float = 0x78,
+        Bool = 0x7C,
+        String = 0xE4,
+        String1 = 0xE8,
+        String2 = 0xEC,
+        Bc = 0xCC, // 3 Bytes
+        Bytes = 0xD0 // 3 Bytes
+    }
 
     public class Struc
     {
-        public TypeEnum Type { get; set; }
+        public int Type { get; set; }
         public string Name { get; set; }
     }
 
@@ -72,6 +96,10 @@ namespace NameFinder
         public static bool isCompareCS = false;
         public static bool isCompareSC = false;
         public static bool isRemoveOpcode = false;
+        public static bool isTypeEnumNewIn = false;
+        public static bool isTypeEnumNewOut = false;
+
+        public static bool isCS = false;
 
         //public static Dictionary<int, int> InUseSource { get; set; } = new Dictionary<int, int>();
         public static Dictionary<int, int> InUseIn { get; set; } = new Dictionary<int, int>();
@@ -2259,12 +2287,12 @@ namespace NameFinder
                             try
                             {
                                 num = offset < 0 ? "CC" : InListSource[index].Substring(offset, 2);
-                                aa.Type = (TypeEnum)Convert.ToInt32(num, 16);
+                                aa.Type = Convert.ToInt32(num, 16);
                             }
                             catch (Exception)
                             {
                                 num = "CC";
-                                aa.Type = (TypeEnum)Convert.ToInt32(num, 16);
+                                aa.Type = Convert.ToInt32(num, 16);
                             }
                             index++;
                             tmpLst.Add(aa); // сохранили часть структуры пакета
@@ -2360,12 +2388,12 @@ namespace NameFinder
                             try
                             {
                                 num = offset < 0 ? "CC" : InListDestination[index].Substring(offset, 2);
-                                aa.Type = (TypeEnum)Convert.ToInt32(num, 16);
+                                aa.Type = Convert.ToInt32(num, 16);
                             }
                             catch (Exception)
                             {
                                 num = "CC";
-                                aa.Type = (TypeEnum)Convert.ToInt32(num, 16);
+                                aa.Type = Convert.ToInt32(num, 16);
                             }
                             index++;
                             tmpLst.Add(aa); // сохранили часть структуры пакета
@@ -2606,12 +2634,12 @@ namespace NameFinder
                                         try
                                         {
                                             num = offset < 0 ? "CC" : InListSource[index].Substring(offset, 2);
-                                            aa.Type = (TypeEnum)Convert.ToInt32(num, 16);
+                                            aa.Type = Convert.ToInt32(num, 16);
                                         }
                                         catch (Exception)
                                         {
                                             num = "CC";
-                                            aa.Type = (TypeEnum)Convert.ToInt32(num, 16);
+                                            aa.Type = Convert.ToInt32(num, 16);
                                         }
                                         lst.Add(aa); // сохранили одну строку структуры пакета
                                         index++;
@@ -2874,12 +2902,12 @@ namespace NameFinder
                                         try
                                         {
                                             num = offset < 0 ? "CC" : InListSource[index].Substring(offset, 2);
-                                            aa.Type = (TypeEnum)Convert.ToInt32(num, 16);
+                                            aa.Type = Convert.ToInt32(num, 16);
                                         }
                                         catch (Exception)
                                         {
                                             num = "CC";
-                                            aa.Type = (TypeEnum)Convert.ToInt32(num, 16);
+                                            aa.Type = Convert.ToInt32(num, 16);
                                         }
                                         lst.Add(aa); // сохранили одну строку структуры пакета
                                         index++;
@@ -2966,9 +2994,9 @@ namespace NameFinder
             var indexRefs = 0;
 
             // Создаем объект для блокировки.
-            var lockObj = new object();
+           // var lockObj = new object();
             // Блокируем объект.
-            lock (lockObj)
+            //lock (lockObj)
             {
                 var regex = new Regex(@"^[a-zA-Z0-9_?@]+\s+dd\soffset\s" + str, RegexOptions.Compiled);
                 var regexXREF = new Regex(@"(^\s+;[a-zA-Z:\s]*\s(sub_\w+|X2\w+))", RegexOptions.Compiled);
@@ -3144,12 +3172,12 @@ namespace NameFinder
                                         try
                                         {
                                             num = offset < 0 ? "CC" : InListDestination[index].Substring(offset, 2);
-                                            aa.Type = (TypeEnum)Convert.ToInt32(num, 16);
+                                            aa.Type = Convert.ToInt32(num, 16);
                                         }
                                         catch (Exception)
                                         {
                                             num = "CC";
-                                            aa.Type = (TypeEnum)Convert.ToInt32(num, 16);
+                                            aa.Type = Convert.ToInt32(num, 16);
                                         }
                                         lst.Add(aa); // сохранили одну строку структуры пакета
                                         index++;
@@ -3417,12 +3445,12 @@ namespace NameFinder
                                         try
                                         {
                                             num = offset < 0 ? "CC" : InListDestination[index].Substring(offset, 2);
-                                            aa.Type = (TypeEnum)Convert.ToInt32(num, 16);
+                                            aa.Type = Convert.ToInt32(num, 16);
                                         }
                                         catch (Exception)
                                         {
                                             num = "CC";
-                                            aa.Type = (TypeEnum)Convert.ToInt32(num, 16);
+                                            aa.Type = Convert.ToInt32(num, 16);
                                         }
                                         lst.Add(aa); // сохранили одну строку структуры пакета
                                         index++;
@@ -3840,6 +3868,8 @@ namespace NameFinder
             ref List<string> listSubDestination, ref Dictionary<int, List<Struc>> dictSource,
             ref Dictionary<int, List<Struc>> dictDestination, List<string> listOpcodes)
         {
+            var stopWatch = new Stopwatch();
+            stopWatch.Start();
             // подготовим список
             ListNameCompareCS = new List<string>();
             foreach (var t in listNameDestination)
@@ -3857,7 +3887,8 @@ namespace NameFinder
             var badFound = 0;
             //var skipStr = 0;
             var repeat = true;
-
+            var totalFound = 0;
+            var totalNotfound = 0;
             // список структуры текущего сравнения имен
             //var ddList = new List<string>();
             //var dsList = new List<string>();
@@ -3868,15 +3899,14 @@ namespace NameFinder
             IdxD = 0;
 
             // Создаем объект для блокировки.
-            var lockObj = new object();
+            //var lockObj = new object();
             // Блокируем объект.
-            lock (lockObj)
+            //lock (lockObj)
             {
                 if (IdxD >= dictDestination.Count)
                 {
                     IdxD = dictDestination.Count - 1;
                 }
-
                 //
                 // начали предварительную работу по поиску структур пакетов
                 //
@@ -3952,25 +3982,39 @@ namespace NameFinder
                                             InUseOut.Add(IdxD, IdxS); // отметим, что найденное имя занято
                                         }
 
-                                        //// запишем новое имя на место неизвестного, которое нашли
-                                        //if (CheckBoxRemoveOpcode.IsChecked == true)
-                                        //{
-                                        //    // удаляем оконечные опкоды в имени пакета
-                                        //    var offset = listNameSource[IdxS].LastIndexOf("_", StringComparison.Ordinal);
-                                        //    if (offset > 0)
-                                        //    {
-                                        //        var nameSource = listNameSource[IdxS].Substring(0, offset);
-                                        //        ListNameCompareCS[IdxD] = nameSource;
-                                        //    }
-                                        //    else
-                                        //    {
-                                        //        ListNameCompareCS[IdxD] = listNameSource[IdxS];
-                                        //    }
-                                        //}
-                                        //else
-                                        //{
-                                        ListNameCompareCS[IdxD] = listNameSource[IdxS];
-                                        //}
+                                        // запишем новое имя на место неизвестного (проверяем на off_XXXX), которое нашли
+                                        if (CheckBoxRenameOff.IsChecked == true)
+                                        {
+                                            if (listNameDestination[IdxD][0].ToString() == "o" ||
+                                                listNameDestination[IdxD][1].ToString() == "f" ||
+                                                listNameDestination[IdxD][2].ToString() == "f")
+                                            {
+                                                ListNameCompareCS[IdxD] = listNameSource[IdxS];
+                                                totalFound++; // подсчитываем найденные имена
+                                            }
+                                            else
+                                            {
+                                                ListNameCompareCS[IdxD] = listNameDestination[IdxD];
+                                                totalNotfound++; // подсчитываем ненайденные имена
+                                            }
+                                        }
+                                        else
+                                        {
+                                            //ListNameCompareCS[IdxD] = listNameSource[IdxS];
+                                            if (listNameSource[IdxS][0].ToString() == "o" ||
+                                                listNameSource[IdxS][1].ToString() == "f" ||
+                                                listNameSource[IdxS][2].ToString() == "f")
+                                            {
+                                                // не переименовываем если имя начинается off_
+                                                ListNameCompareCS[IdxD] = listNameDestination[IdxD];
+                                                totalNotfound++; // подсчитываем ненайденные имена
+                                            }
+                                            else
+                                            {
+                                                ListNameCompareCS[IdxD] = listNameSource[IdxS];
+                                                totalFound++; // подсчитываем найденные имена
+                                            }
+                                        }
 
                                         repeat = false; // болше не повторять поиск
                                     }
@@ -4002,12 +4046,19 @@ namespace NameFinder
 
                 }
             }
+            //TextBox31.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox31.Text = totalFound.ToString(); }));
+            //totalNotfound = dictDestination.Count - totalFound;
+            TextBox32.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox32.Text = totalNotfound.ToString(); }));
+            stopWatch.Stop();
+            TextBox33.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox33.Text = stopWatch.Elapsed.ToString(); }));
         }
 
         private void CompareSourceStructuresSC(ref List<string> listNameSource, ref List<string> listNameDestination,
             ref List<string> listSubDestination, ref Dictionary<int, List<Struc>> dictSource,
             ref Dictionary<int, List<Struc>> dictDestination, List<string> listOpcodes)
         {
+            var stopWatch = new Stopwatch();
+            stopWatch.Start();
             // подготовим список
             ListNameCompareSC = new List<string>();
             foreach (var t in listNameDestination)
@@ -4025,7 +4076,8 @@ namespace NameFinder
             var badFound = 0;
             //var skipStr = 0;
             var repeat = true;
-
+            var totalFound = 0;
+            var totalNotfound = 0;
             // список структуры текущего сравнения имен
             //var ddList = new List<string>();
             //var dsList = new List<string>();
@@ -4036,9 +4088,9 @@ namespace NameFinder
             IdxD = 0;
 
             // Создаем объект для блокировки.
-            var lockObj = new object();
+            //var lockObj = new object();
             // Блокируем объект.
-            lock (lockObj)
+            //lock (lockObj)
             {
                 if (IdxD >= dictDestination.Count)
                 {
@@ -4118,25 +4170,39 @@ namespace NameFinder
                                         InUseOut.Add(IdxD, IdxS); // отметим, что найденное имя занято
                                     }
 
-                                    // запишем новое имя на место неизвестного, которое нашли
-                                    //if (CheckBoxRemoveOpcode.IsChecked == true)
-                                    //{
-                                    //    // удаляем оконечные опкоды в имени пакета
-                                    //    var offset = listNameSource[IdxS].LastIndexOf("_", StringComparison.Ordinal);
-                                    //    if (offset > 0)
-                                    //    {
-                                    //        var nameSource = listNameSource[IdxS].Substring(0, offset);
-                                    //        ListNameCompareSC[IdxD] = nameSource;
-                                    //    }
-                                    //    else
-                                    //    {
-                                    //        ListNameCompareSC[IdxD] = listNameSource[IdxS];
-                                    //    }
-                                    //}
-                                    //else
-                                    //{
-                                    ListNameCompareSC[IdxD] = listNameSource[IdxS];
-                                    //}
+                                    // запишем новое имя на место неизвестного (проверяем на off_XXXX), которое нашли
+                                    if (CheckBoxRenameOff.IsChecked == true)
+                                    {
+                                        if (listNameDestination[IdxD][0].ToString() == "o" ||
+                                            listNameDestination[IdxD][1].ToString() == "f" ||
+                                            listNameDestination[IdxD][2].ToString() == "f")
+                                        {
+                                            ListNameCompareSC[IdxD] = listNameSource[IdxS];
+                                            totalFound++; // подсчитываем найденные имена
+                                        }
+                                        else
+                                        {
+                                            ListNameCompareSC[IdxD] = listNameDestination[IdxD];
+                                            totalNotfound++; // подсчитываем ненайденные имена
+                                        }
+                                    }
+                                    else
+                                    {
+                                        //ListNameCompareSC[IdxD] = listNameSource[IdxS];
+                                        if (listNameSource[IdxS][0].ToString() == "o" ||
+                                            listNameSource[IdxS][1].ToString() == "f" ||
+                                            listNameSource[IdxS][2].ToString() == "f")
+                                        {
+                                            // не переименовываем если имя начинается off_
+                                            ListNameCompareSC[IdxD] = listNameDestination[IdxD];
+                                            totalNotfound++; // подсчитываем ненайденные имена
+                                        }
+                                        else
+                                        {
+                                            ListNameCompareSC[IdxD] = listNameSource[IdxS];
+                                            totalFound++; // подсчитываем найденные имена
+                                        }
+                                    }
 
                                     repeat = false; // болше не повторять поиск
                                 }
@@ -4162,6 +4228,11 @@ namespace NameFinder
                     repeat = true; // нужно будет повторять поиск
                 } while (IdxD < lenDestinationListName);
             }
+            //TextBox31.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox31.Text = totalFound.ToString(); }));
+            //totalNotfound = dictDestination.Count - totalFound;
+            TextBox32.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox32.Text = totalNotfound.ToString(); }));
+            stopWatch.Stop();
+            TextBox33.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox33.Text = stopWatch.Elapsed.ToString(); }));
         }
 
         private void button2_Copy1_Click(object sender, RoutedEventArgs e)
@@ -4172,10 +4243,12 @@ namespace NameFinder
                 // результат работы метода в ListNameCompareCS
                 CompareSourceStructuresCS(ref ListNameSourceCS, ref ListNameDestinationCS, ref ListSubDestinationCS, ref StructureSourceCS, ref StructureDestinationCS, ListOpcodeDestinationCS);
                 // сравнение пакетов проведено
+                CheckBoxLock.IsChecked = false;
             }
             else
             {
                 ListNameCompareCS = new List<string>(ListNameCompare);
+                CheckBoxLock.IsChecked = true;
             }
 
             // удаляем оконечные опкоды в имени пакета
@@ -4183,26 +4256,10 @@ namespace NameFinder
             {
                 for (var i = 0; i < ListNameCompareCS.Count; i++)
                 {
-                    if (ListNameCompareCS[i][0].ToString() != "o" || ListNameCompareCS[i][1].ToString() != "f" || ListNameCompareCS[i][2].ToString() != "f")
+                    var offset = ListNameCompareCS[i].LastIndexOf("_", StringComparison.Ordinal);
+                    if (offset > 3)
                     {
-                        var offset = ListNameCompareCS[i].LastIndexOf("_", StringComparison.Ordinal);
-                        if (offset > 0)
-                        {
-                            ListNameCompareCS[i] = ListNameCompareCS[i].Substring(0, offset);
-                        }
-                    }
-                }
-            }
-
-            // RemovePacket
-            if (CheckBoxRemovePacket.IsChecked == true)
-            {
-                for (var i = 0; i < ListNameCompareCS.Count; i++)
-                {
-                    if (ListNameCompareCS[i][0].ToString() != "o" || ListNameCompareCS[i][1].ToString() != "f" || ListNameCompareCS[i][2].ToString() != "f")
-                    {
-                        ListNameCompareCS[i] = ListNameCompareCS[i].ToLower().Replace("cs", "");
-                        ListNameCompareCS[i] = ListNameCompareCS[i].ToLower().Replace("packet", "");
+                        ListNameCompareCS[i] = ListNameCompareCS[i].Substring(0, offset);
                     }
                 }
             }
@@ -4221,6 +4278,36 @@ namespace NameFinder
             }
             CheckBoxToTitleCase.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { CheckBoxToTitleCase.IsChecked = false; }));
 
+            // Remove CS & Packet
+            if (CheckBoxRemovePacket.IsChecked == true)
+            {
+                for (var i = 0; i < ListNameCompareCS.Count; i++)
+                {
+                    if (ListNameCompareCS[i][0].ToString() != "o" || ListNameCompareCS[i][1].ToString() != "f" || ListNameCompareCS[i][2].ToString() != "f")
+                    {
+                        // удаляем CS|SC только в начале имени
+                        var offset = ListNameCompareCS[i].LastIndexOf("CS", StringComparison.Ordinal);
+                        if (offset > 0)
+                        {
+                            ListNameCompareCS[i] = ListNameCompareCS[i].Substring(offset, ListNameCompareCS[i].Length - offset);
+                        }
+                        offset = ListNameCompareCS[i].LastIndexOf("Cs", StringComparison.Ordinal);
+                        if (offset > 0)
+                        {
+                            ListNameCompareCS[i] = ListNameCompareCS[i].Substring(offset, ListNameCompareCS[i].Length - offset);
+                        }
+                        offset = ListNameCompareCS[i].LastIndexOf("cs", StringComparison.Ordinal);
+                        if (offset > 0)
+                        {
+                            ListNameCompareCS[i] = ListNameCompareCS[i].Substring(offset, ListNameCompareCS[i].Length - offset);
+                        }
+                        ListNameCompareCS[i] = ListNameCompareCS[i].Replace("PACKET", "");
+                        ListNameCompareCS[i] = ListNameCompareCS[i].Replace("Packet", "");
+                        ListNameCompareCS[i] = ListNameCompareCS[i].Replace("packet", "");
+                        ListNameCompareCS[i] = ListNameCompareCS[i].Replace("_", "");
+                    }
+                }
+            }
 
             // Добавим 'Packet' в конец имени пакета
             if (CheckBoxAdd.IsChecked == true)
@@ -4255,11 +4342,13 @@ namespace NameFinder
 
             if (CheckBoxCompareManual.IsChecked == true)
             {
+                isCS = true;
                 CompareWindow.isRemoveOpcode = isRemoveOpcode;
                 var compareWindow = new CompareWindow();
                 compareWindow.Show();
                 compareWindow.CompareSourceStructures(ref ListNameSourceCS, ref ListNameDestinationCS, ref ListNameCompareCS, ref ListSubDestinationCS, ref StructureSourceCS, ref StructureDestinationCS, ListOpcodeDestinationCS);
                 isCompareCS = true;
+                CheckBoxLock.IsChecked = true;
             }
 
             ListNameCompareOutCS = new List<string>();
@@ -4302,10 +4391,12 @@ namespace NameFinder
                 // результат работы метода в ListNameCompareSC
                 CompareSourceStructuresSC(ref ListNameSourceSC, ref ListNameDestinationSC, ref ListSubDestinationSC, ref StructureSourceSC, ref StructureDestinationSC, ListOpcodeDestinationSC);
                 // сравнение пакетов проведено
+                CheckBoxLock.IsChecked = false;
             }
             else
             {
                 ListNameCompareSC = new List<string>(ListNameCompare);
+                CheckBoxLock.IsChecked = true;
             }
 
             // удаляем оконечные опкоды в имени пакета
@@ -4313,26 +4404,10 @@ namespace NameFinder
             {
                 for (var i = 0; i < ListNameCompareSC.Count; i++)
                 {
-                    if (ListNameCompareSC[i][0].ToString() != "o" || ListNameCompareSC[i][1].ToString() != "f" || ListNameCompareSC[i][2].ToString() != "f")
+                    var offset = ListNameCompareSC[i].LastIndexOf("_", StringComparison.Ordinal);
+                    if (offset > 3)
                     {
-                        var offset = ListNameCompareSC[i].LastIndexOf("_", StringComparison.Ordinal);
-                        if (offset > 0)
-                        {
-                            ListNameCompareSC[i] = ListNameCompareSC[i].Substring(0, offset);
-                        }
-                    }
-                }
-            }
-
-            // RemovePacket
-            if (CheckBoxRemovePacket.IsChecked == true)
-            {
-                for (var i = 0; i < ListNameCompareSC.Count; i++)
-                {
-                    if (ListNameCompareSC[i][0].ToString() != "o" || ListNameCompareSC[i][1].ToString() != "f" || ListNameCompareSC[i][2].ToString() != "f")
-                    {
-                        ListNameCompareSC[i] = ListNameCompareSC[i].ToLower().Replace("sc", "");
-                        ListNameCompareSC[i] = ListNameCompareSC[i].ToLower().Replace("packet", "");
+                        ListNameCompareSC[i] = ListNameCompareSC[i].Substring(0, offset);
                     }
                 }
             }
@@ -4350,6 +4425,37 @@ namespace NameFinder
                 }
             }
             CheckBoxToTitleCase.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { CheckBoxToTitleCase.IsChecked = false; }));
+
+            // Remove SC &Packet
+            if (CheckBoxRemovePacket.IsChecked == true)
+            {
+                for (var i = 0; i < ListNameCompareSC.Count; i++)
+                {
+                    if (ListNameCompareSC[i][0].ToString() != "o" || ListNameCompareSC[i][1].ToString() != "f" || ListNameCompareSC[i][2].ToString() != "f")
+                    {
+                        // удаляем CS|SC только в начале имени
+                        var offset = ListNameCompareCS[i].LastIndexOf("SC", StringComparison.Ordinal);
+                        if (offset > 0)
+                        {
+                            ListNameCompareCS[i] = ListNameCompareCS[i].Substring(offset, ListNameCompareCS[i].Length - offset);
+                        }
+                        offset = ListNameCompareCS[i].LastIndexOf("Sc", StringComparison.Ordinal);
+                        if (offset > 0)
+                        {
+                            ListNameCompareCS[i] = ListNameCompareCS[i].Substring(offset, ListNameCompareCS[i].Length - offset);
+                        }
+                        offset = ListNameCompareCS[i].LastIndexOf("sc", StringComparison.Ordinal);
+                        if (offset > 0)
+                        {
+                            ListNameCompareCS[i] = ListNameCompareCS[i].Substring(offset, ListNameCompareCS[i].Length - offset);
+                        }
+                        ListNameCompareSC[i] = ListNameCompareSC[i].Replace("PACKET", "");
+                        ListNameCompareSC[i] = ListNameCompareSC[i].Replace("Packet", "");
+                        ListNameCompareSC[i] = ListNameCompareSC[i].Replace("packet", "");
+                        ListNameCompareSC[i] = ListNameCompareSC[i].Replace("_", "");
+                    }
+                }
+            }
 
             // Добавим 'Packet' в конец имени пакета
             if (CheckBoxAdd.IsChecked == true)
@@ -4384,10 +4490,13 @@ namespace NameFinder
 
             if (CheckBoxCompareManual.IsChecked == true)
             {
+                isCS = false;
+                CompareWindow.isRemoveOpcode = isRemoveOpcode;
                 var compareWindow = new CompareWindow();
                 compareWindow.Show();
                 compareWindow.CompareSourceStructures(ref ListNameSourceSC, ref ListNameDestinationSC, ref ListNameCompareSC, ref ListSubDestinationSC, ref StructureSourceSC, ref StructureDestinationSC, ListOpcodeDestinationSC);
                 isCompareSC = true;
+                CheckBoxLock.IsChecked = true;
             }
 
             ListNameCompareOutSC = new List<string>();
@@ -5161,7 +5270,6 @@ namespace NameFinder
 
                     isCompareCS = File.ReadAllLines(DirPathCS + "\\isCompareCS")[0] == "True";
                     isCompareSC = File.ReadAllLines(DirPathCS + "\\isCompareSC")[0] == "True";
-
                     InListSource = File.ReadAllLines(DirPath + "\\data\\InListSource").ToList();
                     ListView11.ItemsSource = InListSource;
                     InListDestination = File.ReadAllLines(DirPath + "\\data\\InListDestination").ToList();
@@ -5271,6 +5379,10 @@ namespace NameFinder
                     ButtonSaveOut2.IsEnabled = false;
                     ButtonCsCompare.IsEnabled = true;
                     ButtonScCompare.IsEnabled = false;
+                    if (isCompareCS)
+                    {
+                        CheckBoxLock.IsChecked = true;
+                    }
 
                     _isInCs = true;
                     _isOutCs = true;
@@ -5424,6 +5536,10 @@ namespace NameFinder
                     ButtonSaveOut2.IsEnabled = true;
                     ButtonCsCompare.IsEnabled = false;
                     ButtonScCompare.IsEnabled = true;
+                    if (isCompareSC)
+                    {
+                        CheckBoxLock.IsChecked = true;
+                    }
 
                     _isInSc = true;
                     _isOutSc = true;
@@ -5460,6 +5576,7 @@ namespace NameFinder
             if (ListView12.SelectedItem != null)
             {
                 ListView13.SelectedIndex = ListView12.SelectedIndex;
+                TextBoxNumIn.Text = (ListView12.SelectedIndex + 1).ToString();
                 ListView13.UpdateLayout();
                 ListView13.ScrollIntoView(ListView13.SelectedItem);
 
@@ -5474,6 +5591,7 @@ namespace NameFinder
             if (ListView13.SelectedItem != null)
             {
                 ListView12.SelectedIndex = ListView13.SelectedIndex;
+                TextBoxNumIn.Text = (ListView13.SelectedIndex + 1).ToString();
                 ListView12.UpdateLayout();
                 ListView12.ScrollIntoView(ListView12.SelectedItem);
 
@@ -5488,6 +5606,7 @@ namespace NameFinder
             if (ListView32.SelectedItem != null)
             {
                 ListView31.SelectedIndex = ListView32.SelectedIndex;
+                TextBoxNumOut.Text = (ListView32.SelectedIndex + 1).ToString();
                 ListView31.UpdateLayout();
                 ListView31.ScrollIntoView(ListView31.SelectedItem);
 
@@ -5498,7 +5617,7 @@ namespace NameFinder
                 ListView23.SelectedIndex = ListView32.SelectedIndex;
                 ListView23.UpdateLayout();
                 ListView23.ScrollIntoView(ListView23.SelectedItem);
-                
+
                 ListView24.SelectedIndex = ListView32.SelectedIndex;
                 ListView24.UpdateLayout();
                 ListView24.ScrollIntoView(ListView24.SelectedItem);
@@ -5510,6 +5629,7 @@ namespace NameFinder
             if (ListView23.SelectedItem != null)
             {
                 ListView22.SelectedIndex = ListView23.SelectedIndex;
+                TextBoxNumOut.Text = (ListView23.SelectedIndex + 1).ToString();
                 ListView22.UpdateLayout();
                 ListView22.ScrollIntoView(ListView22.SelectedItem);
 
@@ -5524,6 +5644,7 @@ namespace NameFinder
             if (ListView22.SelectedItem != null)
             {
                 ListView23.SelectedIndex = ListView22.SelectedIndex;
+                TextBoxNumOut.Text = (ListView22.SelectedIndex + 1).ToString();
                 ListView23.UpdateLayout();
                 ListView23.ScrollIntoView(ListView23.SelectedItem);
 
@@ -5540,6 +5661,7 @@ namespace NameFinder
                 TextBoxEditOutOpcode.Text = ListView24.SelectedItem.ToString();
 
                 ListView22.SelectedIndex = ListView24.SelectedIndex;
+                TextBoxNumOut.Text = (ListView24.SelectedIndex + 1).ToString();
                 ListView22.UpdateLayout();
                 ListView22.ScrollIntoView(ListView22.SelectedItem);
 
@@ -5552,6 +5674,7 @@ namespace NameFinder
         private void ListView14_SelectionChanged(object sender, RoutedEventArgs e)
         {
             ListView12.SelectedIndex = ListView14.SelectedIndex;
+            TextBoxNumIn.Text = (ListView14.SelectedIndex + 1).ToString();
             ListView12.UpdateLayout();
             ListView12.ScrollIntoView(ListView12.SelectedItem);
 
@@ -5563,9 +5686,10 @@ namespace NameFinder
         private void ListView31_SelectionChanged(object sender, RoutedEventArgs e)
         {
             ListView32.SelectedIndex = ListView31.SelectedIndex;
+            TextBoxNumOut.Text = (ListView31.SelectedIndex + 1).ToString();
             ListView32.UpdateLayout();
             ListView32.ScrollIntoView(ListView32.SelectedItem);
-        
+
             ListView22.SelectedIndex = ListView31.SelectedIndex;
             ListView22.UpdateLayout();
             ListView22.ScrollIntoView(ListView22.SelectedItem);
@@ -5573,7 +5697,7 @@ namespace NameFinder
             ListView23.SelectedIndex = ListView31.SelectedIndex;
             ListView23.UpdateLayout();
             ListView23.ScrollIntoView(ListView23.SelectedItem);
-                
+
             ListView24.SelectedIndex = ListView31.SelectedIndex;
             ListView24.UpdateLayout();
             ListView24.ScrollIntoView(ListView24.SelectedItem);
@@ -5665,7 +5789,14 @@ namespace NameFinder
                         tmp.Add(lst);
                         foreach (var str in StructureSourceCS[i])
                         {
-                            lst = "            var " + str.Name.Replace("\"", "") + " = stream.Read" + str.Type + "();";
+                            if (CheckBoxTypeEnumNewIn.IsChecked == true)
+                            {
+                                lst = "            var " + str.Name.Replace("\"", "") + " = stream.Read" + (TypeEnum2)str.Type + "();";
+                            }
+                            else
+                            {
+                                lst = "            var " + str.Name.Replace("\"", "") + " = stream.Read" + (TypeEnum)str.Type + "();";
+                            }
                             tmp.Add(lst);
                         }
                         lst = "        }";
@@ -5689,35 +5820,6 @@ namespace NameFinder
                 }
                 else
                 {
-                    /*
-                        using AAEmu.Commons.Network;
-                        using AAEmu.Game.Core.Network.Game;
-                        
-                        namespace AAEmu.Game.Core.Packets.G2C
-                        {
-                            public class SCAbilityExpChangedPacket : GamePacket
-                            {
-                                private readonly uint _objId;
-                                private readonly byte _ability;
-                                private readonly int _exp;
-                        
-                                public SCAbilityExpChangedPacket(uint objId, byte ability, int exp) : base(SCOffsets.SCAbilityExpChangedPacket, 1)
-                                {
-                                    _objId = objId;
-                                    _ability = (byte) ability;
-                                    _exp = exp;
-                                }
-                        
-                                public override PacketStream Write(PacketStream stream)
-                                {
-                                    stream.WriteBc(_objId);
-                                    stream.Write(_ability);
-                                    stream.Write(_exp);
-                                    return stream;
-                                }
-                            }
-                        }                   
-                     */
                     // сохраняем в виде файла
                     for (var i = 0; i < ListNameSourceSC.Count; i++)
                     {
@@ -5759,7 +5861,14 @@ namespace NameFinder
                         tmp.Add(lst);
                         foreach (var str in StructureSourceSC[i])
                         {
-                            lst = "        private readonly " + str.Type + " _" + str.Name.Replace("\"", "") + ";";
+                            if (CheckBoxTypeEnumNewIn.IsChecked == true)
+                            {
+                                lst = "        private readonly " + (TypeEnum2)str.Type + " _" + str.Name.Replace("\"", "") + ";";
+                            }
+                            else
+                            {
+                                lst = "        private readonly " + (TypeEnum)str.Type + " _" + str.Name.Replace("\"", "") + ";";
+                            }
                             tmp.Add(lst);
                         }
                         lst = "";
@@ -5769,7 +5878,14 @@ namespace NameFinder
                         var li = StructureSourceSC[i];
                         for (var j = 0; j < li.Count; j++)
                         {
-                            lst += "" + li[j].Type + " " + li[j].Name.Replace("\"", "");
+                            if (CheckBoxTypeEnumNewIn.IsChecked == true)
+                            {
+                                lst += "" + (TypeEnum2)li[j].Type + " " + li[j].Name.Replace("\"", "");
+                            }
+                            else
+                            {
+                                lst += "" + (TypeEnum)li[j].Type + " " + li[j].Name.Replace("\"", "");
+                            }
                             if (j < li.Count - 1)
                             {
                                 lst += ", ";
@@ -5896,7 +6012,14 @@ namespace NameFinder
                         tmp.Add(lst);
                         foreach (var str in StructureDestinationCS[i])
                         {
-                            lst = "            var " + str.Name.Replace("\"", "") + " = stream.Read" + str.Type + "();";
+                            if (CheckBoxTypeEnumNewOut.IsChecked == true)
+                            {
+                                lst = "            var " + str.Name.Replace("\"", "") + " = stream.Read" + (TypeEnum2)str.Type + "();";
+                            }
+                            else
+                            {
+                                lst = "            var " + str.Name.Replace("\"", "") + " = stream.Read" + (TypeEnum)str.Type + "();";
+                            }
                             tmp.Add(lst);
                         }
                         lst = "        }";
@@ -5968,7 +6091,14 @@ namespace NameFinder
                         tmp.Add(lst);
                         foreach (var str in StructureDestinationSC[i])
                         {
-                            lst = "        private readonly " + str.Type + " _" + str.Name.Replace("\"", "") + ";";
+                            if (CheckBoxTypeEnumNewOut.IsChecked == true)
+                            {
+                                lst = "        private readonly " + (TypeEnum2)str.Type + " _" + str.Name.Replace("\"", "") + ";";
+                            }
+                            else
+                            {
+                                lst = "        private readonly " + (TypeEnum)str.Type + " _" + str.Name.Replace("\"", "") + ";";
+                            }
                             tmp.Add(lst);
                         }
                         lst = "";
@@ -5978,7 +6108,14 @@ namespace NameFinder
                         var li = StructureDestinationSC[i];
                         for (var j = 0; j < li.Count; j++)
                         {
-                            lst += "" + li[j].Type + " " + li[j].Name.Replace("\"", "");
+                            if (CheckBoxTypeEnumNewOut.IsChecked == true)
+                            {
+                                lst += "" + (TypeEnum2)li[j].Type + " " + li[j].Name.Replace("\"", "");
+                            }
+                            else
+                            {
+                                lst += "" + (TypeEnum)li[j].Type + " " + li[j].Name.Replace("\"", "");
+                            }
                             if (j < li.Count - 1)
                             {
                                 lst += ", ";
@@ -6322,6 +6459,31 @@ namespace NameFinder
                 return i;
             }
             return 0;
+        }
+
+        private void CheckBoxLock_Checked(object sender, RoutedEventArgs e)
+        {
+            if (ButtonCsCompare.IsEnabled)
+            {
+                isCompareCS = CheckBoxLock.IsChecked == true;
+            }
+            else
+            {
+                isCompareSC = CheckBoxLock.IsChecked == true;
+            }
+        }
+
+        private void CheckBoxTypeEnumNewOut_Checked(object sender, RoutedEventArgs e)
+        {
+
+            isTypeEnumNewOut = CheckBoxTypeEnumNewOut.IsChecked == true;
+
+        }
+
+        private void CheckBoxTypeEnumNewIn_Checked(object sender, RoutedEventArgs e)
+        {
+            isTypeEnumNewIn = CheckBoxTypeEnumNewIn.IsChecked == true;
+
         }
     }
 }

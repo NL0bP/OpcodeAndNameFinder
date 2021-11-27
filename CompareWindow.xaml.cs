@@ -141,30 +141,13 @@ namespace NameFinder
             // удаляем оконечные опкоды в имени пакета
             if (CheckBoxRemoveOpcode.IsChecked == true)
             {
-                if (ListNameCompare[IdxD][0].ToString() != "o" || ListNameCompare[IdxD][1].ToString() != "f" || ListNameCompare[IdxD][2].ToString() != "f")
+                //if (ListNameCompare[IdxD][0].ToString() != "o" || ListNameCompare[IdxD][1].ToString() != "f" || ListNameCompare[IdxD][2].ToString() != "f")
                 {
                     var offset = ListNameCompare[IdxD].LastIndexOf("_", StringComparison.Ordinal);
-                    if (offset > 0)
+                    if (offset > 3)
                     {
                         ListNameCompare[IdxD] = ListNameCompare[IdxD].Substring(0, offset);
                     }
-                }
-            }
-
-            // Remove Packet
-            if (CheckBoxAdd.IsChecked == true)
-            {
-                if (ListNameCompare[IdxD][0].ToString() != "o" || ListNameCompare[IdxD][1].ToString() != "f" || ListNameCompare[IdxD][2].ToString() != "f")
-                {
-                    if (MainWindow.isCompareCS)
-                    {
-                        ListNameCompare[IdxD] = ListNameCompare[IdxD].ToLower().Replace("cs", "");
-                    }
-                    else
-                    {
-                        ListNameCompare[IdxD] = ListNameCompare[IdxD].ToLower().Replace("sc", "");
-                    }
-                    ListNameCompare[IdxD] = ListNameCompare[IdxD].ToLower().Replace("packet", "");
                 }
             }
 
@@ -174,6 +157,29 @@ namespace NameFinder
                 if (ListNameCompare[IdxD][0].ToString() != "o" || ListNameCompare[IdxD][1].ToString() != "f" || ListNameCompare[IdxD][2].ToString() != "f")
                 {
                     ListNameCompare[IdxD] = System.Globalization.CultureInfo.CurrentCulture.TextInfo.ToTitleCase(ListNameCompare[IdxD].ToLower());
+                    ListNameCompare[IdxD] = ListNameCompare[IdxD].Replace("_", "");
+                }
+            }
+
+            // Remove Packet
+            if (CheckBoxAdd.IsChecked == true)
+            {
+                if (ListNameCompare[IdxD][0].ToString() != "o" || ListNameCompare[IdxD][1].ToString() != "f" || ListNameCompare[IdxD][2].ToString() != "f")
+                {
+                    if (MainWindow.isCS)
+                    {
+                        ListNameCompare[IdxD] = ListNameCompare[IdxD].Replace("CS", "");
+                        ListNameCompare[IdxD] = ListNameCompare[IdxD].Replace("Cs", "");
+                    }
+                    else
+                    {
+                        ListNameCompare[IdxD] = ListNameCompare[IdxD].Replace("SC", "");
+                        ListNameCompare[IdxD] = ListNameCompare[IdxD].Replace("Sc", "");
+                    }
+                    ListNameCompare[IdxD] = ListNameCompare[IdxD].Replace("PACKET", "");
+                    ListNameCompare[IdxD] = ListNameCompare[IdxD].Replace("Packet", "");
+                    ListNameCompare[IdxD] = ListNameCompare[IdxD].Replace("packet", "");
+                    ListNameCompare[IdxD] = ListNameCompare[IdxD].Replace("On", "");
                     ListNameCompare[IdxD] = ListNameCompare[IdxD].Replace("_", "");
                 }
             }
@@ -194,7 +200,7 @@ namespace NameFinder
                         ListNameCompare[IdxD] += "Packet";
                     }
 
-                    if (MainWindow.isCompareCS)
+                    if (MainWindow.isCS)
                     {
                         if (ListNameCompare[IdxD][0].ToString() != "C" || ListNameCompare[IdxD][1].ToString() != "S")
                         {
@@ -257,7 +263,14 @@ namespace NameFinder
                 var source = new List<string>();
                 foreach (var li in lis)
                 {
-                    source.Add(li.Type + " " + li.Name);
+                    if (MainWindow.isTypeEnumNewIn)
+                    {
+                        source.Add((TypeEnum2)li.Type + " " + li.Name);
+                    }
+                    else
+                    {
+                        source.Add((TypeEnum)li.Type + " " + li.Name);
+                    }
                 }
                 ListView11.ItemsSource = source.ToList();
             }
@@ -277,7 +290,14 @@ namespace NameFinder
                 var source = new List<string>();
                 foreach (var li in lis)
                 {
-                    source.Add(li.Type + " " + li.Name);
+                    if (MainWindow.isTypeEnumNewOut)
+                    {
+                        source.Add((TypeEnum2)li.Type + " " + li.Name);
+                    }
+                    else
+                    {
+                        source.Add((TypeEnum)li.Type + " " + li.Name);
+                    }
                 }
                 ListView21.ItemsSource = source.ToList();
             }
