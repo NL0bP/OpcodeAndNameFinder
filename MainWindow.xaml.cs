@@ -149,13 +149,13 @@ namespace NameFinder
         public static int DepthOut = 0;
         public int IdxS = 0;
         public int IdxD = 0;
-        object lockObj;
+        //object lockObj;
 
         public MainWindow()
         {
             InitializeComponent();
             // Создаем объект для блокировки.
-            lockObj = new object();
+            //lockObj = new object();
         }
 
         private void FindOpcodeSourceCS()
@@ -2458,7 +2458,7 @@ namespace NameFinder
             var indexRefs = 0;
 
             // Блокируем объект.
-            lock (lockObj)
+            //lock (lockObj)
             {
                 var regex = new Regex(@"^[a-zA-Z0-9_?@]+\s+dd\soffset\s" + str, RegexOptions.Compiled);
                 var regexXREF = new Regex(@"(^\s+;[a-zA-Z:\s]*\s(sub_\w+|X2\w+|w+))", RegexOptions.Compiled);
@@ -2725,7 +2725,7 @@ namespace NameFinder
             var indexRefs = 0;
 
             // Блокируем объект.
-            lock (lockObj)
+            //lock (lockObj)
             {
                 var regex = new Regex(@"^[a-zA-Z0-9_?@]+\s+dd\soffset\s" + str, RegexOptions.Compiled);
                 var regexXREF = new Regex(@"(^\s+;[a-zA-Z:\s]*\s(sub_\w+|X2\w+|w+))", RegexOptions.Compiled);
@@ -2993,7 +2993,7 @@ namespace NameFinder
             var indexRefs = 0;
 
             // Блокируем объект.
-            lock (lockObj)
+            //lock (lockObj)
             {
                 var regex = new Regex(@"^[a-zA-Z0-9_?@]+\s+dd\soffset\s" + str, RegexOptions.Compiled);
                 var regexXREF = new Regex(@"(^\s+;[a-zA-Z:\s]*\s(sub_\w+|X2\w+))", RegexOptions.Compiled);
@@ -3259,7 +3259,7 @@ namespace NameFinder
             var indexRefs = 0;
 
             // Блокируем объект.
-            lock (lockObj)
+            //lock (lockObj)
             {
                 var regex = new Regex(@"^[a-zA-Z0-9_?@]+\s+dd\soffset\s" + str, RegexOptions.Compiled);
                 var regexXREF = new Regex(@"(^\s+;[a-zA-Z:\s]*\s(sub_\w+|X2\w+|w+))", RegexOptions.Compiled);
@@ -3516,7 +3516,7 @@ namespace NameFinder
                 TextBoxPathIn.Text = FilePathIn1;
                 var stopWatch = new Stopwatch();
                 stopWatch.Start();
-                lock (lockObj)
+                //lock (lockObj)
                 {
                     InListSource = new List<string>();
                     // чтение из файла
@@ -3678,7 +3678,7 @@ namespace NameFinder
                 TextBoxPathIn.Text = FilePathIn1;
                 var stopWatch = new Stopwatch();
                 stopWatch.Start();
-                lock (lockObj)
+                //lock (lockObj)
                 {
                     new Thread(() =>
                     {
@@ -3744,7 +3744,7 @@ namespace NameFinder
                 TextBoxPathOut.Text = FilePathIn2;
                 var stopWatch = new Stopwatch();
                 stopWatch.Start();
-                lock (lockObj)
+                //lock (lockObj)
                 {
                     InListDestination = new List<string>();
                     // чтение из файла
@@ -3888,7 +3888,7 @@ namespace NameFinder
             IdxD = 0;
 
             // Блокируем объект.
-            lock (lockObj)
+            //lock (lockObj)
             {
                 if (IdxD >= dictDestination.Count)
                 {
@@ -4075,7 +4075,7 @@ namespace NameFinder
             IdxD = 0;
 
             // Блокируем объект.
-            lock (lockObj)
+            //lock (lockObj)
             {
                 if (IdxD >= dictDestination.Count)
                 {
@@ -5023,7 +5023,7 @@ namespace NameFinder
 
             var stopWatch = new Stopwatch();
             stopWatch.Start();
-            lock (lockObj)
+            //lock (lockObj)
             {
                 using (var FBD = new FolderBrowserDialog())
                 {
@@ -5233,7 +5233,7 @@ namespace NameFinder
             Label_Semafor1.Background = Brushes.Red;
             Label_Semafor2.Background = Brushes.Red;
 
-            lock (lockObj)
+            //lock (lockObj)
             {
                 try
                 {
@@ -5388,7 +5388,7 @@ namespace NameFinder
             Label_Semafor1.Background = Brushes.Red;
             Label_Semafor2.Background = Brushes.Red;
 
-            lock (lockObj)
+            //lock (lockObj)
             {
                 try
                 {
