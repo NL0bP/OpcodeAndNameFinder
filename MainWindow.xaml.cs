@@ -4461,20 +4461,20 @@ namespace NameFinder
                     if (ListNameCompareSC[i][0].ToString() != "o" || ListNameCompareSC[i][1].ToString() != "f" || ListNameCompareSC[i][2].ToString() != "f")
                     {
                         // удаляем CS|SC только в начале имени
-                        var offset = ListNameCompareCS[i].LastIndexOf("SC", StringComparison.Ordinal);
+                        var offset = ListNameCompareSC[i].LastIndexOf("SC", StringComparison.Ordinal);
                         if (offset > 0)
                         {
-                            ListNameCompareCS[i] = ListNameCompareCS[i].Substring(offset, ListNameCompareCS[i].Length - offset);
+                            ListNameCompareSC[i] = ListNameCompareSC[i].Substring(offset, ListNameCompareSC[i].Length - offset);
                         }
-                        offset = ListNameCompareCS[i].LastIndexOf("Sc", StringComparison.Ordinal);
+                        offset = ListNameCompareSC[i].LastIndexOf("Sc", StringComparison.Ordinal);
                         if (offset > 0)
                         {
-                            ListNameCompareCS[i] = ListNameCompareCS[i].Substring(offset, ListNameCompareCS[i].Length - offset);
+                            ListNameCompareSC[i] = ListNameCompareSC[i].Substring(offset, ListNameCompareSC[i].Length - offset);
                         }
-                        offset = ListNameCompareCS[i].LastIndexOf("sc", StringComparison.Ordinal);
+                        offset = ListNameCompareSC[i].LastIndexOf("sc", StringComparison.Ordinal);
                         if (offset > 0)
                         {
-                            ListNameCompareCS[i] = ListNameCompareCS[i].Substring(offset, ListNameCompareCS[i].Length - offset);
+                            ListNameCompareSC[i] = ListNameCompareSC[i].Substring(offset, ListNameCompareSC[i].Length - offset);
                         }
                         ListNameCompareSC[i] = ListNameCompareSC[i].Replace("PACKET", "");
                         ListNameCompareSC[i] = ListNameCompareSC[i].Replace("Packet", "");
