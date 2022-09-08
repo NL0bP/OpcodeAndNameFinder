@@ -4324,6 +4324,7 @@ namespace NameFinder
             }
 
             ListView31.ItemsSource = ListNameCompareCS;
+            TextBox31.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox31.Text = ListView31.Items.Count.ToString(); }));
 
             if (CheckBoxCompareManual.IsChecked == true)
             {
@@ -4472,6 +4473,7 @@ namespace NameFinder
             }
 
             ListView31.ItemsSource = ListNameCompareSC;
+            TextBox31.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox31.Text = ListView31.Items.Count.ToString(); }));
 
             if (CheckBoxCompareManual.IsChecked == true)
             {
