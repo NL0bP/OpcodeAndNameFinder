@@ -3228,6 +3228,7 @@ namespace NameFinder
             stopWatch.Stop();
             TextBox28.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox28.Text = stopWatch.Elapsed.ToString(); }));
             Label_Semafor2.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { Label_Semafor2.Background = Brushes.GreenYellow; }));
+            BtnUpdStruct.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnUpdStruct.IsEnabled = true; }));
         }
 
         private void FindDestinationStructuresSC(string str)
@@ -3501,6 +3502,7 @@ namespace NameFinder
             Label_Semafor2.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { Label_Semafor2.Background = Brushes.GreenYellow; }));
             BtnCsLoadNameOut.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnCsLoadNameOut.IsEnabled = true; }));
             BtnScLoadNameOut.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnScLoadNameOut.IsEnabled = true; }));
+            BtnUpdStruct.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnUpdStruct.IsEnabled = true; }));
         }
 
         private void btn_Load_In_Click(object sender, RoutedEventArgs e)
@@ -3783,6 +3785,45 @@ namespace NameFinder
                 MessageBox.Show("Для работы программы необходимо выбрать .asm файл!", "Error", System.Windows.MessageBoxButton.OK, MessageBoxImage.Information);
                 //BtnLoadIn_Copy.IsEnabled = true;
                 BtnLoadOut.IsEnabled = true;
+            }
+        }
+
+        private void btn_UpdStruct_Click(object sender, RoutedEventArgs e)
+        {
+            // инициализируем прогрессбары и списки
+            //InitializeOut();
+
+            BtnCsLoadNameOut.IsEnabled = false;
+            BtnScLoadNameOut.IsEnabled = false;
+            BtnLoadOut.IsEnabled = false;
+            string outText;
+            DepthOut = 0;
+
+            //ListNameDestinationSC = new List<string>();
+            FindOpcodeOut = CheckBoxFindOpcodeOut.IsChecked == true;
+            FindStructOut = CheckBoxFindStructOut.IsChecked == true;
+            //_isInSc = false;
+            _isOutSc = false;
+            // = false;
+            _isOutCs = false;
+            isCompareCS = false;
+            isCompareSC = false;
+            BtnUpdStruct.IsEnabled = false;
+            if (ButtonSaveOut1.IsEnabled)
+            {
+                outText = TextBox21.Text;
+                new Thread(() =>
+                {
+                    FindDestinationStructuresCS(outText);
+                }).Start();
+            }
+            else
+            {
+                outText = TextBox22.Text;
+                new Thread(() =>
+                {
+                    FindDestinationStructuresSC(outText);
+                }).Start();
             }
         }
 

@@ -198,5 +198,6 @@
         <CheckBox x:Name="CheckBoxRenameOff" Content="Rename only Unknown" HorizontalAlignment="Left" Margin="1564,6,0,0" VerticalAlignment="Top" Width="143" IsChecked="False"/>
         <CheckBox x:Name="CheckBoxTypeEnumNewIn" Content="Type Enum New" HorizontalAlignment="Left" Margin="22,121,0,0" VerticalAlignment="Top" Width="166" IsChecked="True" Unchecked="CheckBoxTypeEnumNewIn_Checked" Checked="CheckBoxTypeEnumNewIn_Checked"/>
         <CheckBox x:Name="CheckBoxTypeEnumNewOut" Content="Type Enum New" HorizontalAlignment="Left" Margin="788,124,0,0" VerticalAlignment="Top" Width="166" IsChecked="True" Unchecked="CheckBoxTypeEnumNewOut_Checked" Checked="CheckBoxTypeEnumNewOut_Checked"/>
+        <Button x:Name="BtnUpdStruct" Content="Upd Struct" HorizontalAlignment="Left" Height="30" Margin="1172,645,0,0" VerticalAlignment="Top" Width="75" Click="btn_UpdStruct_Click" IsEnabled="True"/>
     </Grid>
 </Window>
