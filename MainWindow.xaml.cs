@@ -5365,6 +5365,10 @@ namespace NameFinder
                     ButtonSaveOut2.IsEnabled = false;
                     ButtonCsCompare.IsEnabled = true;
                     ButtonScCompare.IsEnabled = false;
+                    Button2Copy2.IsEnabled = false;
+                    Button2Copy2_Copy.IsEnabled = false;
+                    ButtonCopy2.IsEnabled = false;
+                    ButtonCopy2_Copy.IsEnabled = false;
                     if (isCompareCS)
                     {
                         CheckBoxLock.IsChecked = true;
@@ -5521,6 +5525,10 @@ namespace NameFinder
                     ButtonSaveOut2.IsEnabled = true;
                     ButtonCsCompare.IsEnabled = false;
                     ButtonScCompare.IsEnabled = true;
+                    ButtonCopy2.IsEnabled = false;
+                    ButtonCopy2_Copy.IsEnabled = false;
+                    Button2Copy2.IsEnabled = false;
+                    Button2Copy2_Copy.IsEnabled = false;
                     if (isCompareSC)
                     {
                         CheckBoxLock.IsChecked = true;
@@ -5553,6 +5561,15 @@ namespace NameFinder
                 }
                 ListView24.SelectedItem = TextBoxEditOutOpcode.Text;
                 ListView24.Items.Refresh();
+                var notFound = 0;
+                foreach (var item in ListView24.Items)
+                {
+                    if (item.ToString() == "0xfff")
+                    {
+                        notFound++;
+                    }
+                }
+                TextBox17Copy1.Text = notFound.ToString();
             }
         }
 
