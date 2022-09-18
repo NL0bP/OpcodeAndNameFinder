@@ -152,7 +152,7 @@ namespace NameFinder
                     {
                         // не переименовываем, если имя содержит Unknown
                         offset = ListNameSource[IdxS].IndexOf("unknown", StringComparison.OrdinalIgnoreCase);
-                        if (offset != -1)
+                        if (offset == -1)
                         {
                             // переименовываем имена пакетов
                             ListNameCompare[IdxD] = ListNameSource[IdxS];
@@ -176,7 +176,18 @@ namespace NameFinder
                 }
                 else
                 {
-                    ListNameCompare[IdxD] = ListNameSource[IdxS];
+                    // не переименовываем, если имя содержит Unknown
+                    offset = ListNameSource[IdxS].IndexOf("unknown", StringComparison.OrdinalIgnoreCase);
+                    if (offset == -1)
+                    {
+                        // переименовываем имена пакетов
+                        ListNameCompare[IdxD] = ListNameSource[IdxS];
+                    }
+                    else
+                    {
+                        // не переименовываем, если имя содержит Unknown
+                        ListNameCompare[IdxD] = ListNameDestination[IdxD];
+                    }
                 }
             }
 
