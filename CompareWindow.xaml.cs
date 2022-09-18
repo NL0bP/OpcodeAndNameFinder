@@ -140,6 +140,7 @@ namespace NameFinder
                 }
                 else
                 {
+                    // переименовываем имена пакетов
                     if (ListNameSource[IdxS][0].ToString() == "o" ||
                         ListNameSource[IdxS][1].ToString() == "f" ||
                         ListNameSource[IdxS][2].ToString() == "f")
@@ -149,7 +150,18 @@ namespace NameFinder
                     }
                     else
                     {
-                        ListNameCompare[IdxD] = ListNameSource[IdxS];
+                        // не переименовываем, если имя содержит Unknown
+                        offset = ListNameSource[IdxS].IndexOf("unknown", StringComparison.OrdinalIgnoreCase);
+                        if (offset != -1)
+                        {
+                            // переименовываем имена пакетов
+                            ListNameCompare[IdxD] = ListNameSource[IdxS];
+                        }
+                        else
+                        {
+                            // не переименовываем, если имя содержит Unknown
+                            ListNameCompare[IdxD] = ListNameDestination[IdxD];
+                        }
                     }
                 }
             }

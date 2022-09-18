@@ -3929,18 +3929,12 @@ namespace NameFinder
             InUseIn = new Dictionary<int, int>();
             InUseOut = new Dictionary<int, int>();
             IsRenameDestination = new Dictionary<int, bool>();
-            //var listCompare = new List<string>();
-            //var foundNamePartial = false;
             var foundName = false;
-            //var result = false;
             var badFound = 0;
-            //var skipStr = 0;
             var repeat = true;
             var totalFound = 0;
             var totalNotfound = 0;
             // список структуры текущего сравнения имен
-            //var ddList = new List<string>();
-            //var dsList = new List<string>();
             // длины списков, могут отличаться, скорее всего список неизвестных имен длиннее, так как более новая версия
             var lenDestinationListName = listNameDestination.Count;
             var lenSourceListName = listNameSource.Count;
@@ -3960,16 +3954,10 @@ namespace NameFinder
                 // начнем с начала файла
                 try
                 {
-                    do // проходим по списку имён? которые нужно найти, т.е. Destination
+                    do // проходим по списку имён, которые нужно найти, т.е. Destination
                     {
                         // возьмем следующую структуру, для которой нужно найти новое имя
                         var ddList = dictDestination[IdxD];
-                        //if (ddList.Count == 0)
-                        //{
-                        //    IdxD++;
-                        //    repeat = true; // нужно будет повторять поиск
-                        //    continue; // пропускаем пустые структуры
-                        //}
                         IdxS = 0;
                         do
                         {
@@ -3984,13 +3972,7 @@ namespace NameFinder
                                     if ( ddList.Count == 0 && dsList.Count == 0 )
                                     {
                                         foundName = true; // делаем пустые структуры похожими
-                                                          //foundName = false; // делаем пустые структуры непохожими
                                     }
-                                    //else if (ddList.Count == 1 && dsList.Count == 1 && ddList[0] == dsList[0] &&
-                                    //         (ddList[0] == "\"type\"" || ddList[0] == "\"bc\""))
-                                    //{
-                                    //    foundName = false; // делаем структуры с одним полем "type" - непохожими
-                                    //}
                                     else
                                     {
                                         // количество строк в структурах совпадает
@@ -4047,7 +4029,7 @@ namespace NameFinder
                                         }
                                         else
                                         {
-                                            //ListNameCompareCS[IdxD] = listNameSource[IdxS];
+                                            // переименовываем имена пакетов
                                             if ( listNameSource[IdxS][0].ToString() == "o" ||
                                                 listNameSource[IdxS][1].ToString() == "f" ||
                                                 listNameSource[IdxS][2].ToString() == "f" )
@@ -4058,12 +4040,24 @@ namespace NameFinder
                                             }
                                             else
                                             {
-                                                ListNameCompareCS[IdxD] = listNameSource[IdxS];
-                                                totalFound++; // подсчитываем найденные имена
+                                                // не переименовываем, если имя содержит Unknown
+                                                var offset = listNameSource[IdxS].IndexOf( "unknown", StringComparison.OrdinalIgnoreCase );
+                                                if ( offset == -1 )
+                                                {
+                                                    // переименовываем имена пакетов
+                                                    ListNameCompareCS[IdxD] = listNameSource[IdxS];
+                                                    totalFound++; // подсчитываем найденные имена
+                                                }
+                                                else
+                                                {
+                                                    // не переименовываем, если имя содержит Unknown
+                                                    ListNameCompareCS[IdxD] = listNameDestination[IdxD];
+                                                    totalNotfound++; // подсчитываем ненайденные имена
+                                                }
                                             }
                                         }
 
-                                        repeat = false; // болше не повторять поиск
+                                        repeat = false; // больше не повторять поиск
                                     }
                                     else
                                     {
@@ -4214,7 +4208,7 @@ namespace NameFinder
                                     }
                                     else
                                     {
-                                        //ListNameCompareSC[IdxD] = listNameSource[IdxS];
+                                        // переименовываем имена пакетов
                                         if ( listNameSource[IdxS][0].ToString() == "o" ||
                                             listNameSource[IdxS][1].ToString() == "f" ||
                                             listNameSource[IdxS][2].ToString() == "f" )
@@ -4225,8 +4219,20 @@ namespace NameFinder
                                         }
                                         else
                                         {
-                                            ListNameCompareSC[IdxD] = listNameSource[IdxS];
-                                            totalFound++; // подсчитываем найденные имена
+                                            // не переименовываем, если имя содержит Unknown
+                                            var offset = listNameSource[IdxS].IndexOf( "unknown", StringComparison.OrdinalIgnoreCase );
+                                            if ( offset == -1 )
+                                            {
+                                                // переименовываем имена пакетов
+                                                ListNameCompareSC[IdxD] = listNameSource[IdxS];
+                                                totalFound++; // подсчитываем найденные имена
+                                            }
+                                            else
+                                            {
+                                                // не переименовываем, если имя содержит Unknown
+                                                ListNameCompareSC[IdxD] = listNameDestination[IdxD];
+                                                totalNotfound++; // подсчитываем ненайденные имена
+                                            }
                                         }
                                     }
 
@@ -4298,11 +4304,11 @@ namespace NameFinder
                          ListNameCompareCS[i][2].ToString() != "f" )
                     {
                         // удаляем CS|SC только в начале имени
-                        RemoveCS(i);
+                        RemoveCS( i );
                         ListNameCompareCS[i] = System.Globalization.CultureInfo.CurrentCulture.TextInfo.ToTitleCase( ListNameCompareCS[i].ToLower() );
                         ListNameCompareCS[i] = ListNameCompareCS[i].Replace( "_", "" );
                         // добавим CS|SC в начале имени
-                        AddCS(i);
+                        AddCS( i );
                     }
                 }
             }
@@ -4318,13 +4324,13 @@ namespace NameFinder
                          ListNameCompareCS[i][2].ToString() != "f" )
                     {
                         // удаляем CS|SC только в начале имени
-                        RemoveCS(i);
+                        RemoveCS( i );
                         ListNameCompareCS[i] = ListNameCompareCS[i].Replace( "PACKET", "" );
                         ListNameCompareCS[i] = ListNameCompareCS[i].Replace( "Packet", "" );
                         ListNameCompareCS[i] = ListNameCompareCS[i].Replace( "packet", "" );
                         ListNameCompareCS[i] = ListNameCompareCS[i].Replace( "_", "" );
                         // добавим CS|SC в начале имени
-                        AddCS(i);
+                        AddCS( i );
                     }
                 }
             }
@@ -4349,7 +4355,7 @@ namespace NameFinder
                             ListNameCompareCS[i] += "Packet";
                         }
                         // добавим CS|SC в начале имени
-                        AddCS(i);
+                        AddCS( i );
                     }
                 }
             }
@@ -4400,27 +4406,27 @@ namespace NameFinder
             Button2Copy2_Copy.IsEnabled = true;
         }
 
-        private static void AddCS(int i)
+        private static void AddCS( int i )
         {
             // добавим CS|SC в начале имени
-            if (ListNameCompareCS[i][0].ToString() != "C" ||
-                ListNameCompareCS[i][1].ToString() != "S")
+            if ( ListNameCompareCS[i][0].ToString() != "C" ||
+                ListNameCompareCS[i][1].ToString() != "S" )
             {
-                if (ListNameCompareCS[i][0].ToString() != "X" ||
-                    ListNameCompareCS[i][1].ToString() != "2")
+                if ( ListNameCompareCS[i][0].ToString() != "X" ||
+                    ListNameCompareCS[i][1].ToString() != "2" )
                 {
                     ListNameCompareCS[i] = "CS" + ListNameCompareCS[i];
                 }
             }
         }
 
-        private static void RemoveCS(int i)
+        private static void RemoveCS( int i )
         {
             // удаляем CS|SC только в начале имени
-            var offset = ListNameCompareCS[i].IndexOf("cs", StringComparison.OrdinalIgnoreCase);
-            if (offset == 0)
+            var offset = ListNameCompareCS[i].IndexOf( "cs", StringComparison.OrdinalIgnoreCase );
+            if ( offset == 0 )
             {
-                ListNameCompareCS[i] = ListNameCompareCS[i].Substring(2, ListNameCompareCS[i].Length - 2);
+                ListNameCompareCS[i] = ListNameCompareCS[i].Substring( 2, ListNameCompareCS[i].Length - 2 );
             }
         }
 
@@ -4463,11 +4469,11 @@ namespace NameFinder
                          ListNameCompareSC[i][2].ToString() != "f" )
                     {
                         // удаляем CS|SC только в начале имени
-                        RemoveSC(i);
+                        RemoveSC( i );
                         ListNameCompareSC[i] = System.Globalization.CultureInfo.CurrentCulture.TextInfo.ToTitleCase( ListNameCompareSC[i].ToLower() );
                         ListNameCompareSC[i] = ListNameCompareSC[i].Replace( "_", "" );
                         // добавим CS|SC в начале имени
-                        AddSC(i);
+                        AddSC( i );
                     }
                 }
             }
@@ -4483,13 +4489,13 @@ namespace NameFinder
                          ListNameCompareSC[i][2].ToString() != "f" )
                     {
                         // удаляем CS|SC только в начале имени
-                        RemoveSC(i);
+                        RemoveSC( i );
                         ListNameCompareSC[i] = ListNameCompareSC[i].Replace( "PACKET", "" );
                         ListNameCompareSC[i] = ListNameCompareSC[i].Replace( "Packet", "" );
                         ListNameCompareSC[i] = ListNameCompareSC[i].Replace( "packet", "" );
                         ListNameCompareSC[i] = ListNameCompareSC[i].Replace( "_", "" );
                         // добавим CS|SC в начале имени
-                        AddSC(i);
+                        AddSC( i );
                     }
                 }
             }
@@ -4514,7 +4520,7 @@ namespace NameFinder
                             ListNameCompareSC[i] += "Packet";
                         }
                         // добавим CS|SC в начале имени
-                        AddSC(i);
+                        AddSC( i );
                     }
                 }
             }
@@ -4564,27 +4570,27 @@ namespace NameFinder
             ButtonCopy2_Copy.IsEnabled = true;
         }
 
-        private static void AddSC(int i)
+        private static void AddSC( int i )
         {
             // добавим CS|SC в начале имени
-            if (ListNameCompareSC[i][0].ToString() != "S" ||
-                ListNameCompareSC[i][1].ToString() != "C")
+            if ( ListNameCompareSC[i][0].ToString() != "S" ||
+                ListNameCompareSC[i][1].ToString() != "C" )
             {
-                if (ListNameCompareSC[i][0].ToString() != "X" ||
-                    ListNameCompareSC[i][1].ToString() != "2")
+                if ( ListNameCompareSC[i][0].ToString() != "X" ||
+                    ListNameCompareSC[i][1].ToString() != "2" )
                 {
                     ListNameCompareSC[i] = "SC" + ListNameCompareSC[i];
                 }
             }
         }
 
-        private static void RemoveSC(int i)
+        private static void RemoveSC( int i )
         {
             // удаляем CS|SC только в начале имени
-            var offset = ListNameCompareSC[i].IndexOf("sc", StringComparison.OrdinalIgnoreCase);
-            if (offset == 0)
+            var offset = ListNameCompareSC[i].IndexOf( "sc", StringComparison.OrdinalIgnoreCase );
+            if ( offset == 0 )
             {
-                ListNameCompareSC[i] = ListNameCompareSC[i].Substring(2, ListNameCompareSC[i].Length - 2);
+                ListNameCompareSC[i] = ListNameCompareSC[i].Substring( 2, ListNameCompareSC[i].Length - 2 );
             }
         }
 
