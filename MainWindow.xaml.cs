@@ -4562,13 +4562,13 @@ namespace NameFinder
         private static void AddSC(int i)
         {
             // добавим CS|SC в начале имени
-            if (ListNameCompareCS[i][0].ToString() != "S" ||
-                ListNameCompareCS[i][1].ToString() != "C")
+            if (ListNameCompareSC[i][0].ToString() != "S" ||
+                ListNameCompareSC[i][1].ToString() != "C")
             {
-                if (ListNameCompareCS[i][0].ToString() != "X" ||
-                    ListNameCompareCS[i][1].ToString() != "2")
+                if (ListNameCompareSC[i][0].ToString() != "X" ||
+                    ListNameCompareSC[i][1].ToString() != "2")
                 {
-                    ListNameCompareCS[i] = "SC" + ListNameCompareCS[i];
+                    ListNameCompareSC[i] = "SC" + ListNameCompareSC[i];
                 }
             }
         }
@@ -4576,10 +4576,10 @@ namespace NameFinder
         private static void RemoveSC(int i)
         {
             // удаляем CS|SC только в начале имени
-            var offset = ListNameCompareCS[i].IndexOf("sc", StringComparison.OrdinalIgnoreCase);
+            var offset = ListNameCompareSC[i].IndexOf("sc", StringComparison.OrdinalIgnoreCase);
             if (offset == 0)
             {
-                ListNameCompareCS[i] = ListNameCompareCS[i].Substring(2, ListNameCompareCS[i].Length - 2);
+                ListNameCompareSC[i] = ListNameCompareSC[i].Substring(2, ListNameCompareSC[i].Length - 2);
             }
         }
 
