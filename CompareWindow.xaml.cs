@@ -98,22 +98,16 @@ namespace NameFinder
         private void BtnAddNameCs_Click(object sender, RoutedEventArgs e)
         {
             // проверим что имя не используется
-            var useIn = 0;
-            var useOut = 0;
             var offset = 0;
             if (MainWindow.InUseIn.ContainsKey(IdxS))
             {
-                useOut = MainWindow.InUseIn[IdxS];
-                //var useIn = MainWindow.InUseOut[useOut];
-                //MainWindow.InUseIn.Remove(IdxS);
+                var useOut = MainWindow.InUseIn[IdxS];
                 MainWindow.InUseOut.Remove(useOut);
-                //ListNameCompareSC[IdxD] = listNameSource[IdxS];
                 ListNameCompare[useOut] = ListNameDestination[useOut];
-                //TextBox21.Text = ListNameDestination[IdxD];
             }
             if (MainWindow.InUseOut.ContainsKey(IdxD))
             {
-                useIn = MainWindow.InUseOut[IdxD];
+                var useIn = MainWindow.InUseOut[IdxD];
                 MainWindow.InUseIn.Remove(useIn);
             }
             if (MainWindow.InUseIn.ContainsKey(IdxS))
@@ -177,88 +171,69 @@ namespace NameFinder
             // удаляем оконечные опкоды в имени пакета
             if (CheckBoxRemoveOpcode.IsChecked == true)
             {
-                //if (ListNameCompare[IdxD][0].ToString() != "o" || ListNameCompare[IdxD][1].ToString() != "f" || ListNameCompare[IdxD][2].ToString() != "f")
+                offset = ListNameCompare[IdxD].LastIndexOf("_", StringComparison.Ordinal);
+                if (offset > 3)
                 {
-                    offset = ListNameCompare[IdxD].LastIndexOf("_", StringComparison.Ordinal);
-                    if (offset > 3)
-                    {
-                        ListNameCompare[IdxD] = ListNameCompare[IdxD].Substring(0, offset);
-                    }
+                    ListNameCompare[IdxD] = ListNameCompare[IdxD].Substring(0, offset);
                 }
             }
 
             //  ToTitleCase
             if (CheckBoxToTitleCase.IsChecked == true)
             {
-                if (ListNameCompare[IdxD][0].ToString() != "o" || ListNameCompare[IdxD][1].ToString() != "f" || ListNameCompare[IdxD][2].ToString() != "f")
+                if (ListNameCompare[IdxD][0].ToString() != "o" ||
+                    ListNameCompare[IdxD][1].ToString() != "f" ||
+                    ListNameCompare[IdxD][2].ToString() != "f")
                 {
+                    // удаляем CS|SC только в начале имени
+                    RemoveCSSC();
                     ListNameCompare[IdxD] = System.Globalization.CultureInfo.CurrentCulture.TextInfo.ToTitleCase(ListNameCompare[IdxD].ToLower());
                     ListNameCompare[IdxD] = ListNameCompare[IdxD].Replace("_", "");
+                    // удаляем "On" только в начале имени
+                    offset = ListNameCompare[IdxD].LastIndexOf("On", StringComparison.Ordinal);
+                    if (offset == 0)
+                    {
+                        ListNameCompare[IdxD] = ListNameCompare[IdxD].Substring(2, ListNameCompare[IdxD].Length - 2);
+                    }
+                    ListNameCompare[IdxD] = ListNameCompare[IdxD].Replace("_", "");
+                    // добавим CS|SC в начале имени
+                    AddCSSC();
                 }
             }
             // Remove Packet
             if (CheckBoxAdd.IsChecked == true)
             {
-                if (ListNameCompare[IdxD][0].ToString() != "o" || ListNameCompare[IdxD][1].ToString() != "f" || ListNameCompare[IdxD][2].ToString() != "f")
+                if (ListNameCompare[IdxD][0].ToString() != "o" ||
+                    ListNameCompare[IdxD][1].ToString() != "f" ||
+                    ListNameCompare[IdxD][2].ToString() != "f")
                 {
-                    if (MainWindow.isCS)
-                    {
-                        // удаляем CS|SC только в начале имени
-                        offset = ListNameCompare[IdxD].LastIndexOf("CS", StringComparison.Ordinal);
-                        if (offset > 0)
-                        {
-                            ListNameCompare[IdxD] = ListNameCompare[IdxD].Substring(offset, ListNameCompare[IdxD].Length - offset);
-                        }
-                        offset = ListNameCompare[IdxD].LastIndexOf("Cs", StringComparison.Ordinal);
-                        if (offset > 0)
-                        {
-                            ListNameCompare[IdxD] = ListNameCompare[IdxD].Substring(offset, ListNameCompare[IdxD].Length - offset);
-                        }
-                        offset = ListNameCompare[IdxD].LastIndexOf("cs", StringComparison.Ordinal);
-                        if (offset > 0)
-                        {
-                            ListNameCompare[IdxD] = ListNameCompare[IdxD].Substring(offset, ListNameCompare[IdxD].Length - offset);
-                        }
-                    }
-                    else
-                    {
-                        // удаляем CS|SC только в начале имени
-                        offset = ListNameCompare[IdxD].LastIndexOf("SC", StringComparison.Ordinal);
-                        if (offset > 0)
-                        {
-                            ListNameCompare[IdxD] = ListNameCompare[IdxD].Substring(offset, ListNameCompare[IdxD].Length - offset);
-                        }
-                        offset = ListNameCompare[IdxD].LastIndexOf("Sc", StringComparison.Ordinal);
-                        if (offset > 0)
-                        {
-                            ListNameCompare[IdxD] = ListNameCompare[IdxD].Substring(offset, ListNameCompare[IdxD].Length - offset);
-                        }
-                        offset = ListNameCompare[IdxD].LastIndexOf("cs", StringComparison.Ordinal);
-                        if (offset > 0)
-                        {
-                            ListNameCompare[IdxD] = ListNameCompare[IdxD].Substring(offset, ListNameCompare[IdxD].Length - offset);
-                        }
-                    }
+                    // удаляем CS|SC только в начале имени
+                    RemoveCSSC();
                     ListNameCompare[IdxD] = ListNameCompare[IdxD].Replace("PACKET", "");
                     ListNameCompare[IdxD] = ListNameCompare[IdxD].Replace("Packet", "");
                     ListNameCompare[IdxD] = ListNameCompare[IdxD].Replace("packet", "");
-                    //ListNameCompare[IdxD] = ListNameCompare[IdxD].Replace("On", "");
                     // удаляем "On" только в начале имени
                     offset = ListNameCompare[IdxD].LastIndexOf("On", StringComparison.Ordinal);
-                    if (offset > 0)
+                    if (offset == 0)
                     {
-                        ListNameCompare[IdxD] = ListNameCompare[IdxD].Substring(offset, ListNameCompare[IdxD].Length - offset);
+                        ListNameCompare[IdxD] = ListNameCompare[IdxD].Substring(2, ListNameCompare[IdxD].Length - 2);
                     }
                     ListNameCompare[IdxD] = ListNameCompare[IdxD].Replace("_", "");
+                    // добавим CS|SC в начале имени
+                    AddCSSC();
                 }
             }
 
             // Добавим 'Packet' в конец имени пакета
             if (CheckBoxAdd.IsChecked == true)
             {
-                if (ListNameCompare[IdxD][0].ToString() != "o" || ListNameCompare[IdxD][1].ToString() != "f" || ListNameCompare[IdxD][2].ToString() != "f")
+                if (ListNameCompare[IdxD][0].ToString() != "o" ||
+                    ListNameCompare[IdxD][1].ToString() != "f" ||
+                    ListNameCompare[IdxD][2].ToString() != "f")
                 {
-                    offset = ListNameCompare[IdxD].LastIndexOf("Packet", StringComparison.Ordinal);
+                    // удаляем CS|SC только в начале имени
+                    RemoveCSSC();
+                    offset = ListNameCompare[IdxD].LastIndexOf("Packet", StringComparison.OrdinalIgnoreCase);
                     if (offset <= 0)
                     {
                         ListNameCompare[IdxD] += "Packet";
@@ -268,32 +243,65 @@ namespace NameFinder
                         ListNameCompare[IdxD] = ListNameCompare[IdxD].Substring(0, offset);
                         ListNameCompare[IdxD] += "Packet";
                     }
-
-                    if (MainWindow.isCS)
-                    {
-                        if (ListNameCompare[IdxD][0].ToString() != "C" || ListNameCompare[IdxD][1].ToString() != "S")
-                        {
-                            if (ListNameCompare[IdxD][0].ToString() != "X" || ListNameCompare[IdxD][1].ToString() != "2")
-                            {
-                                ListNameCompare[IdxD] = "CS" + ListNameCompare[IdxD];
-                            }
-                        }
-                    }
-                    else
-                    {
-                        if (ListNameCompare[IdxD][0].ToString() != "S" || ListNameCompare[IdxD][1].ToString() != "C")
-                        {
-                            if (ListNameCompare[IdxD][0].ToString() != "X" || ListNameCompare[IdxD][1].ToString() != "2")
-                            {
-                                ListNameCompare[IdxD] = "SC" + ListNameCompare[IdxD];
-                            }
-                        }
-                    }
+                    // добавим CS|SC в начале имени
+                    AddCSSC();
                 }
             }
 
             // отобразим на форме результаты
             ShowList();
+        }
+
+        private void AddCSSC()
+        {
+            // добавим CS|SC в начале имени
+            if (MainWindow.isCS)
+            {
+                if (ListNameCompare[IdxD][0].ToString() != "C" ||
+                    ListNameCompare[IdxD][1].ToString() != "S")
+                {
+                    if (ListNameCompare[IdxD][0].ToString() != "X" ||
+                        ListNameCompare[IdxD][1].ToString() != "2")
+                    {
+                        ListNameCompare[IdxD] = "CS" + ListNameCompare[IdxD];
+                    }
+                }
+            }
+            else
+            {
+                if (ListNameCompare[IdxD][0].ToString() != "S" ||
+                    ListNameCompare[IdxD][1].ToString() != "C")
+                {
+                    if (ListNameCompare[IdxD][0].ToString() != "X" ||
+                        ListNameCompare[IdxD][1].ToString() != "2")
+                    {
+                        ListNameCompare[IdxD] = "SC" + ListNameCompare[IdxD];
+                    }
+                }
+            }
+        }
+
+        private void RemoveCSSC()
+        {
+            int offset;
+            if (MainWindow.isCS)
+            {
+                // удаляем CS|SC только в начале имени
+                offset = ListNameCompare[IdxD].IndexOf("cs", StringComparison.OrdinalIgnoreCase);
+                if (offset == 0)
+                {
+                    ListNameCompare[IdxD] = ListNameCompare[IdxD].Substring(2, ListNameCompare[IdxD].Length - 2);
+                }
+            }
+            else
+            {
+                // удаляем CS|SC только в начале имени
+                offset = ListNameCompare[IdxD].IndexOf("sc", StringComparison.OrdinalIgnoreCase);
+                if (offset == 0)
+                {
+                    ListNameCompare[IdxD] = ListNameCompare[IdxD].Substring(2, ListNameCompare[IdxD].Length - 2);
+                }
+            }
         }
 
         private void ShowList()
