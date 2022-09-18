@@ -36,11 +36,12 @@ namespace NameFinder
         Vector2 = 0x6C, // float x, y
         Float = 0x74,
         Bool = 0x78,
-        String = 0xC4,
+        Bc = 0xCC, // 3 Bytes
+        Bytes = 0xD0, // 3 Bytes
+        String = 0xD4,
         String1 = 0xD8,
         String2 = 0xDC,
-        Bc = 0xCC, // 3 Bytes
-        Bytes = 0xD0 // 3 Bytes
+        String3 = 0xE0
     }
     public enum TypeEnum2
     {
@@ -58,13 +59,17 @@ namespace NameFinder
         Vector3 = 0x68, // float x, y, z
         times2D = 0x6C, // uint x, y
         Vector2 = 0x70, // float x, y
+        Float1 = 0x74,
         Float = 0x78,
         Bool = 0x7C,
+        objId = 0xC4,
+        objId2 = 0xC8,
+        Bc = 0xCC, // 3 Bytes
+        Bytes = 0xD0, // 3 Bytes
+        Bytes3 = 0xD4, // 3 Bytes
         String = 0xE4,
         String1 = 0xE8,
-        String2 = 0xEC,
-        Bc = 0xCC, // 3 Bytes
-        Bytes = 0xD0 // 3 Bytes
+        String2 = 0xEC
     }
 
     public class Struc
