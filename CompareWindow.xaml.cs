@@ -473,6 +473,7 @@ namespace NameFinder
                 if (ListOpcodeDestination.Count > 0)
                 {
                     var nameCompare = "";
+                    var lst = "";
                     if (ListNameCompare[i][0].ToString() != "o" || ListNameCompare[i][1].ToString() != "f" || ListNameCompare[i][2].ToString() != "f")
                     {
                         nameCompare = ListNameCompare[i].Replace("Packet", "");
@@ -481,7 +482,16 @@ namespace NameFinder
                     {
                         nameCompare = ListNameCompare[i];
                     }
-                    var lst = "        <packet type=\"" + ListOpcodeDestination[i] + "\" desc=\"" + nameCompare + "\">";
+                    // добавим проверку, что опкод меньше 0x1F
+                    int.TryParse(ListOpcodeDestination[i].Substring(2), System.Globalization.NumberStyles.HexNumber, null, out var number);
+                    if (number < 32)
+                    {
+                        lst = "        <packet type=\"" + ListOpcodeDestination[i] + "\" level=\"0x05\" desc=\"" + nameCompare + "\">";
+                    }
+                    else
+                    {
+                        lst = "        <packet type=\"" + ListOpcodeDestination[i] + "\" desc=\"" + nameCompare + "\">";
+                    }
                     tmp.Add(lst);
                 }
                 else
