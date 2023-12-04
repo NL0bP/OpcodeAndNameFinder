@@ -14,13 +14,14 @@ using System.Windows.Forms;
 using System.Windows.Media;
 using System.Windows.Threading;
 
+using RadioButton = System.Windows.Controls;
 using MessageBox = System.Windows.MessageBox;
 using OpenFileDialog = Microsoft.Win32.OpenFileDialog;
 using SaveFileDialog = Microsoft.Win32.SaveFileDialog;
 
 namespace NameFinder
 {
-    public enum TypeEnum
+    public enum TypeEnum_05
     {
         UInt64 = 0x38,
         UInt32 = 0x3C,
@@ -32,8 +33,35 @@ namespace NameFinder
         SByte = 0x54,
         Angles = 0x58, // float x, y, z
         Quaternion = 0x5C, // float x, y, z, w
+        times3Q = 0x60, // long x, y, z
         Vector3 = 0x64, // float x, y, z
+        times2D = 0x68, // uint x, y
         Vector2 = 0x6C, // float x, y
+        Float = 0x70,
+        Bool = 0x74,
+        Bool2 = 0x78,
+        Bc = 0xC4, // 3 Bytes
+        Bytes = 0xC8, // 3 Bytes
+        String = 0xCC,
+        String2 = 0xD0
+    }
+    public enum TypeEnum_12
+    {
+        UInt64 = 0x38,
+        UInt32 = 0x3C,
+        UInt16 = 0x40,
+        Byte = 0x44,
+        Int64 = 0x48,
+        Int32 = 0x4C,
+        Int16 = 0x50,
+        SByte = 0x54,
+        Angles = 0x58, // float x, y, z
+        Quaternion = 0x5C, // float x, y, z, w
+        times3Q = 0x60, // long x, y, z
+        Vector3 = 0x64, // float x, y, z
+        times2D = 0x68, // uint x, y
+        Vector2 = 0x6C, // float x, y
+        Float2 = 0x70,
         Float = 0x74,
         Bool = 0x78,
         Bc = 0xCC, // 3 Bytes
@@ -43,7 +71,32 @@ namespace NameFinder
         String2 = 0xDC,
         String3 = 0xE0
     }
-    public enum TypeEnum2
+    public enum TypeEnum_30
+    {
+        UInt64 = 0x38,
+        UInt32 = 0x3C,
+        UInt16 = 0x40,
+        Byte = 0x44,
+        Int64 = 0x48,
+        Int32 = 0x4C,
+        Int16 = 0x50,
+        SByte = 0x54,
+        Angles = 0x58, // float x, y, z
+        Quaternion = 0x5C, // float x, y, z, w
+        times3Q = 0x60, // long x, y, z
+        Vector3 = 0x64, // float x, y, z
+        times2D = 0x68, // uint x, y
+        Vector2 = 0x6C, // float x, y
+        Float = 0x74,
+        Bool = 0x78,
+        Bc = 0xCC, // 3 Bytes
+        Bytes = 0xD0, // 3 Bytes
+        String = 0xD4,
+        String2 = 0xD8,
+        String3 = 0xDC,
+        String4 = 0xE0
+    }
+    public enum TypeEnum_35
     {
         UInt64 = 0x3C,
         UInt32 = 0x40,
@@ -101,8 +154,6 @@ namespace NameFinder
         public static bool isCompareCS = false;
         public static bool isCompareSC = false;
         public static bool isRemoveOpcode = false;
-        public static bool isTypeEnumNewIn = false;
-        public static bool isTypeEnumNewOut = false;
 
         public static bool isCS = false;
 
@@ -154,6 +205,8 @@ namespace NameFinder
         public static int DepthOut = 0;
         public int IdxS = 0;
         public int IdxD = 0;
+        public string StructStringIn = "";
+        public string StructStringOut = "";
         //object lockObj;
 
         public MainWindow()
@@ -4368,6 +4421,8 @@ namespace NameFinder
             {
                 isCS = true;
                 CompareWindow.isRemoveOpcode = isRemoveOpcode;
+                CompareWindow.StructStringIn = StructStringIn;
+                CompareWindow.StructStringOut = StructStringOut;
                 var compareWindow = new CompareWindow();
                 compareWindow.Show();
                 compareWindow.CompareSourceStructures( ref ListNameSourceCS, ref ListNameDestinationCS, ref ListNameCompareCS, ref ListSubDestinationCS, ref StructureSourceCS, ref StructureDestinationCS, ListOpcodeDestinationCS );
@@ -4618,7 +4673,7 @@ namespace NameFinder
             //
             // начали работу по поиску имен пакетов
             //
-            for ( int i = 0; i < listName.Count; i++ )
+            for ( var i = 0; i < listName.Count; i++ )
             {
                 // ищем имя пакета, с начала файла до конца файла
                 var found = false;
@@ -4720,7 +4775,7 @@ namespace NameFinder
 
                 tmp.Add( lst );
 
-                src = InUseOut.ContainsKey( i ) ? StructureSourceCS[InUseOut[i]] : new List<Struc>();
+                src = InUseOut.TryGetValue(i, out var value) ? StructureSourceCS[value] : new List<Struc>();
                 dst = StructureDestinationCS[i];
 
                 var count = Math.Max( src.Count, dst.Count );
@@ -4771,7 +4826,7 @@ namespace NameFinder
 
                 tmp.Add( lst );
 
-                src = InUseOut.ContainsKey( i ) ? StructureSourceSC[InUseOut[i]] : new List<Struc>();
+                src = InUseOut.TryGetValue(i, out var value) ? StructureSourceSC[value] : new List<Struc>();
                 dst = StructureDestinationSC[i];
 
                 var count = Math.Max( src.Count, dst.Count );
@@ -5120,8 +5175,8 @@ namespace NameFinder
                 using ( var FBD = new FolderBrowserDialog() )
                 {
                     // сохраним путь к рабочей папке
-                    string path = Environment.CurrentDirectory + "\\WorkDir.cfg";
-                    FileInfo fileInf = new FileInfo( path );
+                    var path = Environment.CurrentDirectory + "\\WorkDir.cfg";
+                    var fileInf = new FileInfo( path );
                     if ( fileInf.Exists )
                     {
                         FBD.SelectedPath = File.ReadAllLines( Environment.CurrentDirectory + "\\WorkDir.cfg" )[0].ToString();
@@ -5141,7 +5196,7 @@ namespace NameFinder
                     }
                 }
 
-                DirectoryInfo dirInfo = new DirectoryInfo( DirPath + "\\data" );
+                var dirInfo = new DirectoryInfo( DirPath + "\\data" );
                 if ( !dirInfo.Exists )
                 {
                     //dirInfo.Create();
@@ -5201,7 +5256,7 @@ namespace NameFinder
                         File.WriteAllLines( DirPathCS + "\\ListNameCompareOutSC", new List<string>() );
                         File.WriteAllLines( DirPathCS + "\\ListNameCompare", ListNameCompare );
 
-                        string json = JsonConvert.SerializeObject( InUseIn, Formatting.Indented );
+                        var json = JsonConvert.SerializeObject( InUseIn, Formatting.Indented );
                         File.WriteAllText( DirPathCS + "\\InUseIn.json", json );
 
                         json = JsonConvert.SerializeObject( InUseOut, Formatting.Indented );
@@ -5280,7 +5335,7 @@ namespace NameFinder
                         File.WriteAllLines( DirPathSC + "\\ListNameCompareOutSC", ListNameCompareOutSC );
                         File.WriteAllLines( DirPathSC + "\\ListNameCompare", ListNameCompare );
 
-                        string json = JsonConvert.SerializeObject( InUseIn, Formatting.Indented );
+                        var json = JsonConvert.SerializeObject( InUseIn, Formatting.Indented );
                         File.WriteAllText( DirPathSC + "\\InUseIn.json", json );
 
                         json = JsonConvert.SerializeObject( InUseOut, Formatting.Indented );
@@ -5417,7 +5472,7 @@ namespace NameFinder
                     ListNameCompareOutSC = File.ReadAllLines( DirPathCS + "\\ListNameCompareOutSC" ).ToList();
                     //ListView32.ItemsSource = ListNameCompareOutSC;
 
-                    string json = File.ReadAllText( DirPathCS + "\\InUseIn.json" );
+                    var json = File.ReadAllText( DirPathCS + "\\InUseIn.json" );
                     InUseIn = JsonConvert.DeserializeObject<Dictionary<int, int>>( json );
 
                     json = File.ReadAllText( DirPathCS + "\\InUseOut.json" );
@@ -5577,7 +5632,7 @@ namespace NameFinder
                     ListNameCompareOutSC = File.ReadAllLines( DirPathSC + "\\ListNameCompareOutSC" ).ToList();
                     ListView32.ItemsSource = ListNameCompareOutSC;
 
-                    string json = File.ReadAllText( DirPathSC + "\\InUseIn.json" );
+                    var json = File.ReadAllText( DirPathSC + "\\InUseIn.json" );
                     InUseIn = JsonConvert.DeserializeObject<Dictionary<int, int>>( json );
 
                     json = File.ReadAllText( DirPathSC + "\\InUseOut.json" );
@@ -5883,14 +5938,36 @@ namespace NameFinder
                         tmp.Add( lst );
                         foreach ( var str in StructureSourceCS[i] )
                         {
-                            if ( CheckBoxTypeEnumNewIn.IsChecked == true )
+                            switch (StructStringIn)
                             {
-                                lst = "            var " + str.Name.Replace( "\"", "" ) + " = stream.Read" + (TypeEnum2)str.Type + "();";
+                                case "struct ver0.5":
+                                    // Действия для выбранного варианта 1
+                                    lst = "            var " + str.Name.Replace( "\"", "" ) + " = stream.Read" + (TypeEnum_05)str.Type + "();";
+                                    break;
+                                case "struct ver1.2":
+                                    // Действия для выбранного варианта 2
+                                    lst = "            var " + str.Name.Replace( "\"", "" ) + " = stream.Read" + (TypeEnum_12)str.Type + "();";
+                                    break;
+                                case "struct ver3.0":
+                                    // Действия для выбранного варианта 3
+                                    lst = "            var " + str.Name.Replace( "\"", "" ) + " = stream.Read" + (TypeEnum_30)str.Type + "();";
+                                    break;
+                                case "struct ver3.5+":
+                                    // Действия для выбранного варианта 4
+                                    lst = "            var " + str.Name.Replace( "\"", "" ) + " = stream.Read" + (TypeEnum_35)str.Type + "();";
+                                    break;
+                                default:
+                                    lst = "            var " + str.Name.Replace( "\"", "" ) + " = stream.Read" + (TypeEnum_35)str.Type + "();";
+                                    break;
                             }
-                            else
-                            {
-                                lst = "            var " + str.Name.Replace( "\"", "" ) + " = stream.Read" + (TypeEnum)str.Type + "();";
-                            }
+                            //if ( CheckBoxTypeEnumNewIn.IsChecked == true )
+                            //{
+                            //    lst = "            var " + str.Name.Replace( "\"", "" ) + " = stream.Read" + (TypeEnum_35)str.Type + "();";
+                            //}
+                            //else
+                            //{
+                            //    lst = "            var " + str.Name.Replace( "\"", "" ) + " = stream.Read" + (TypeEnum_12)str.Type + "();";
+                            //}
                             tmp.Add( lst );
                         }
                         lst = "        }";
@@ -5955,14 +6032,36 @@ namespace NameFinder
                         tmp.Add( lst );
                         foreach ( var str in StructureSourceSC[i] )
                         {
-                            if ( CheckBoxTypeEnumNewIn.IsChecked == true )
+                            switch (StructStringIn)
                             {
-                                lst = "        private readonly " + (TypeEnum2)str.Type + " _" + str.Name.Replace( "\"", "" ) + ";";
+                                case "struct ver0.5":
+                                    // Действия для выбранного варианта 1
+                                    lst = "        private readonly " + (TypeEnum_05)str.Type + " _" + str.Name.Replace( "\"", "" ) + ";";
+                                    break;
+                                case "struct ver1.2":
+                                    // Действия для выбранного варианта 2
+                                    lst = "        private readonly " + (TypeEnum_12)str.Type + " _" + str.Name.Replace( "\"", "" ) + ";";
+                                    break;
+                                case "struct ver3.0":
+                                    // Действия для выбранного варианта 3
+                                    lst = "        private readonly " + (TypeEnum_30)str.Type + " _" + str.Name.Replace( "\"", "" ) + ";";
+                                    break;
+                                case "struct ver3.5+":
+                                    // Действия для выбранного варианта 4
+                                    lst = "        private readonly " + (TypeEnum_35)str.Type + " _" + str.Name.Replace( "\"", "" ) + ";";
+                                    break;
+                                default:
+                                    lst = "        private readonly " + (TypeEnum_35)str.Type + " _" + str.Name.Replace( "\"", "" ) + ";";
+                                    break;
                             }
-                            else
-                            {
-                                lst = "        private readonly " + (TypeEnum)str.Type + " _" + str.Name.Replace( "\"", "" ) + ";";
-                            }
+                            //if ( CheckBoxTypeEnumNewIn.IsChecked == true )
+                            //{
+                            //    lst = "        private readonly " + (TypeEnum_35)str.Type + " _" + str.Name.Replace( "\"", "" ) + ";";
+                            //}
+                            //else
+                            //{
+                            //    lst = "        private readonly " + (TypeEnum_12)str.Type + " _" + str.Name.Replace( "\"", "" ) + ";";
+                            //}
                             tmp.Add( lst );
                         }
                         lst = "";
@@ -5972,14 +6071,36 @@ namespace NameFinder
                         var li = StructureSourceSC[i];
                         for ( var j = 0; j < li.Count; j++ )
                         {
-                            if ( CheckBoxTypeEnumNewIn.IsChecked == true )
+                            switch (StructStringIn)
                             {
-                                lst += "" + (TypeEnum2)li[j].Type + " " + li[j].Name.Replace( "\"", "" );
+                                case "struct ver0.5":
+                                    // Действия для выбранного варианта 1
+                                    lst += "" + (TypeEnum_05)li[j].Type + " " + li[j].Name.Replace( "\"", "" );
+                                    break;
+                                case "struct ver1.2":
+                                    // Действия для выбранного варианта 2
+                                    lst += "" + (TypeEnum_12)li[j].Type + " " + li[j].Name.Replace( "\"", "" );
+                                    break;
+                                case "struct ver3.0":
+                                    // Действия для выбранного варианта 3
+                                    lst += "" + (TypeEnum_30)li[j].Type + " " + li[j].Name.Replace( "\"", "" );
+                                    break;
+                                case "struct ver3.5+":
+                                    // Действия для выбранного варианта 4
+                                    lst += "" + (TypeEnum_35)li[j].Type + " " + li[j].Name.Replace( "\"", "" );
+                                    break;
+                                default:
+                                    lst += "" + (TypeEnum_35)li[j].Type + " " + li[j].Name.Replace( "\"", "" );
+                                    break;
                             }
-                            else
-                            {
-                                lst += "" + (TypeEnum)li[j].Type + " " + li[j].Name.Replace( "\"", "" );
-                            }
+                            //if ( CheckBoxTypeEnumNewIn.IsChecked == true )
+                            //{
+                            //    lst += "" + (TypeEnum_35)li[j].Type + " " + li[j].Name.Replace( "\"", "" );
+                            //}
+                            //else
+                            //{
+                            //    lst += "" + (TypeEnum_12)li[j].Type + " " + li[j].Name.Replace( "\"", "" );
+                            //}
                             if ( j < li.Count - 1 )
                             {
                                 lst += ", ";
@@ -6110,14 +6231,36 @@ namespace NameFinder
                         tmp.Add( lst );
                         foreach ( var str in StructureDestinationCS[i] )
                         {
-                            if ( CheckBoxTypeEnumNewOut.IsChecked == true )
+                            switch (StructStringOut)
                             {
-                                lst = "            var " + str.Name.Replace( "\"", "" ) + " = stream.Read" + (TypeEnum2)str.Type + "();";
+                                case "struct ver0.5":
+                                    // Действия для выбранного варианта 1
+                                    lst = "            var " + str.Name.Replace( "\"", "" ) + " = stream.Read" + (TypeEnum_05)str.Type + "();";
+                                    break;
+                                case "struct ver1.2":
+                                    // Действия для выбранного варианта 2
+                                    lst = "            var " + str.Name.Replace( "\"", "" ) + " = stream.Read" + (TypeEnum_12)str.Type + "();";
+                                    break;
+                                case "struct ver3.0":
+                                    // Действия для выбранного варианта 3
+                                    lst = "            var " + str.Name.Replace( "\"", "" ) + " = stream.Read" + (TypeEnum_30)str.Type + "();";
+                                    break;
+                                case "struct ver3.5+":
+                                    // Действия для выбранного варианта 4
+                                    lst = "            var " + str.Name.Replace( "\"", "" ) + " = stream.Read" + (TypeEnum_35)str.Type + "();";
+                                    break;
+                                default:
+                                    lst = "            var " + str.Name.Replace( "\"", "" ) + " = stream.Read" + (TypeEnum_35)str.Type + "();";
+                                    break;
                             }
-                            else
-                            {
-                                lst = "            var " + str.Name.Replace( "\"", "" ) + " = stream.Read" + (TypeEnum)str.Type + "();";
-                            }
+                            //if ( CheckBoxTypeEnumNewOut.IsChecked == true )
+                            //{
+                            //    lst = "            var " + str.Name.Replace( "\"", "" ) + " = stream.Read" + (TypeEnum_35)str.Type + "();";
+                            //}
+                            //else
+                            //{
+                            //    lst = "            var " + str.Name.Replace( "\"", "" ) + " = stream.Read" + (TypeEnum_12)str.Type + "();";
+                            //}
                             tmp.Add( lst );
                         }
                         lst = "        }";
@@ -6189,14 +6332,36 @@ namespace NameFinder
                         tmp.Add( lst );
                         foreach ( var str in StructureDestinationSC[i] )
                         {
-                            if ( CheckBoxTypeEnumNewOut.IsChecked == true )
+                            switch (StructStringOut)
                             {
-                                lst = "        private readonly " + (TypeEnum2)str.Type + " _" + str.Name.Replace( "\"", "" ) + ";";
+                                case "struct ver0.5":
+                                    // Действия для выбранного варианта 1
+                                    lst = "        private readonly " + (TypeEnum_05)str.Type + " _" + str.Name.Replace( "\"", "" ) + ";";
+                                    break;
+                                case "struct ver1.2":
+                                    // Действия для выбранного варианта 2
+                                    lst = "        private readonly " + (TypeEnum_12)str.Type + " _" + str.Name.Replace( "\"", "" ) + ";";
+                                    break;
+                                case "struct ver3.0":
+                                    // Действия для выбранного варианта 3
+                                    lst = "        private readonly " + (TypeEnum_30)str.Type + " _" + str.Name.Replace( "\"", "" ) + ";";
+                                    break;
+                                case "struct ver3.5+":
+                                    // Действия для выбранного варианта 4
+                                    lst = "        private readonly " + (TypeEnum_35)str.Type + " _" + str.Name.Replace( "\"", "" ) + ";";
+                                    break;
+                                default:
+                                    lst = "        private readonly " + (TypeEnum_35)str.Type + " _" + str.Name.Replace( "\"", "" ) + ";";
+                                    break;
                             }
-                            else
-                            {
-                                lst = "        private readonly " + (TypeEnum)str.Type + " _" + str.Name.Replace( "\"", "" ) + ";";
-                            }
+                            //if ( CheckBoxTypeEnumNewOut.IsChecked == true )
+                            //{
+                            //    lst = "        private readonly " + (TypeEnum_35)str.Type + " _" + str.Name.Replace( "\"", "" ) + ";";
+                            //}
+                            //else
+                            //{
+                            //    lst = "        private readonly " + (TypeEnum_12)str.Type + " _" + str.Name.Replace( "\"", "" ) + ";";
+                            //}
                             tmp.Add( lst );
                         }
                         lst = "";
@@ -6206,14 +6371,36 @@ namespace NameFinder
                         var li = StructureDestinationSC[i];
                         for ( var j = 0; j < li.Count; j++ )
                         {
-                            if ( CheckBoxTypeEnumNewOut.IsChecked == true )
+                            switch (StructStringOut)
                             {
-                                lst += "" + (TypeEnum2)li[j].Type + " " + li[j].Name.Replace( "\"", "" );
+                                case "struct ver0.5":
+                                    // Действия для выбранного варианта 1
+                                    lst += "" + (TypeEnum_05)li[j].Type + " " + li[j].Name.Replace( "\"", "" );
+                                    break;
+                                case "struct ver1.2":
+                                    // Действия для выбранного варианта 2
+                                    lst += "" + (TypeEnum_12)li[j].Type + " " + li[j].Name.Replace( "\"", "" );
+                                    break;
+                                case "struct ver3.0":
+                                    // Действия для выбранного варианта 3
+                                    lst += "" + (TypeEnum_30)li[j].Type + " " + li[j].Name.Replace( "\"", "" );
+                                    break;
+                                case "struct ver3.5+":
+                                    // Действия для выбранного варианта 4
+                                    lst += "" + (TypeEnum_35)li[j].Type + " " + li[j].Name.Replace( "\"", "" );
+                                    break;
+                                default:
+                                    lst += "" + (TypeEnum_35)li[j].Type + " " + li[j].Name.Replace( "\"", "" );
+                                    break;
                             }
-                            else
-                            {
-                                lst += "" + (TypeEnum)li[j].Type + " " + li[j].Name.Replace( "\"", "" );
-                            }
+                            //if ( CheckBoxTypeEnumNewOut.IsChecked == true )
+                            //{
+                            //    lst += "" + (TypeEnum_35)li[j].Type + " " + li[j].Name.Replace( "\"", "" );
+                            //}
+                            //else
+                            //{
+                            //    lst += "" + (TypeEnum_12)li[j].Type + " " + li[j].Name.Replace( "\"", "" );
+                            //}
                             if ( j < li.Count - 1 )
                             {
                                 lst += ", ";
@@ -6577,17 +6764,74 @@ namespace NameFinder
             }
         }
 
-        private void CheckBoxTypeEnumNewOut_Checked( object sender, RoutedEventArgs e )
+        private void RadioButton_Checked_In(object sender, RoutedEventArgs e)
         {
+            var radioButton = sender as RadioButton.RadioButton;
+            if (radioButton != null && radioButton.IsChecked == true)
+            {
+                // Доступ к выбранному варианту
+                var selectedOption = radioButton.Content.ToString();
 
-            isTypeEnumNewOut = CheckBoxTypeEnumNewOut.IsChecked == true;
-
+                // Здесь вы можете выполнить нужные действия, в зависимости от выбранного варианта
+                // Например:
+                switch (selectedOption)
+                {
+                    case "struct ver0.5":
+                        // Действия для выбранного варианта 1
+                        StructStringIn = "struct ver0.5";
+                        break;
+                    case "struct ver1.2":
+                        // Действия для выбранного варианта 2
+                        StructStringIn = "struct ver1.2";
+                        break;
+                    case "struct ver3.0":
+                        // Действия для выбранного варианта 3
+                        StructStringIn = "struct ver3.0";
+                        break;
+                    case "struct ver3.5+":
+                        // Действия для выбранного варианта 4
+                        StructStringIn = "struct ver3.5+";
+                        break;
+                    default:
+                        StructStringIn = "struct ver3.5+";
+                        break;
+                }
+            }
         }
 
-        private void CheckBoxTypeEnumNewIn_Checked( object sender, RoutedEventArgs e )
+        private void RadioButton_Checked_Out(object sender, RoutedEventArgs e)
         {
-            isTypeEnumNewIn = CheckBoxTypeEnumNewIn.IsChecked == true;
+            var radioButton = sender as RadioButton.RadioButton;
+            if (radioButton != null && radioButton.IsChecked == true)
+            {
+                // Доступ к выбранному варианту
+                var selectedOption = radioButton.Content.ToString();
 
+                // Здесь вы можете выполнить нужные действия, в зависимости от выбранного варианта
+                // Например:
+                switch (selectedOption)
+                {
+                    case "struct ver0.5":
+                        // Действия для выбранного варианта 1
+                        StructStringOut = "struct ver0.5";
+                        break;
+                    case "struct ver1.2":
+                        // Действия для выбранного варианта 2
+                        StructStringOut = "struct ver1.2";
+                        break;
+                    case "struct ver3.0":
+                        // Действия для выбранного варианта 3
+                        StructStringOut = "struct ver3.0";
+                        break;
+                    case "struct ver3.5+":
+                        // Действия для выбранного варианта 4
+                        StructStringOut = "struct ver3.5+";
+                        break;
+                    default:
+                        StructStringOut = "struct ver3.5+";
+                        break;
+                }
+            }
         }
     }
 }

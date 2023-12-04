@@ -175,8 +175,8 @@
         <CheckBox x:Name="CheckBoxFindStructOut" Content="Looking for structures" HorizontalAlignment="Left" Margin="1425,47,0,0" VerticalAlignment="Top" IsChecked="True"/>
         <CheckBox x:Name="CheckBoxCleaningIn" Content="Clean up the source" HorizontalAlignment="Left" Margin="22,141,0,0" VerticalAlignment="Top" IsChecked="False"/>
         <CheckBox x:Name="CheckBoxCleaningOut" Content="Clean up the source" HorizontalAlignment="Left" Margin="788,143,0,0" VerticalAlignment="Top" IsChecked="False"/>
-        <Label x:Name="Label_Semafor1" Content="" HorizontalAlignment="Left" Margin="89,47,0,0" VerticalAlignment="Top" Height="58" Background="Red" Width="58"/>
-        <Label x:Name="Label_Semafor2" Content="" HorizontalAlignment="Left" Margin="855,47,0,0" VerticalAlignment="Top" Height="58" Background="Red" Width="58"/>
+        <Label x:Name="Label_Semafor1" Content="" HorizontalAlignment="Left" Margin="186,40,0,0" VerticalAlignment="Top" Height="58" Background="Red" Width="58"/>
+        <Label x:Name="Label_Semafor2" Content="" HorizontalAlignment="Center" Margin="0,40,0,0" VerticalAlignment="Top" Height="58" Background="Red" Width="58"/>
         <Button x:Name="BtnLoadIn_Copy" Content="PreClear" HorizontalAlignment="Left" Height="30" Margin="5,610,0,0" VerticalAlignment="Top" Width="75" Click="btn_CS_Clear_Click"/>
         <Button x:Name="BtnSaveSnapshot" Content="Save Snapshot" HorizontalAlignment="Left" Height="60" Margin="1122,693,0,0" VerticalAlignment="Top" Width="100" Click="btn_SaveSnapshot_Click"/>
         <Button x:Name="BtnLoadSnapshotCS" Content="Load Snapshot CS" HorizontalAlignment="Left" Height="60" Margin="1243,693,0,0" VerticalAlignment="Top" Width="100" Click="btn_LoadSnapshotCS_Click"/>
@@ -196,8 +196,18 @@
         <TextBox x:Name="TextBoxNumIn" HorizontalAlignment="Left" Height="21" Margin="330,216,0,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top" Width="52"/>
         <CheckBox x:Name="CheckBoxLock" Content="Lock" HorizontalAlignment="Left" Margin="1687,219,0,0" VerticalAlignment="Top" Width="45" IsChecked="False" Unchecked="CheckBoxLock_Checked" Checked="CheckBoxLock_Checked"/>
         <CheckBox x:Name="CheckBoxRenameOff" Content="Rename only Unknown" HorizontalAlignment="Left" Margin="1564,6,0,0" VerticalAlignment="Top" Width="143" IsChecked="False"/>
-        <CheckBox x:Name="CheckBoxTypeEnumNewIn" Content="Type Enum New" HorizontalAlignment="Left" Margin="22,121,0,0" VerticalAlignment="Top" Width="166" IsChecked="True" Unchecked="CheckBoxTypeEnumNewIn_Checked" Checked="CheckBoxTypeEnumNewIn_Checked"/>
-        <CheckBox x:Name="CheckBoxTypeEnumNewOut" Content="Type Enum New" HorizontalAlignment="Left" Margin="788,124,0,0" VerticalAlignment="Top" Width="166" IsChecked="True" Unchecked="CheckBoxTypeEnumNewOut_Checked" Checked="CheckBoxTypeEnumNewOut_Checked"/>
         <Button x:Name="BtnUpdStruct" Content="Upd Struct" HorizontalAlignment="Left" Height="30" Margin="1172,645,0,0" VerticalAlignment="Top" Width="75" Click="btn_UpdStruct_Click" IsEnabled="True"/>
+        <StackPanel Margin="42,50,1778,650" Width="105">
+            <RadioButton x:Name="radioButton0In" Content="struct ver0.5" Checked="RadioButton_Checked_In"/>
+            <RadioButton x:Name="radioButton1In" Content="struct ver1.2" Checked="RadioButton_Checked_In"/>
+            <RadioButton x:Name="radioButton2In" Content="struct ver3.0" Checked="RadioButton_Checked_In"/>
+            <RadioButton x:Name="radioButton3In" Content="struct ver3.5+" IsChecked="True" Checked="RadioButton_Checked_In"/>
+        </StackPanel>
+        <StackPanel Margin="804,50,1012,650" Width="105">
+            <RadioButton x:Name="radioButton0Out" Content="struct ver0.5" Checked="RadioButton_Checked_Out"/>
+            <RadioButton x:Name="radioButton1Out" Content="struct ver1.2" Checked="RadioButton_Checked_Out"/>
+            <RadioButton x:Name="radioButton2Out" Content="struct ver3.0" Checked="RadioButton_Checked_Out"/>
+            <RadioButton x:Name="radioButton3Out" Content="struct ver3.5+" IsChecked="True" Checked="RadioButton_Checked_Out"/>
+        </StackPanel>
     </Grid>
 </Window>

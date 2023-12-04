@@ -30,6 +30,8 @@ namespace NameFinder
         public static Dictionary<int, List<Struc>> StructureDestination = new Dictionary<int, List<Struc>>();
         public static List<string> ListOpcodeDestination = new List<string>();
         public static bool isRemoveOpcode = false;
+        public static string StructStringIn = "";
+        public static string StructStringOut = "";
 
         public void CompareSourceStructures(
             ref List<string> listNameSource,
@@ -50,7 +52,6 @@ namespace NameFinder
 
             MainWindow.ListNameCompare = new List<string>(ListNameCompare);
 
-
             // начнем с начала
             IdxD = 0;
             IdxS = 0;
@@ -69,14 +70,14 @@ namespace NameFinder
             IdxD--; //взять следующий пакет
             ShowList();
         }
+
         private void BtnNextR_Click(object sender, RoutedEventArgs e)
         {
             IdxS++; //взять следующий пакет
             IdxD++; //взять следующий пакет
             ShowList();
         }
-
-
+        
         private void BtnNextCsOut_Click(object sender, RoutedEventArgs e)
         {
             IdxD++; //взять следующий пакет
@@ -99,15 +100,13 @@ namespace NameFinder
         {
             // проверим что имя не используется
             var offset = 0;
-            if (MainWindow.InUseIn.ContainsKey(IdxS))
+            if (MainWindow.InUseIn.TryGetValue(IdxS, out var useOut))
             {
-                var useOut = MainWindow.InUseIn[IdxS];
                 MainWindow.InUseOut.Remove(useOut);
                 ListNameCompare[useOut] = ListNameDestination[useOut];
             }
-            if (MainWindow.InUseOut.ContainsKey(IdxD))
+            if (MainWindow.InUseOut.TryGetValue(IdxD, out var useIn))
             {
-                var useIn = MainWindow.InUseOut[IdxD];
                 MainWindow.InUseIn.Remove(useIn);
             }
             if (MainWindow.InUseIn.ContainsKey(IdxS))
@@ -382,14 +381,36 @@ namespace NameFinder
                 var source = new List<string>();
                 foreach (var li in lis)
                 {
-                    if (MainWindow.isTypeEnumNewIn)
+                    switch (StructStringIn)
                     {
-                        source.Add((TypeEnum2)li.Type + " " + li.Name);
+                        case "struct ver0.5":
+                            // Действия для выбранного варианта 1
+                            source.Add((TypeEnum_05)li.Type + " " + li.Name);
+                            break;
+                        case "struct ver1.2":
+                            // Действия для выбранного варианта 2
+                            source.Add((TypeEnum_12)li.Type + " " + li.Name);
+                            break;
+                        case "struct ver3.0":
+                            // Действия для выбранного варианта 3
+                            source.Add((TypeEnum_30)li.Type + " " + li.Name);
+                            break;
+                        case "struct ver3.5+":
+                            // Действия для выбранного варианта 4
+                            source.Add((TypeEnum_35)li.Type + " " + li.Name);
+                            break;
+                        default:
+                            source.Add((TypeEnum_35)li.Type + " " + li.Name);
+                            break;
                     }
-                    else
-                    {
-                        source.Add((TypeEnum)li.Type + " " + li.Name);
-                    }
+                    //if (MainWindow.isTypeEnumNewIn)
+                    //{
+                    //    source.Add((TypeEnum_35)li.Type + " " + li.Name);
+                    //}
+                    //else
+                    //{
+                    //    source.Add((TypeEnum_12)li.Type + " " + li.Name);
+                    //}
                 }
                 ListView11.ItemsSource = source.ToList();
             }
@@ -409,23 +430,45 @@ namespace NameFinder
                 var source = new List<string>();
                 foreach (var li in lis)
                 {
-                    if (MainWindow.isTypeEnumNewOut)
+                    switch (StructStringOut)
                     {
-                        source.Add((TypeEnum2)li.Type + " " + li.Name);
+                        case "struct ver0.5":
+                            // Действия для выбранного варианта 1
+                            source.Add((TypeEnum_05)li.Type + " " + li.Name);
+                            break;
+                        case "struct ver1.2":
+                            // Действия для выбранного варианта 2
+                            source.Add((TypeEnum_12)li.Type + " " + li.Name);
+                            break;
+                        case "struct ver3.0":
+                            // Действия для выбранного варианта 3
+                            source.Add((TypeEnum_30)li.Type + " " + li.Name);
+                            break;
+                        case "struct ver3.5+":
+                            // Действия для выбранного варианта 4
+                            source.Add((TypeEnum_35)li.Type + " " + li.Name);
+                            break;
+                        default:
+                            source.Add((TypeEnum_35)li.Type + " " + li.Name);
+                            break;
                     }
-                    else
-                    {
-                        source.Add((TypeEnum)li.Type + " " + li.Name);
-                    }
+                    //if (MainWindow.isTypeEnumNewOut)
+                    //{
+                    //    source.Add((TypeEnum_35)li.Type + " " + li.Name);
+                    //}
+                    //else
+                    //{
+                    //    source.Add((TypeEnum_12)li.Type + " " + li.Name);
+                    //}
                 }
                 ListView21.ItemsSource = source.ToList();
             }
 
             // проверим, что имя не занято
-            if (MainWindow.InUseIn.ContainsKey(IdxS))
+            if (MainWindow.InUseIn.TryGetValue(IdxS, out var value))
             {
                 checkBoxInUse.IsChecked = true;
-                var idxs2 = MainWindow.InUseIn[IdxS] + 1;
+                var idxs2 = value + 1;
                 TextBox12_Copy.Text = idxs2.ToString();
             }
             else
@@ -434,10 +477,10 @@ namespace NameFinder
                 TextBox12_Copy.Text = "0";
             }
 
-            if (MainWindow.InUseOut.ContainsKey(IdxD))
+            if (MainWindow.InUseOut.TryGetValue(IdxD, out var value1))
             {
                 checkBoxOutUse.IsChecked = true;
-                var idxd2 = MainWindow.InUseOut[IdxD] + 1;
+                var idxd2 = value1 + 1;
                 TextBox22_Copy.Text = idxd2.ToString();
             }
             else
@@ -618,10 +661,10 @@ namespace NameFinder
             if (useIn == IdxS)
             {
                 // проверим, что имя не занято
-                if (MainWindow.InUseIn.ContainsKey(IdxS))
+                if (MainWindow.InUseIn.TryGetValue(IdxS, out var value))
                 {
                     checkBoxInUse.IsChecked = true;
-                    var idxs2 = MainWindow.InUseIn[IdxS] + 1;
+                    var idxs2 = value + 1;
                     TextBox12_Copy.Text = idxs2.ToString();
                 }
                 else
@@ -631,10 +674,10 @@ namespace NameFinder
                 }
             }
 
-            if (MainWindow.InUseOut.ContainsKey(IdxD))
+            if (MainWindow.InUseOut.TryGetValue(IdxD, out var value1))
             {
                 checkBoxOutUse.IsChecked = true;
-                var idxd2 = MainWindow.InUseOut[IdxD] + 1;
+                var idxd2 = value1 + 1;
                 TextBox22_Copy.Text = idxd2.ToString();
             }
             else
