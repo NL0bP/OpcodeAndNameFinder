@@ -223,7 +223,7 @@ namespace NameFinder
                     AddCSSC();
                 }
             }
-            // Remove Packet
+            // Remove CS|SC & Packet & @@6B@ in ver.0.5.1
             if (CheckBoxAdd.IsChecked == true)
             {
                 if (ListNameCompare[IdxD][0].ToString() != "o" ||
@@ -232,6 +232,7 @@ namespace NameFinder
                 {
                     // удаляем CS|SC только в начале имени
                     RemoveCSSC();
+                    ListNameCompare[IdxD] = ListNameCompare[IdxD].Replace("@@6B@", "");
                     ListNameCompare[IdxD] = ListNameCompare[IdxD].Replace("PACKET", "");
                     ListNameCompare[IdxD] = ListNameCompare[IdxD].Replace("Packet", "");
                     ListNameCompare[IdxD] = ListNameCompare[IdxD].Replace("packet", "");
@@ -307,6 +308,24 @@ namespace NameFinder
         private void RemoveCSSC()
         {
             int offset;
+            if (MainWindow.isCS)
+            {
+                // удаляем ??_7 только в начале имени
+                offset = ListNameCompare[IdxD].IndexOf("??_7", StringComparison.OrdinalIgnoreCase);
+                if (offset == 0)
+                {
+                    ListNameCompare[IdxD] = ListNameCompare[IdxD].Substring(4, ListNameCompare[IdxD].Length - 4);
+                }
+            }
+            else
+            {
+                // удаляем ??_7 только в начале имени
+                offset = ListNameCompare[IdxD].IndexOf("??_7", StringComparison.OrdinalIgnoreCase);
+                if (offset == 0)
+                {
+                    ListNameCompare[IdxD] = ListNameCompare[IdxD].Substring(4, ListNameCompare[IdxD].Length - 4);
+                }
+            }
             if (MainWindow.isCS)
             {
                 // удаляем CS|SC только в начале имени

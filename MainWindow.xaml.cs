@@ -4314,7 +4314,7 @@ namespace NameFinder
             }
             CheckBoxToTitleCase.Dispatcher.Invoke( DispatcherPriority.Background, new Action( () => { CheckBoxToTitleCase.IsChecked = false; } ) );
 
-            // Remove CS & Packet
+            // Remove CS & Packet & @@6B@ in ver.0.5.1
             if ( CheckBoxRemovePacket.IsChecked == true )
             {
                 for ( var i = 0; i < ListNameCompareCS.Count; i++ )
@@ -4325,6 +4325,7 @@ namespace NameFinder
                     {
                         // удаляем CS|SC только в начале имени
                         RemoveCS( i );
+                        ListNameCompareCS[i] = ListNameCompareCS[i].Replace( "@@6B@", "" );
                         ListNameCompareCS[i] = ListNameCompareCS[i].Replace( "PACKET", "" );
                         ListNameCompareCS[i] = ListNameCompareCS[i].Replace( "Packet", "" );
                         ListNameCompareCS[i] = ListNameCompareCS[i].Replace( "packet", "" );
@@ -4422,8 +4423,14 @@ namespace NameFinder
 
         private static void RemoveCS( int i )
         {
+            // удаляем ??_7 только в начале имени
+            var offset = ListNameCompareCS[i].IndexOf( "??_7", StringComparison.OrdinalIgnoreCase );
+            if ( offset == 0 )
+            {
+                ListNameCompareCS[i] = ListNameCompareCS[i].Substring( 4, ListNameCompareCS[i].Length - 4 );
+            }
             // удаляем CS|SC только в начале имени
-            var offset = ListNameCompareCS[i].IndexOf( "cs", StringComparison.OrdinalIgnoreCase );
+            offset = ListNameCompareCS[i].IndexOf( "cs", StringComparison.OrdinalIgnoreCase );
             if ( offset == 0 )
             {
                 ListNameCompareCS[i] = ListNameCompareCS[i].Substring( 2, ListNameCompareCS[i].Length - 2 );
@@ -4479,7 +4486,7 @@ namespace NameFinder
             }
             CheckBoxToTitleCase.Dispatcher.Invoke( DispatcherPriority.Background, new Action( () => { CheckBoxToTitleCase.IsChecked = false; } ) );
 
-            // Remove SC & Packet
+            // Remove SC & Packet & @@6B@ in ver.0.5.1
             if ( CheckBoxRemovePacket.IsChecked == true )
             {
                 for ( var i = 0; i < ListNameCompareSC.Count; i++ )
@@ -4490,6 +4497,7 @@ namespace NameFinder
                     {
                         // удаляем CS|SC только в начале имени
                         RemoveSC( i );
+                        ListNameCompareSC[i] = ListNameCompareSC[i].Replace( "@@6B@", "" );
                         ListNameCompareSC[i] = ListNameCompareSC[i].Replace( "PACKET", "" );
                         ListNameCompareSC[i] = ListNameCompareSC[i].Replace( "Packet", "" );
                         ListNameCompareSC[i] = ListNameCompareSC[i].Replace( "packet", "" );
@@ -4586,8 +4594,14 @@ namespace NameFinder
 
         private static void RemoveSC( int i )
         {
+            // удаляем ??_7 только в начале имени
+            var offset = ListNameCompareSC[i].IndexOf( "??_7", StringComparison.OrdinalIgnoreCase );
+            if ( offset == 0 )
+            {
+                ListNameCompareSC[i] = ListNameCompareSC[i].Substring( 4, ListNameCompareSC[i].Length - 4 );
+            }
             // удаляем CS|SC только в начале имени
-            var offset = ListNameCompareSC[i].IndexOf( "sc", StringComparison.OrdinalIgnoreCase );
+            offset = ListNameCompareSC[i].IndexOf( "sc", StringComparison.OrdinalIgnoreCase );
             if ( offset == 0 )
             {
                 ListNameCompareSC[i] = ListNameCompareSC[i].Substring( 2, ListNameCompareSC[i].Length - 2 );
