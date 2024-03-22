@@ -387,20 +387,20 @@ namespace NameFinder
                             // Действия для выбранного варианта 1
                             source.Add((TypeEnum_05)li.Type + " " + li.Name);
                             break;
-                        case "struct ver1.2":
+                        case "struct ver1.2+":
                             // Действия для выбранного варианта 2
                             source.Add((TypeEnum_12)li.Type + " " + li.Name);
                             break;
-                        case "struct ver3.0":
+                        case "struct ver6.0+":
                             // Действия для выбранного варианта 3
-                            source.Add((TypeEnum_30)li.Type + " " + li.Name);
+                            source.Add((TypeEnum_60)li.Type + " " + li.Name);
                             break;
-                        case "struct ver3.5+":
+                        case "struct ver8.0+":
                             // Действия для выбранного варианта 4
-                            source.Add((TypeEnum_35)li.Type + " " + li.Name);
+                            source.Add((TypeEnum_80)li.Type + " " + li.Name);
                             break;
                         default:
-                            source.Add((TypeEnum_35)li.Type + " " + li.Name);
+                            source.Add((TypeEnum_80)li.Type + " " + li.Name);
                             break;
                     }
                     //if (MainWindow.isTypeEnumNewIn)
@@ -436,20 +436,20 @@ namespace NameFinder
                             // Действия для выбранного варианта 1
                             source.Add((TypeEnum_05)li.Type + " " + li.Name);
                             break;
-                        case "struct ver1.2":
+                        case "struct ver1.2+":
                             // Действия для выбранного варианта 2
                             source.Add((TypeEnum_12)li.Type + " " + li.Name);
                             break;
-                        case "struct ver3.0":
+                        case "struct ver6.0+":
                             // Действия для выбранного варианта 3
-                            source.Add((TypeEnum_30)li.Type + " " + li.Name);
+                            source.Add((TypeEnum_60)li.Type + " " + li.Name);
                             break;
-                        case "struct ver3.5+":
+                        case "struct ver8.0+":
                             // Действия для выбранного варианта 4
-                            source.Add((TypeEnum_35)li.Type + " " + li.Name);
+                            source.Add((TypeEnum_80)li.Type + " " + li.Name);
                             break;
                         default:
-                            source.Add((TypeEnum_35)li.Type + " " + li.Name);
+                            source.Add((TypeEnum_80)li.Type + " " + li.Name);
                             break;
                     }
                     //if (MainWindow.isTypeEnumNewOut)
@@ -490,7 +490,7 @@ namespace NameFinder
             }
         }
 
-        private void TextBox21_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
+        private void TextBox21_TextChanged(object sender, TextChangedEventArgs e)
         {
             if (ListNameCompare.Count != 0)
             {
@@ -498,7 +498,7 @@ namespace NameFinder
             }
         }
 
-        private void TextBox11_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
+        private void TextBox11_TextChanged(object sender, TextChangedEventArgs e)
         {
             if (ListNameSource.Count != 0)
             {

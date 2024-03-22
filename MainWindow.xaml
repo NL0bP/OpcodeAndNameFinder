@@ -199,15 +199,15 @@
         <Button x:Name="BtnUpdStruct" Content="Upd Struct" HorizontalAlignment="Left" Height="30" Margin="1172,645,0,0" VerticalAlignment="Top" Width="75" Click="btn_UpdStruct_Click" IsEnabled="True"/>
         <StackPanel Margin="42,50,1778,650" Width="105">
             <RadioButton x:Name="radioButton0In" Content="struct ver0.5" Checked="RadioButton_Checked_In"/>
-            <RadioButton x:Name="radioButton1In" Content="struct ver1.2" Checked="RadioButton_Checked_In"/>
-            <RadioButton x:Name="radioButton2In" Content="struct ver3.0" Checked="RadioButton_Checked_In"/>
-            <RadioButton x:Name="radioButton3In" Content="struct ver3.5+" IsChecked="True" Checked="RadioButton_Checked_In"/>
+            <RadioButton x:Name="radioButton1In" Content="struct ver1.2+" Checked="RadioButton_Checked_In"/>
+            <RadioButton x:Name="radioButton2In" Content="struct ver6.0+" Checked="RadioButton_Checked_In"/>
+            <RadioButton x:Name="radioButton3In" Content="struct ver8.0+" IsChecked="True" Checked="RadioButton_Checked_In"/>
         </StackPanel>
         <StackPanel Margin="804,50,1012,650" Width="105">
             <RadioButton x:Name="radioButton0Out" Content="struct ver0.5" Checked="RadioButton_Checked_Out"/>
-            <RadioButton x:Name="radioButton1Out" Content="struct ver1.2" Checked="RadioButton_Checked_Out"/>
-            <RadioButton x:Name="radioButton2Out" Content="struct ver3.0" Checked="RadioButton_Checked_Out"/>
-            <RadioButton x:Name="radioButton3Out" Content="struct ver3.5+" IsChecked="True" Checked="RadioButton_Checked_Out"/>
+            <RadioButton x:Name="radioButton1Out" Content="struct ver1.2+" Checked="RadioButton_Checked_Out"/>
+            <RadioButton x:Name="radioButton2Out" Content="struct ver6.0+" Checked="RadioButton_Checked_Out"/>
+            <RadioButton x:Name="radioButton3Out" Content="struct ver8.0+" IsChecked="True" Checked="RadioButton_Checked_Out"/>
         </StackPanel>
     </Grid>
 </Window>
