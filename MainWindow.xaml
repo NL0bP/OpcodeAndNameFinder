@@ -124,8 +124,8 @@
         <Label x:Name="LabelPathOut" Content="File path without names:" HorizontalAlignment="Left" Height="26" Margin="11,701,0,0" VerticalAlignment="Top" Width="144"/>
         <ProgressBar x:Name="ProgressBar12" HorizontalAlignment="Left" Height="10" Margin="393,595,0,0" VerticalAlignment="Top" Width="175"/>
         <ProgressBar x:Name="ProgressBar22" HorizontalAlignment="Left" Height="10" Margin="1172,595,0,0" VerticalAlignment="Top" Width="175"/>
-        <CheckBox x:Name="CheckBoxFindOpcodeOut" Content="Search opcodes" HorizontalAlignment="Left" Margin="1425,67,0,0" VerticalAlignment="Top" IsChecked="True"/>
-        <CheckBox x:Name="CheckBoxFindOpcodeIn" Content="Search opcodes" HorizontalAlignment="Left" Margin="643,69,0,0" VerticalAlignment="Top" IsChecked="True"/>
+        <CheckBox x:Name="CheckBoxFindOpcodeOut" Content="Looking for opcodes" HorizontalAlignment="Left" Margin="1425,67,0,0" VerticalAlignment="Top" IsChecked="True"/>
+        <CheckBox x:Name="CheckBoxFindOpcodeIn" Content="Looking for opcodes" HorizontalAlignment="Left" Margin="643,69,0,0" VerticalAlignment="Top" IsChecked="True"/>
         <Label x:Name="Label16Copy" Content="Total opcodes:" HorizontalAlignment="Left" Margin="595,102,0,0" VerticalAlignment="Top"/>
         <TextBox x:Name="TextBox16Copy" HorizontalAlignment="Left" Height="22" Margin="681,104,0,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top" Width="65"/>
         <Label x:Name="Label17Copy" Content="Not found:" HorizontalAlignment="Left" Margin="614,137,0,0" VerticalAlignment="Top"/>

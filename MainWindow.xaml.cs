@@ -45,7 +45,7 @@ namespace NameFinder
         String = 0xCC,
         String2 = 0xD0
     }
-    
+
     public enum TypeEnum_12 // до 5.0.7.0 такие же
     {
         UInt64 = 0x38,
@@ -72,7 +72,7 @@ namespace NameFinder
         String3 = 0xDC,
         String4 = 0xE0
     }
-    
+
     public enum TypeEnum_60 // до 8.0
     {
         UInt64 = 0x3C,
@@ -101,7 +101,7 @@ namespace NameFinder
         String2 = 0xE8, // Bites()
         String3 = 0xEC
     }
-    
+
     public enum TypeEnum_80
     {
         UInt64 = 0x3C,
@@ -236,6 +236,10 @@ namespace NameFinder
             ButtonSaveIn2.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ButtonSaveIn2.IsEnabled = false; }));
             BtnLoadIn.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnLoadIn.IsEnabled = false; }));
             BtnLoadIn_Copy.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnLoadIn_Copy.IsEnabled = false; }));
+            BtnCsLoadNameIn.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnCsLoadNameIn.IsEnabled = false; }));
+            BtnScLoadNameIn.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnScLoadNameIn.IsEnabled = false; }));
+            BtnMakePktIn.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnMakePktIn.IsEnabled = false; }));
+            BtnGotoOpcodeIn.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnGotoOpcodeIn.IsEnabled = false; }));
 
             _isInCs = false;
             ButtonCsCompare.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ButtonCsCompare.IsEnabled = false; }));
@@ -317,7 +321,7 @@ namespace NameFinder
                             mov     dword ptr [eax], offset ??_7CSChangeLootingRulePacket@@6B@ ; const CSChangeLootingRulePacket::`vftable'
                             mov     byte ptr [eax+10h], 2
                             mov     byte ptr [eax+18h], 1
-                            mov     dword ptr [eax+4], 71h
+                            mov     dword ptr [ebp+var_20+4], 1D4h
                             */
                             var matchesOffset = regexOffset.Match(InListSource[index]);
                             if (matchesOffset.Groups.Count <= 1)
@@ -367,16 +371,12 @@ namespace NameFinder
                                 }
 
                                 var matches2 = regexEndp.Matches(InListSource[index]);
-                                if (matches2.Count <= 0)
-                                {
-                                    continue;
-                                }
                                 //
                                 // нашли конец подпрограммы
                                 //
-                                foundEndp = true;
+                                if (matches2.Count > 0)
+                                    foundEndp = true;
                             } while (!foundEndp);
-
 
                             if (matchesOpcode.Groups.Count >= 2)
                             {
@@ -524,6 +524,10 @@ namespace NameFinder
             ButtonSaveIn1.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ButtonSaveIn1.IsEnabled = true; }));
             BtnLoadIn.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnLoadIn.IsEnabled = true; }));
             BtnLoadIn_Copy.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnLoadIn_Copy.IsEnabled = true; }));
+            BtnMakePktIn.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnMakePktIn.IsEnabled = true; }));
+            BtnGotoOpcodeIn.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnGotoOpcodeIn.IsEnabled = true; }));
+            BtnCsLoadNameIn.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnCsLoadNameIn.IsEnabled = true; }));
+            BtnScLoadNameIn.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnScLoadNameIn.IsEnabled = true; }));
 
             _isInCs = true;
             if (_isInCs && _isOutCs)
@@ -554,6 +558,8 @@ namespace NameFinder
             BtnLoadIn_Copy.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnLoadIn_Copy.IsEnabled = false; }));
             BtnCsLoadNameIn.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnCsLoadNameIn.IsEnabled = false; }));
             BtnScLoadNameIn.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnScLoadNameIn.IsEnabled = false; }));
+            BtnMakePktIn.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnMakePktIn.IsEnabled = false; }));
+            BtnGotoOpcodeIn.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnGotoOpcodeIn.IsEnabled = false; }));
 
             _isInSc = false;
             ButtonCsCompare.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ButtonCsCompare.IsEnabled = false; }));
@@ -565,7 +571,13 @@ namespace NameFinder
 
             // здесь ищем ссылку на подпрограмму, где есть опкоды
             var found = false;
+            //
+            // ищем конец подпрограммы
+            //
             var regexEndp = new Regex(@"\s+endp\s*", RegexOptions.Compiled); // ищем конец подпрограммы
+            //
+            // здесь ищем ссылку на подпрограмму, где есть опкоды
+            //
             var regexOffset = new Regex(@"mov\s+\[(\w+\+\w+)\],\soffset\s|mov\s+dword\sptr\s\[(\w+)\],\soffset\s|mov\s+dword\sptr\s\[(\w+\+\w+)\],\soffset\s", RegexOptions.Compiled);
             //var regexOpcode = new Regex(@"mov\s+\[\w+\+\w+\],\s+([0-9A-F]+)|mov\s+dword\sptr\s\[\w+\+\w+\],\s+([0-9A-F]+)|mov\s+dword\sptr\s\[\w+\+\w+\+\w+\],\s+([0-9A-F]+)|mov\s+dword\sptr\s\[\w+\-\w+\],\s+([0-9A-F]+)", RegexOptions.Compiled);
             var regexOpcode = new Regex(@"\[\w+\-(?![0-9a-f]+h+)[0-9a-fA-F]+\],\s([0-9a-fA-F]+)|\[\w+\+(?![0-9a-f]+h+)[0-9a-fA-F]+\],\s([0-9a-fA-F]+)|\[\w+\+(?![0-9a-f]+h+)\w+[0-9a-fA-F]+\],\s([0-9a-fA-F]+)|\[\w+\+(?![0-9a-f]+h)\w+[0-9a-fA-F]+\+[0-9a-fA-F]+\],\s([0-9a-fA-F]+)", RegexOptions.Compiled);
@@ -589,21 +601,27 @@ namespace NameFinder
 
                     // "sub_39022C10"
                     subAddress = matchesSub[0].ToString();
+                    //
                     // здесь ищем начало подпрограммы
                     // начнем с начала файла
+                    //
                     found = false;
                     var find = "";
                     var ss = "";
                     for (var index = 0; index < InListSource.Count; index++)
                     {
-                        var regex10 = new Regex(@"^" + subAddress, RegexOptions.IgnoreCase); // ищем начало подпрограммы, каждый раз с начала файла
+                        //
+                        // ищем начало подпрограммы, каждый раз с начала файла
+                        //
+                        var regex10 = new Regex(@"^" + subAddress, RegexOptions.IgnoreCase);
                         var matches = regex10.Matches(InListSource[index]);
                         if (matches.Count <= 0)
                         {
                             continue;
                         }
-
+                        //
                         // нашли начало подпрограммы, ищем опкоды в структуре, пока не "endp"
+                        //
                         var foundEndp = false;
                         do
                         {
@@ -668,18 +686,18 @@ namespace NameFinder
                                 matchesOpcode = regexOpcode.Match(InListSource[index]);
                                 if (matchesOpcode.Groups.Count >= 2)
                                 {
+                                    //
                                     // нашли опкод
+                                    //
                                     break;
                                 }
 
                                 var matches2 = regexEndp.Matches(InListSource[index]);
-                                if (matches2.Count <= 0)
-                                {
-                                    continue;
-                                }
-
+                                //
                                 // нашли конец подпрограммы
-                                foundEndp = true;
+                                //
+                                if (matches2.Count > 0)
+                                    foundEndp = true;
                             } while (!foundEndp);
 
 
@@ -831,6 +849,8 @@ namespace NameFinder
             BtnLoadIn_Copy.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnLoadIn_Copy.IsEnabled = true; }));
             BtnCsLoadNameIn.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnCsLoadNameIn.IsEnabled = true; }));
             BtnScLoadNameIn.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnScLoadNameIn.IsEnabled = true; }));
+            BtnMakePktIn.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnMakePktIn.IsEnabled = true; }));
+            BtnGotoOpcodeIn.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnGotoOpcodeIn.IsEnabled = true; }));
 
             _isInSc = true;
             if (_isInSc && _isOutSc)
@@ -1167,6 +1187,10 @@ namespace NameFinder
             //BtnLoadIn_Copy.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnLoadIn_Copy.IsEnabled = false; }));
             BtnCsLoadNameOut.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnCsLoadNameOut.IsEnabled = false; }));
             BtnScLoadNameOut.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnScLoadNameOut.IsEnabled = false; }));
+            BtnMakePktOut.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnMakePktOut.IsEnabled = false; }));
+            BtnUpdStruct.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnUpdStruct.IsEnabled = false; }));
+            BtnGotoOpcodeOut.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnGotoOpcodeOut.IsEnabled = false; }));
+            ButtonEditOutOpcode.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ButtonEditOutOpcode.IsEnabled = false; }));
 
             _isOutSc = false;
             ButtonCsCompare.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ButtonCsCompare.IsEnabled = false; }));
@@ -1287,15 +1311,9 @@ namespace NameFinder
                                 }
 
                                 var matches2 = regexEndp.Matches(InListDestination[index]);
-                                if (matches2.Count <= 0)
-                                {
-                                    continue;
-                                }
-
-                                // нашли конец подпрограммы
-                                foundEndp = true;
+                                if (matches2.Count > 0)
+                                    foundEndp = true; // нашли конец подпрограммы
                             } while (!foundEndp);
-
 
                             if (matchesOpcode.Groups.Count >= 2)
                             {
@@ -1445,6 +1463,10 @@ namespace NameFinder
             //BtnLoadIn_Copy.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnLoadIn_Copy.IsEnabled = true; }));
             BtnCsLoadNameOut.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnCsLoadNameOut.IsEnabled = true; }));
             BtnScLoadNameOut.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnScLoadNameOut.IsEnabled = true; }));
+            BtnMakePktOut.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnMakePktOut.IsEnabled = true; }));
+            BtnUpdStruct.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnUpdStruct.IsEnabled = true; }));
+            BtnGotoOpcodeOut.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnGotoOpcodeOut.IsEnabled = true; }));
+            ButtonEditOutOpcode.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ButtonEditOutOpcode.IsEnabled = true; }));
 
             _isOutSc = true;
             if (_isInSc && _isOutSc)
@@ -1529,6 +1551,7 @@ namespace NameFinder
             {
                 // mov     [ebp+var_48C], offset SCDominionDataPacket_0x0b2
                 // mov     [ebp+var_488], 0B2h
+                // mov     dword ptr [ebp+var_20+4], 1D4h
                 int offset;
                 string prefix;
                 string numb;
@@ -2014,6 +2037,228 @@ namespace NameFinder
             return tmpLst;
         }
 
+        private List<string> CleanSourceSubWithRetn(int idx)
+        {
+            var progress = CalcProgress(InListSource.Count);
+
+            var maxCount = InListSource.Count;
+            var found = false;
+            var tmpLst = new List<string>();
+            var regexProcNear = new Regex(@"(proc\s+near)", RegexOptions.Compiled);
+            var regexEndP = new Regex(@"\s+endp\s*", RegexOptions.Compiled);
+            var regexSub = new Regex(@"push\s+offset\s|call\s+\w+|call\s+sub_\w+|mov\s+\[\w+\+\w+\],\soffset\s|mov\s+dword\sptr\s\[\w+\+\w+\],\soffset\s|mov\s+\[\w+\+\w+\],\s([1-9]|[0-9A-F]{2,3}h)|mov\s+dword\sptr\s\[\w+\+\w+\],\s([1-9]|[0-9A-F]{2,3}h)|mov\s+dword\sptr\s\[\w+\+\w+\+\w+\],\s([1-9]|[0-9A-F]{2,3}h)|mov\s+dword\sptr\s\[\w+\],\soffset\s|mov\s+dword\sptr\s\[\w+\-\w+\],\soffset\s|mov\s+dword\sptr\s\[\w+\-\w+\],\s([1-9]|[0-9A-F]{2,3}h)|mov\s+e[abcd]x,\s\[e[abcd]x\+([0-9A-F]{2}h)\]", RegexOptions.Compiled);
+            var regexRetn = new Regex(@"retn", RegexOptions.Compiled);
+
+            for (var index = idx; index < maxCount; index++)
+            {
+                if (index % progress == 0)
+                {
+                    ProgressBar11.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar11.Value = index; }));
+                }
+
+                var matchesProcNear = regexProcNear.Matches(InListSource[index]);
+                if (matchesProcNear.Count <= 0)
+                    continue;
+
+                tmpLst.Add(InListSource[index]); // сохраняем
+
+                var foundEndp = false;
+                var foundEndpString = "";
+                bool foundCall = false;
+
+                do
+                {
+                    if (index % progress == 0)
+                    {
+                        ProgressBar11.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar11.Value = index; }));
+                    }
+                    index++;
+                    found = LookingAndSaveMatchesSub(index);
+
+                    var matchesCall = Regex.Match(InListSource[index], @"call\s+\w+|call\s+sub_\w+");
+                    if (matchesCall.Success)
+                    {
+                        foundCall = true;
+                    }
+
+                    var matches2 = regexEndP.Matches(InListSource[index]);
+                    if (matches2.Count <= 0)
+                    {
+                        foundCall = false;
+                        continue;
+                    }
+
+                    foundEndp = true;
+
+                    if (foundEndp && !foundCall)
+                    {
+                        tmpLst.Add(InListSource[index]); // сохраняем
+                    }
+                    else
+                    {
+                        foundEndpString = InListSource[index];
+                    }
+                    if (foundCall) // Если найден 'endp' после 'call', продолжаем поиск до 'retn'
+                    {
+                        do
+                        {
+                            if (index % progress == 0)
+                            {
+                                ProgressBar11.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar11.Value = index; }));
+                            }
+
+                            index++;
+                            found = LookingAndSaveMatchesSub(index);
+                            // если вдруг найдем начало следующей процедуры, завершаем текущую процедуру
+                            matchesProcNear = regexProcNear.Matches(InListSource[index]);
+                            if (matchesProcNear.Count > 0)
+                            {
+                                tmpLst.Add(foundEndpString); // сохраняем `endp`
+                                break;
+                            }
+
+                            var matchesRetn = regexRetn.Match(InListSource[index]);
+                            if (matchesRetn.Success)
+                            {
+                                tmpLst.Add(InListSource[index]); // сохраняем
+                                tmpLst.Add(foundEndpString); // сохраняем `endp`
+                                break;
+                            }
+                        } while (index < maxCount);
+                    }
+
+                } while (index < maxCount && !foundEndp);
+            }
+
+            if (!found)
+                return new List<string>();
+
+            return tmpLst;
+
+            bool LookingAndSaveMatchesSub(int index)
+            {
+                var matchesSub = regexSub.Matches(InListSource[index]);
+                if (matchesSub.Count > 0)
+                {
+                    tmpLst.Add(InListSource[index]); // сохраняем
+                    found = true; // нашли структуру
+                }
+
+                return found;
+            }
+        }
+        
+        private List<string> CleanDestinationSubWithRetn(int idx)
+        {
+            var progress = CalcProgress(InListDestination.Count);
+
+            var maxCount = InListDestination.Count;
+            var found = false;
+            var tmpLst = new List<string>();
+            var regexProcNear = new Regex(@"(proc\s+near)", RegexOptions.Compiled);
+            var regexEndP = new Regex(@"\s+endp\s*", RegexOptions.Compiled);
+            var regexSub = new Regex(@"push\s+offset\s|call\s+\w+|call\s+sub_\w+|mov\s+\[\w+\+\w+\],\soffset\s|mov\s+dword\sptr\s\[\w+\+\w+\],\soffset\s|mov\s+\[\w+\+\w+\],\s([1-9]|[0-9A-F]{2,3}h)|mov\s+dword\sptr\s\[\w+\+\w+\],\s([1-9]|[0-9A-F]{2,3}h)|mov\s+dword\sptr\s\[\w+\+\w+\+\w+\],\s([1-9]|[0-9A-F]{2,3}h)|mov\s+dword\sptr\s\[\w+\],\soffset\s|mov\s+dword\sptr\s\[\w+\-\w+\],\soffset\s|mov\s+dword\sptr\s\[\w+\-\w+\],\s([1-9]|[0-9A-F]{2,3}h)|mov\s+e[abcd]x,\s\[e[abcd]x\+([0-9A-F]{2}h)\]", RegexOptions.Compiled);
+            var regexRetn = new Regex(@"retn", RegexOptions.Compiled);
+
+            for (var index = idx; index < maxCount; index++)
+            {
+                if (index % progress == 0)
+                {
+                    ProgressBar21.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar21.Value = index; }));
+                }
+
+                var matchesProcNear = regexProcNear.Matches(InListDestination[index]);
+                if (matchesProcNear.Count <= 0)
+                    continue;
+
+                tmpLst.Add(InListDestination[index]); // сохраняем
+
+                var foundEndp = false;
+                var foundEndpString = "";
+                bool foundCall = false;
+
+                do
+                {
+                    if (index % progress == 0)
+                    {
+                        ProgressBar21.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar21.Value = index; }));
+                    }
+                    index++;
+                    found = LookingAndSaveMatchesSub(index);
+
+                    var matchesCall = Regex.Match(InListDestination[index], @"call\s+\w+|call\s+sub_\w+");
+                    if (matchesCall.Success)
+                    {
+                        foundCall = true;
+                    }
+
+                    var matches2 = regexEndP.Matches(InListDestination[index]);
+                    if (matches2.Count <= 0)
+                    {
+                        foundCall = false;
+                        continue;
+                    }
+
+                    foundEndp = true;
+
+                    if (foundEndp && !foundCall)
+                    {
+                        tmpLst.Add(InListDestination[index]); // сохраняем
+                    }
+                    else
+                    {
+                        foundEndpString = InListDestination[index];
+                    }
+                    if (foundCall) // Если найден 'endp' после 'call', продолжаем поиск до 'retn'
+                    {
+                        do
+                        {
+                            if (index % progress == 0)
+                            {
+                                ProgressBar21.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar21.Value = index; }));
+                            }
+
+                            index++;
+                            found = LookingAndSaveMatchesSub(index);
+                            // если вдруг найдем начало следующей процедуры, завершаем текущую процедуру
+                            matchesProcNear = regexProcNear.Matches(InListSource[index]);
+                            if (matchesProcNear.Count > 0)
+                            {
+                                tmpLst.Add(foundEndpString); // сохраняем `endp`
+                                break;
+                            }
+
+                            var matchesRetn = regexRetn.Match(InListDestination[index]);
+                            if (matchesRetn.Success)
+                            {
+                                tmpLst.Add(InListDestination[index]); // сохраняем
+                                tmpLst.Add(foundEndpString); // сохраняем `endp`
+                                break;
+                            }
+                        } while (index < maxCount);
+                    }
+
+                } while (index < maxCount && !foundEndp);
+            }
+
+            if (!found)
+                return new List<string>();
+
+            return tmpLst;
+
+            bool LookingAndSaveMatchesSub(int index)
+            {
+                var matchesSub = regexSub.Matches(InListDestination[index]);
+                if (matchesSub.Count > 0)
+                {
+                    tmpLst.Add(InListDestination[index]); // сохраняем
+                    found = true; // нашли структуру
+                }
+
+                return found;
+            }
+        }
+
         private List<string> CleanDestinationCSOffs(int idx)
         {
             var progress = CalcProgress(InListDestination.Count);
@@ -2322,7 +2567,8 @@ namespace NameFinder
             var tmp = new List<string>();
 
             // затем ищем подпрограммы
-            var tmpSub = CleanSourceSub(0);
+            var tmpSub = CleanSourceSubWithRetn(0);
+            //var tmpSub = CleanSourceSub(0);
             tmp.AddRange(tmpSub);
             //
             // затем ищем оффсеты для CS
@@ -2365,7 +2611,8 @@ namespace NameFinder
             var tmp = new List<string>();
 
             // затем ищем подпрограммы
-            var tmpSub = CleanDestinationSub(0);
+            var tmpSub = CleanDestinationSubWithRetn(0);
+            //var tmpSub = CleanDestinationSub(0);
             tmp.AddRange(tmpSub);
             //
             // затем ищем оффсеты для CS
@@ -2606,14 +2853,11 @@ namespace NameFinder
             TextBox13.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox13.Text = "0"; }));
             TextBox14.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox14.Text = "0"; }));
             TextBox18.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox18.Text = "0"; }));
+            ProgressBar11.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar11.Value = InListSource.Count; }));
             ProgressBar12.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar12.Value = 0; }));
             Label_Semafor1.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { Label_Semafor1.Background = Brushes.Yellow; }));
             ButtonSaveIn1.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ButtonSaveIn1.IsEnabled = false; }));
             ButtonSaveIn2.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ButtonSaveIn2.IsEnabled = false; }));
-            BtnLoadIn.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnLoadIn.IsEnabled = false; }));
-            BtnLoadIn_Copy.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnLoadIn_Copy.IsEnabled = false; }));
-            BtnCsLoadNameIn.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnCsLoadNameIn.IsEnabled = false; }));
-            BtnScLoadNameIn.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnScLoadNameIn.IsEnabled = false; }));
 
             //
             // начали предварительную работу по поиску имен и ссылок на подпрограммы со структурами
@@ -2637,7 +2881,7 @@ namespace NameFinder
 
                     var lst = new List<string>();
                     var tmpIdx = index;
-                    var tmpIdxMax = tmpIdx + 1;
+                    var tmpIdxMax = tmpIdx + 2;
                     do
                     {
                         tmpIdx++;
@@ -2652,7 +2896,7 @@ namespace NameFinder
                         {
                             lst.Add(match.ToString()); // сохранили XREF
                         }
-                    } while (tmpIdx <= tmpIdxMax);
+                    } while (tmpIdx < tmpIdxMax);
 
                     XrefsIn.Add(indexRefs, lst); // сохраним список XREF для пакета
                     indexRefs++; // следующий номер пакета
@@ -2776,7 +3020,6 @@ namespace NameFinder
                             var lst = new List<Struc>();
                             do
                             {
-                                index++;
                                 var matchesCalls = regexCall.Matches(InListSource[index]);
                                 foreach (var matchCall in matchesCalls)
                                 {
@@ -2812,13 +3055,12 @@ namespace NameFinder
                                 }
 
                                 var matchesEndP = regexEndP.Matches(InListSource[index]);
-                                if (matchesEndP.Count <= 0)
+                                if (matchesEndP.Count > 0)
                                 {
-                                    continue;
+                                    foundEndp = true;
                                 }
-
-                                foundEndp = true;
-                            } while (!foundEndp);
+                                index++;
+                            } while (index < InListSource.Count && !foundEndp);
 
                             StructureSourceCS.Add(i, lst); // сохранили всю структуру пакета
                             found = true; // нашли структуру
@@ -2837,8 +3079,6 @@ namespace NameFinder
                 }
             }
 
-            BtnCsLoadNameIn.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnCsLoadNameIn.IsEnabled = true; }));
-            BtnScLoadNameIn.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnScLoadNameIn.IsEnabled = true; }));
             BtnLoadIn.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnLoadIn.IsEnabled = true; }));
             BtnLoadIn_Copy.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnLoadIn_Copy.IsEnabled = true; }));
 
@@ -2858,6 +3098,10 @@ namespace NameFinder
             stopWatch.Stop();
             TextBox18.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox18.Text = stopWatch.Elapsed.ToString(); }));
             Label_Semafor1.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { Label_Semafor1.Background = Brushes.GreenYellow; }));
+            BtnMakePktIn.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnMakePktIn.IsEnabled = true; }));
+            BtnGotoOpcodeIn.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnGotoOpcodeIn.IsEnabled = true; }));
+            BtnCsLoadNameIn.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnCsLoadNameIn.IsEnabled = true; }));
+            BtnScLoadNameIn.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnScLoadNameIn.IsEnabled = true; }));
         }
 
         private void FindSourceStructuresSC(string str)
@@ -2881,6 +3125,8 @@ namespace NameFinder
             BtnLoadIn_Copy.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnLoadIn_Copy.IsEnabled = false; }));
             BtnCsLoadNameIn.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnCsLoadNameIn.IsEnabled = false; }));
             BtnScLoadNameIn.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnScLoadNameIn.IsEnabled = false; }));
+            BtnMakePktIn.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnMakePktIn.IsEnabled = false; }));
+            BtnGotoOpcodeIn.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnGotoOpcodeIn.IsEnabled = false; }));
 
             //
             // начали предварительную работу по поиску имен и ссылок на подпрограммы со структурами
@@ -2904,7 +3150,7 @@ namespace NameFinder
 
                     var lst = new List<string>();
                     var tmpIdx = index;
-                    var tmpIdxMax = tmpIdx + 1;
+                    var tmpIdxMax = tmpIdx + 2;
                     do
                     {
                         tmpIdx++;
@@ -2920,7 +3166,7 @@ namespace NameFinder
                         {
                             lst.Add(match.ToString()); // сохранили XREF
                         }
-                    } while (tmpIdx <= tmpIdxMax);
+                    } while (tmpIdx < tmpIdxMax);
 
                     XrefsIn.Add(indexRefs, lst); // сохраним список XREF для пакета
                     indexRefs++; // следующий номер пакета
@@ -3042,7 +3288,6 @@ namespace NameFinder
                             var lst = new List<Struc>();
                             do
                             {
-                                index++;
                                 var matchesCalls = regexCall.Matches(InListSource[index]);
                                 foreach (var matchCall in matchesCalls)
                                 {
@@ -3078,13 +3323,12 @@ namespace NameFinder
                                 }
 
                                 var matchesEndP = regexEndP.Matches(InListSource[index]);
-                                if (matchesEndP.Count <= 0)
+                                if (matchesEndP.Count > 0)
                                 {
-                                    continue;
+                                    foundEndp = true;
                                 }
-
-                                foundEndp = true;
-                            } while (!foundEndp);
+                                index++;
+                            } while (index < InListSource.Count && !foundEndp);
 
                             StructureSourceSC.Add(i, lst); // сохранили всю структуру пакета
                             found = true; // нашли структуру
@@ -3103,8 +3347,6 @@ namespace NameFinder
                 }
             }
 
-            BtnCsLoadNameIn.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnCsLoadNameIn.IsEnabled = true; }));
-            BtnScLoadNameIn.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnScLoadNameIn.IsEnabled = true; }));
             BtnLoadIn.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnLoadIn.IsEnabled = true; }));
             BtnLoadIn_Copy.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnLoadIn_Copy.IsEnabled = true; }));
 
@@ -3124,6 +3366,8 @@ namespace NameFinder
             stopWatch.Stop();
             TextBox19.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox19.Text = stopWatch.Elapsed.ToString(); }));
             Label_Semafor1.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { Label_Semafor1.Background = Brushes.GreenYellow; }));
+            BtnMakePktIn.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnMakePktIn.IsEnabled = true; }));
+            BtnGotoOpcodeIn.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnGotoOpcodeIn.IsEnabled = true; }));
             BtnCsLoadNameIn.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnCsLoadNameIn.IsEnabled = true; }));
             BtnScLoadNameIn.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnScLoadNameIn.IsEnabled = true; }));
         }
@@ -3141,6 +3385,7 @@ namespace NameFinder
             TextBox23.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox23.Text = "0"; }));
             TextBox24.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox24.Text = "0"; }));
             TextBox28.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox28.Text = "0"; }));
+            ProgressBar21.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar11.Value = InListDestination.Count; }));
             ProgressBar22.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar22.Value = 0; }));
             Label_Semafor2.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { Label_Semafor2.Background = Brushes.Yellow; }));
             ButtonSaveOut1.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ButtonSaveOut1.IsEnabled = false; }));
@@ -3181,7 +3426,7 @@ namespace NameFinder
 
                     var lst = new List<string>();
                     var tmpIdx = index;
-                    var tmpIdxMax = tmpIdx + 1;
+                    var tmpIdxMax = tmpIdx + 2;
                     do
                     {
                         tmpIdx++;
@@ -3197,7 +3442,7 @@ namespace NameFinder
                         {
                             lst.Add(match.ToString()); // сохранили XREF
                         }
-                    } while (tmpIdx <= tmpIdxMax);
+                    } while (tmpIdx < tmpIdxMax);
 
                     XrefsOut.Add(indexRefs, lst); // сохраним список XREF для пакета
                     indexRefs++; // следующий номер пакета
@@ -3319,7 +3564,6 @@ namespace NameFinder
                             var lst = new List<Struc>();
                             do
                             {
-                                index++;
                                 var matchesCalls = regexCall.Matches(InListDestination[index]);
                                 foreach (var matchCall in matchesCalls)
                                 {
@@ -3355,13 +3599,12 @@ namespace NameFinder
                                 }
 
                                 var matchesEndP = regexEndP.Matches(InListDestination[index]);
-                                if (matchesEndP.Count <= 0)
+                                if (matchesEndP.Count > 0)
                                 {
-                                    continue;
+                                    foundEndp = true;
                                 }
-
-                                foundEndp = true;
-                            } while (!foundEndp);
+                                index++;
+                            } while (index < InListDestination.Count && !foundEndp);
 
                             StructureDestinationCS.Add(i, lst); // сохранили всю структуру пакета
                             found = true; // нашли структуру
@@ -3463,7 +3706,7 @@ namespace NameFinder
 
                     var lst = new List<string>();
                     var tmpIdx = index;
-                    var tmpIdxMax = tmpIdx + 1;
+                    var tmpIdxMax = tmpIdx + 2;
                     do
                     {
                         tmpIdx++;
@@ -3479,7 +3722,7 @@ namespace NameFinder
                         {
                             lst.Add(match.ToString()); // сохранили XREF
                         }
-                    } while (tmpIdx <= tmpIdxMax);
+                    } while (tmpIdx < tmpIdxMax);
 
                     XrefsOut.Add(indexRefs, lst); // сохраним список XREF для пакета
                     indexRefs++; // следующий номер пакета
@@ -3607,7 +3850,6 @@ namespace NameFinder
                             var lst = new List<Struc>();
                             do
                             {
-                                index++;
                                 var matchesCalls = regexCall.Matches(InListDestination[index]);
                                 foreach (var matchCall in matchesCalls)
                                 {
@@ -3647,13 +3889,12 @@ namespace NameFinder
                                 }
 
                                 var matchesEndP = regexEndP.Matches(InListDestination[index]);
-                                if (matchesEndP.Count <= 0)
+                                if (matchesEndP.Count > 0)
                                 {
-                                    continue;
+                                    foundEndp = true;
                                 }
-
-                                foundEndp = true;
-                            } while (!foundEndp);
+                                index++;
+                            } while (index < InListDestination.Count && !foundEndp);
 
                             StructureDestinationSC.Add(i, lst); // сохранили всю структуру пакета
                             found = true; // нашли структуру
@@ -3693,8 +3934,6 @@ namespace NameFinder
             stopWatch.Stop();
             TextBox29.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox29.Text = stopWatch.Elapsed.ToString(); }));
             Label_Semafor2.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { Label_Semafor2.Background = Brushes.GreenYellow; }));
-            BtnCsLoadNameOut.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnCsLoadNameOut.IsEnabled = true; }));
-            BtnScLoadNameOut.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnScLoadNameOut.IsEnabled = true; }));
             BtnUpdStruct.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnUpdStruct.IsEnabled = true; }));
             ButtonEditOutOpcode.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ButtonEditOutOpcode.IsEnabled = true; }));
             BtnMakePktOut.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnMakePktOut.IsEnabled = true; }));
@@ -3709,6 +3948,8 @@ namespace NameFinder
             Label_Semafor1.Background = Brushes.Red;
             BtnLoadIn_Copy.IsEnabled = false;
             BtnLoadIn.IsEnabled = false;
+            BtnMakePktIn.IsEnabled = false;
+            BtnGotoOpcodeIn.IsEnabled = false;
             ButtonSaveIn1.IsEnabled = false;
             ButtonSaveIn2.IsEnabled = false;
 
@@ -3743,6 +3984,8 @@ namespace NameFinder
                     BtnScLoadNameIn.IsEnabled = true;
                     BtnLoadIn_Copy.IsEnabled = true;
                     BtnLoadIn.IsEnabled = true;
+                    BtnMakePktIn.IsEnabled = true;
+                    BtnGotoOpcodeIn.IsEnabled = true;
                 }
 
                 stopWatch.Stop();
@@ -3837,13 +4080,14 @@ namespace NameFinder
 
         private void btn_SC_Load_Name1_Click(object sender, RoutedEventArgs e)
         {
-
             InitializeIn();
 
             BtnCsLoadNameIn.IsEnabled = false;
             BtnScLoadNameIn.IsEnabled = false;
             BtnLoadIn_Copy.IsEnabled = false;
             BtnLoadIn.IsEnabled = false;
+            BtnMakePktIn.IsEnabled = false;
+            BtnGotoOpcodeIn.IsEnabled = false;
             var inText = TextBox12.Text;
             DepthIn = 0;
 
@@ -3903,13 +4147,14 @@ namespace NameFinder
 
         private void btn_CS_Load_Name1_Click(object sender, RoutedEventArgs e)
         {
-
             InitializeIn();
 
             BtnCsLoadNameIn.IsEnabled = false;
             BtnScLoadNameIn.IsEnabled = false;
             BtnLoadIn_Copy.IsEnabled = false;
             BtnLoadIn.IsEnabled = false;
+            BtnMakePktIn.IsEnabled = false;
+            BtnGotoOpcodeIn.IsEnabled = false;
             var inText = TextBox11.Text;
             DepthIn = 0;
 
