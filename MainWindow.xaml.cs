@@ -14,9 +14,9 @@ using System.Windows.Forms;
 using System.Windows.Media;
 using System.Windows.Threading;
 
-using RadioButton = System.Windows.Controls;
 using MessageBox = System.Windows.MessageBox;
 using OpenFileDialog = Microsoft.Win32.OpenFileDialog;
+using RadioButton = System.Windows.Controls;
 using SaveFileDialog = Microsoft.Win32.SaveFileDialog;
 
 namespace NameFinder
@@ -2064,7 +2064,10 @@ namespace NameFinder
 
                 var foundEndp = false;
                 var foundEndpString = "";
-                bool foundCall = false;
+                var foundRetnString = "";
+                bool foundRetn = false;
+
+                index++;
 
                 do
                 {
@@ -2072,82 +2075,45 @@ namespace NameFinder
                     {
                         ProgressBar11.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar11.Value = index; }));
                     }
-                    index++;
-                    found = LookingAndSaveMatchesSub(index);
 
-                    var matchesCall = Regex.Match(InListSource[index], @"call\s+\w+|call\s+sub_\w+");
-                    if (matchesCall.Success)
+                    var matchesSub = regexSub.Matches(InListSource[index]);
+                    if (matchesSub.Count > 0)
                     {
-                        foundCall = true;
+                        tmpLst.Add(InListSource[index]); // сохраняем полезные строки процедуры
                     }
 
-                    var matches2 = regexEndP.Matches(InListSource[index]);
-                    if (matches2.Count <= 0)
+                    var matchesRetn = regexRetn.Match(InListSource[index]);
+                    if (matchesRetn.Success)
                     {
-                        foundCall = false;
-                        continue;
+                        foundRetn = true;
+                        foundRetnString = InListSource[index];
                     }
 
-                    foundEndp = true;
-
-                    if (foundEndp && !foundCall)
+                    // Если найден 'endp', продолжаем поиск до 'retn'
+                    var matchesEndp = regexEndP.Match(InListSource[index]);
+                    if (matchesEndp.Success)
                     {
-                        tmpLst.Add(InListSource[index]); // сохраняем
-                    }
-                    else
-                    {
+                        foundEndp = true;
                         foundEndpString = InListSource[index];
                     }
-                    if (foundCall) // Если найден 'endp' после 'call', продолжаем поиск до 'retn'
+
+                    // если вдруг найдем начало следующей процедуры, завершаем текущую процедуру
+                    matchesProcNear = regexProcNear.Matches(InListSource[index]);
+                    if (matchesProcNear.Count > 0 || (foundRetn && foundEndp))
                     {
-                        do
-                        {
-                            if (index % progress == 0)
-                            {
-                                ProgressBar11.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar11.Value = index; }));
-                            }
-
-                            index++;
-                            found = LookingAndSaveMatchesSub(index);
-                            // если вдруг найдем начало следующей процедуры, завершаем текущую процедуру
-                            matchesProcNear = regexProcNear.Matches(InListSource[index]);
-                            if (matchesProcNear.Count > 0)
-                            {
-                                tmpLst.Add(foundEndpString); // сохраняем `endp`
-                                break;
-                            }
-
-                            var matchesRetn = regexRetn.Match(InListSource[index]);
-                            if (matchesRetn.Success)
-                            {
-                                tmpLst.Add(InListSource[index]); // сохраняем
-                                tmpLst.Add(foundEndpString); // сохраняем `endp`
-                                break;
-                            }
-                        } while (index < maxCount);
+                        tmpLst.Add(foundRetnString); // сохраняем `retn`
+                        tmpLst.Add(foundEndpString); // сохраняем `endp`
+                        index--;
+                        break;
                     }
 
-                } while (index < maxCount && !foundEndp);
+                    index++;
+                } while (index < maxCount);
             }
-
-            if (!found)
-                return new List<string>();
 
             return tmpLst;
-
-            bool LookingAndSaveMatchesSub(int index)
-            {
-                var matchesSub = regexSub.Matches(InListSource[index]);
-                if (matchesSub.Count > 0)
-                {
-                    tmpLst.Add(InListSource[index]); // сохраняем
-                    found = true; // нашли структуру
-                }
-
-                return found;
-            }
         }
-        
+
         private List<string> CleanDestinationSubWithRetn(int idx)
         {
             var progress = CalcProgress(InListDestination.Count);
@@ -2175,7 +2141,10 @@ namespace NameFinder
 
                 var foundEndp = false;
                 var foundEndpString = "";
-                bool foundCall = false;
+                var foundRetnString = "";
+                bool foundRetn = false;
+
+                index++;
 
                 do
                 {
@@ -2183,80 +2152,43 @@ namespace NameFinder
                     {
                         ProgressBar21.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar21.Value = index; }));
                     }
-                    index++;
-                    found = LookingAndSaveMatchesSub(index);
 
-                    var matchesCall = Regex.Match(InListDestination[index], @"call\s+\w+|call\s+sub_\w+");
-                    if (matchesCall.Success)
+                    var matchesSub = regexSub.Matches(InListDestination[index]);
+                    if (matchesSub.Count > 0)
                     {
-                        foundCall = true;
+                        tmpLst.Add(InListDestination[index]); // сохраняем полезные строки процедуры
                     }
 
-                    var matches2 = regexEndP.Matches(InListDestination[index]);
-                    if (matches2.Count <= 0)
+                    var matchesRetn = regexRetn.Match(InListDestination[index]);
+                    if (matchesRetn.Success)
                     {
-                        foundCall = false;
-                        continue;
+                        foundRetn = true;
+                        foundRetnString = InListDestination[index];
                     }
 
-                    foundEndp = true;
-
-                    if (foundEndp && !foundCall)
+                    // Если найден 'endp', продолжаем поиск до 'retn'
+                    var matchesEndp = regexEndP.Match(InListDestination[index]);
+                    if (matchesEndp.Success)
                     {
-                        tmpLst.Add(InListDestination[index]); // сохраняем
-                    }
-                    else
-                    {
+                        foundEndp = true;
                         foundEndpString = InListDestination[index];
                     }
-                    if (foundCall) // Если найден 'endp' после 'call', продолжаем поиск до 'retn'
+
+                    // если вдруг найдем начало следующей процедуры, завершаем текущую процедуру
+                    matchesProcNear = regexProcNear.Matches(InListDestination[index]);
+                    if (matchesProcNear.Count > 0 || (foundRetn && foundEndp))
                     {
-                        do
-                        {
-                            if (index % progress == 0)
-                            {
-                                ProgressBar21.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar21.Value = index; }));
-                            }
-
-                            index++;
-                            found = LookingAndSaveMatchesSub(index);
-                            // если вдруг найдем начало следующей процедуры, завершаем текущую процедуру
-                            matchesProcNear = regexProcNear.Matches(InListSource[index]);
-                            if (matchesProcNear.Count > 0)
-                            {
-                                tmpLst.Add(foundEndpString); // сохраняем `endp`
-                                break;
-                            }
-
-                            var matchesRetn = regexRetn.Match(InListDestination[index]);
-                            if (matchesRetn.Success)
-                            {
-                                tmpLst.Add(InListDestination[index]); // сохраняем
-                                tmpLst.Add(foundEndpString); // сохраняем `endp`
-                                break;
-                            }
-                        } while (index < maxCount);
+                        tmpLst.Add(foundRetnString); // сохраняем `retn`
+                        tmpLst.Add(foundEndpString); // сохраняем `endp`
+                        index--;
+                        break;
                     }
 
-                } while (index < maxCount && !foundEndp);
+                    index++;
+                } while (index < maxCount);
             }
-
-            if (!found)
-                return new List<string>();
 
             return tmpLst;
-
-            bool LookingAndSaveMatchesSub(int index)
-            {
-                var matchesSub = regexSub.Matches(InListDestination[index]);
-                if (matchesSub.Count > 0)
-                {
-                    tmpLst.Add(InListDestination[index]); // сохраняем
-                    found = true; // нашли структуру
-                }
-
-                return found;
-            }
         }
 
         private List<string> CleanDestinationCSOffs(int idx)
@@ -2355,7 +2287,7 @@ namespace NameFinder
                 // или
                 // dd offset CSGmCommandPacket
                 tmpLst.Add(InListDestination[index]); // сохранили
-                //index++;
+                                                      //index++;
                 found = true;
             }
 
@@ -2389,7 +2321,7 @@ namespace NameFinder
                                dd offset sub_395DCC80
             // ищем отступ: ^\s{8,}
                                align 8
-               
+
              */
             //
             // ищем начало offsets
@@ -2458,7 +2390,7 @@ namespace NameFinder
                 // или
                 // dd offset CSGmCommandPacket
                 tmpLst.Add(InListDestination[index]); // сохранили
-                //index++;
+                                                      //index++;
                 found = true;
             }
 
@@ -2710,7 +2642,7 @@ namespace NameFinder
                             }
                             index++;
                             tmpLst.Add(aa); // сохранили часть структуры пакета
-                            //tmpLst.Add(match5.ToString()); // сохранили часть структуры пакета
+                                            //tmpLst.Add(match5.ToString()); // сохранили часть структуры пакета
                             found = true; // нашли структуру
                         }
                     }
@@ -2975,7 +2907,7 @@ namespace NameFinder
                        call    sub_395E16B0
                        push    offset aAction  ; "action"
                        sub_395D3050    endp              
-                       
+
                        sub_395E18A0    proc near               ; CODE XREF: .text:394B5DEC↑p
                        push    offset aType    ; "type"
                        push    offset aType    ; "type"
@@ -2984,7 +2916,7 @@ namespace NameFinder
                        mov     eax, [edx+38h]
                        push    offset aModified ; "modified"
                        sub_395E18A0    endp
-                       
+
                        sub_395E1730    proc near               ; CODE XREF: .text:394B1C67↑p
                        push    offset aType    ; "type"
                        push    offset asc_396AFCE0 ; "x"
@@ -2993,7 +2925,7 @@ namespace NameFinder
                        mov     eax, [edx+38h]
                        push    offset aModified ; "modified"
                        sub_395E1730    endp
-                       
+
                        sub_395E16B0    proc near               ; CODE XREF: .text:394B1CB7↑p
                        push    offset aType    ; "type"
                        push    offset aData    ; "data"
@@ -3245,7 +3177,7 @@ namespace NameFinder
                        call    sub_395E16B0
                        push    offset aAction  ; "action"
                        sub_395D3050    endp              
-                       
+
                        sub_395E18A0    proc near               ; CODE XREF: .text:394B5DEC↑p
                        push    offset aType    ; "type"
                        push    offset aType    ; "type"
@@ -3253,7 +3185,7 @@ namespace NameFinder
                        push    offset aType    ; "type"
                        push    offset aModified ; "modified"
                        sub_395E18A0    endp
-                       
+
                        sub_395E1730    proc near               ; CODE XREF: .text:394B1C67↑p
                        push    offset aType    ; "type"
                        push    offset asc_396AFCE0 ; "x"
@@ -3261,14 +3193,14 @@ namespace NameFinder
                        push    offset aZ_0     ; "z"
                        push    offset aModified ; "modified"
                        sub_395E1730    endp
-                       
+
                        sub_395E16B0    proc near               ; CODE XREF: .text:394B1CB7↑p
                        push    offset aType    ; "type"
                        push    offset aData    ; "data"
                        push    offset aData    ; "data"
                        push    offset aModified ; "modified"
                        sub_395E16B0    endp
-                       
+
                     */
 
                     for (var i = 0; i < ListSubSourceSC.Count; i++)
@@ -3385,7 +3317,7 @@ namespace NameFinder
             TextBox23.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox23.Text = "0"; }));
             TextBox24.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox24.Text = "0"; }));
             TextBox28.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox28.Text = "0"; }));
-            ProgressBar21.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar11.Value = InListDestination.Count; }));
+            ProgressBar21.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar21.Value = InListDestination.Count; }));
             ProgressBar22.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar22.Value = 0; }));
             Label_Semafor2.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { Label_Semafor2.Background = Brushes.Yellow; }));
             ButtonSaveOut1.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ButtonSaveOut1.IsEnabled = false; }));
@@ -3521,7 +3453,7 @@ namespace NameFinder
                        call    sub_395E16B0
                        push    offset aAction  ; "action"
                        sub_395D3050    endp              
-                       
+
                        sub_395E18A0    proc near               ; CODE XREF: .text:394B5DEC↑p
                        push    offset aType    ; "type"
                        push    offset aType    ; "type"
@@ -3529,7 +3461,7 @@ namespace NameFinder
                        push    offset aType    ; "type"
                        push    offset aModified ; "modified"
                        sub_395E18A0    endp
-                       
+
                        sub_395E1730    proc near               ; CODE XREF: .text:394B1C67↑p
                        push    offset aType    ; "type"
                        push    offset asc_396AFCE0 ; "x"
@@ -3537,14 +3469,14 @@ namespace NameFinder
                        push    offset aZ_0     ; "z"
                        push    offset aModified ; "modified"
                        sub_395E1730    endp
-                       
+
                        sub_395E16B0    proc near               ; CODE XREF: .text:394B1CB7↑p
                        push    offset aType    ; "type"
                        push    offset aData    ; "data"
                        push    offset aData    ; "data"
                        push    offset aModified ; "modified"
                        sub_395E16B0    endp
-                       
+
                     */
 
                     for (var i = 0; i < ListSubDestinationCS.Count; i++)
@@ -3803,7 +3735,7 @@ namespace NameFinder
                        call    sub_395E16B0
                        push    offset aAction  ; "action"
                        sub_395D3050    endp              
-                       
+
                        sub_395E18A0    proc near               ; CODE XREF: .text:394B5DEC↑p
                        push    offset aType    ; "type"
                        push    offset aType    ; "type"
@@ -3811,7 +3743,7 @@ namespace NameFinder
                        push    offset aType    ; "type"
                        push    offset aModified ; "modified"
                        sub_395E18A0    endp
-                       
+
                        sub_395E1730    proc near               ; CODE XREF: .text:394B1C67↑p
                        push    offset aType    ; "type"
                        push    offset asc_396AFCE0 ; "x"
@@ -3819,14 +3751,14 @@ namespace NameFinder
                        push    offset aZ_0     ; "z"
                        push    offset aModified ; "modified"
                        sub_395E1730    endp
-                       
+
                        sub_395E16B0    proc near               ; CODE XREF: .text:394B1CB7↑p
                        push    offset aType    ; "type"
                        push    offset aData    ; "data"
                        push    offset aData    ; "data"
                        push    offset aModified ; "modified"
                        sub_395E16B0    endp
-                       
+
                     */
 
                     for (var i = 0; i < ListSubDestinationSC.Count; i++)
