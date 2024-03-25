@@ -17,6 +17,8 @@ namespace NameFinder
         public int IdxS { get; set; }
         public int IdxD { get; set; }
         public bool isSourceNameChanged { get; set; }
+        public bool isDestinationNameChanged { get; set; }
+        public bool isResetOpcode { get; set; }
 
         public CompareWindow()
         {
@@ -52,12 +54,14 @@ namespace NameFinder
             StructureDestination = new Dictionary<int, List<Struc>>(structureDestination);
             ListOpcodeDestination = new List<string>(listOpcodeDestination);
 
-            MainWindow.ListNameCompare = new List<string>(ListNameCompare);
+            //MainWindow.ListNameCompare = new List<string>(ListNameCompare);
 
             // начнем с начала
             IdxD = 0;
             IdxS = 0;
             isSourceNameChanged = false;
+            isResetOpcode = false;
+            isDestinationNameChanged = false;
             ShowList();
         }
 
@@ -500,6 +504,7 @@ namespace NameFinder
             {
                 MainWindow.ListNameCompare[IdxD] = TextBoxNameOut.Text;
                 ListNameCompare[IdxD] = TextBoxNameOut.Text;
+                isDestinationNameChanged = true;
             }
         }
 
@@ -633,22 +638,43 @@ namespace NameFinder
             return false;
         }
 
-        private void ButtonIn2_Click(object sender, RoutedEventArgs e)
+        private void ButtonQuit_Click(object sender, RoutedEventArgs e)
         {
-            // продублируем в оба списка
             if (isSourceNameChanged)
             {
                 if (MainWindow.isCS)
+                {
                     MainWindow.ListNameSourceCS = new List<string>(ListNameSource);
+                }
                 else
+                {
                     MainWindow.ListNameSourceSC = new List<string>(ListNameSource);
+                }
             }
-
-            //MainWindow.ListNameDestinationSC = new List<string>(ListNameCompare);
-            //MainWindow.ListNameDestinationCS = new List<string>(ListNameCompare);
-
-            //MainWindow.ListNameCompareSC = new List<string>(ListNameCompare);
-            //MainWindow.ListNameCompareCS = new List<string>(ListNameCompare);
+            if (isDestinationNameChanged)
+            {
+                if (MainWindow.isCS)
+                {
+                    MainWindow.ListNameCompareCS = new List<string>(ListNameCompare);
+                    //MainWindow.ListNameDestinationCS = new List<string>(ListNameCompare);
+                }
+                else
+                {
+                    MainWindow.ListNameCompareSC = new List<string>(ListNameCompare);
+                    //MainWindow.ListNameDestinationSC = new List<string>(ListNameCompare);
+                }
+            }
+            if (isResetOpcode)
+            {
+                if (MainWindow.isCS)
+                {
+                    MainWindow.ListOpcodeDestinationCS = new List<string>(ListOpcodeDestination);
+                }
+                else
+                {
+                    MainWindow.ListOpcodeDestinationSC = new List<string>(ListOpcodeDestination);
+                }
+            }
 
             MainWindow.ListNameCompare = new List<string>(ListNameCompare);
 
@@ -784,6 +810,7 @@ namespace NameFinder
                 IdxD = ListNameDestination.Count - 1;
             }
             ListOpcodeDestination[IdxD] = opcode;
+            isResetOpcode = true;
 
             ShowList();
         }

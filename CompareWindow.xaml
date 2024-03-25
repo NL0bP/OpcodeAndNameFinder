@@ -40,7 +40,7 @@
         <Label x:Name="LabelCurPktOut" Content="Current packet:" HorizontalAlignment="Left" Margin="365,81,0,0" VerticalAlignment="Top" Grid.Column="2"/>
         <TextBox x:Name="TextBoxCurPktOut" HorizontalAlignment="Left" Height="22" Margin="458,84,0,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top" Width="32" Grid.Column="2"/>
         <Button x:Name="BtnSaveOut" Content="Save" HorizontalAlignment="Left" Height="30" Margin="315,725,0,0" VerticalAlignment="Top" Width="75" IsEnabled="True" RenderTransformOrigin="1.133,0.5" Click="ButtonIn1_Click" Grid.Column="2"/>
-        <Button x:Name="BtnBack" Content="Back" HorizontalAlignment="Left" Height="30" Margin="415,725,0,0" VerticalAlignment="Top" Width="75" IsEnabled="True" Click="ButtonIn2_Click" Grid.Column="2"/>
+        <Button x:Name="BtnBack" Content="Back" HorizontalAlignment="Left" Height="30" Margin="415,725,0,0" VerticalAlignment="Top" Width="75" IsEnabled="True" Click="ButtonQuit_Click" Grid.Column="2"/>
         <Button x:Name="BtnNextOut" Content="Next 🢖" HorizontalAlignment="Left" Height="30" Margin="17,725,0,0" VerticalAlignment="Top" Width="75" IsEnabled="True" Click="BtnNextCsOut_Click" RenderTransformOrigin="0.5,0.5" Grid.Column="2"/>
         <Button x:Name="BtnPrevOut" Content="🢔 Prev" HorizontalAlignment="Left" Height="30" Margin="10,725,0,0" VerticalAlignment="Top" Width="75" Click="BtnPrevCsOut_Click" Grid.Column="1"/>
         <CheckBox x:Name="checkBoxInUse" Content="Already taken" HorizontalAlignment="Left" Height="16" Margin="153,31,0,0" VerticalAlignment="Top" Width="95" IsEnabled="False" Grid.Column="1" Grid.ColumnSpan="2"/>

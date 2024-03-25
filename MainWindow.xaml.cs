@@ -4721,7 +4721,9 @@ namespace NameFinder
                     }
                 }
 
+                ListView24.ItemsSource = ListOpcodeDestinationCS;
                 ListView31.ItemsSource = ListNameCompareCS;
+                ListView32.ItemsSource = ListNameCompareOutCS;
                 TextBox31.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox31.Text = ListView31.Items.Count.ToString(); }));
             }
 
@@ -4754,6 +4756,8 @@ namespace NameFinder
                 idxD++;
             }
 
+            ListView24.ItemsSource = ListOpcodeDestinationCS;
+            ListView31.ItemsSource = ListNameCompareCS;
             ListView32.ItemsSource = ListNameCompareOutCS;
 
             if (CheckBoxRename.IsChecked == true)
@@ -4900,7 +4904,9 @@ namespace NameFinder
                     }
                 }
 
+                ListView24.ItemsSource = ListOpcodeDestinationSC;
                 ListView31.ItemsSource = ListNameCompareSC;
+                ListView32.ItemsSource = ListNameCompareOutSC;
                 TextBox31.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox31.Text = ListView31.Items.Count.ToString(); }));
             }
 
@@ -4931,6 +4937,8 @@ namespace NameFinder
                 idxD++;
             }
 
+            ListView24.ItemsSource = ListOpcodeDestinationSC;
+            ListView31.ItemsSource = ListNameCompareSC;
             ListView32.ItemsSource = ListNameCompareOutSC;
 
             if (CheckBoxRename.IsChecked == true)
