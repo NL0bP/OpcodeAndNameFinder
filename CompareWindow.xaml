@@ -7,51 +7,60 @@
         mc:Ignorable="d"
         Title="CompareWindow" Height="800" Width="800">
     <Grid Margin="0,0,-8,0">
-        <Button x:Name="BtnScLoadNameIn" Content="Add Name>" HorizontalAlignment="Left" Height="30" Margin="403,729,0,0" VerticalAlignment="Top" Width="75" IsEnabled="True" Click="BtnAddNameCs_Click"/>
-        <ListView x:Name="ListView11" HorizontalAlignment="Left" Height="575" Margin="5,140,0,0" VerticalAlignment="Top" Width="377">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="75*"/>
+            <ColumnDefinition Width="215*"/>
+            <ColumnDefinition Width="518*"/>
+        </Grid.ColumnDefinitions>
+        <Button x:Name="BtnAddNameOut" Content="Add Name 🢖" HorizontalAlignment="Left" Height="30" Margin="114,725,0,0" VerticalAlignment="Top" Width="75" IsEnabled="True" Click="BtnAddNameCs_Click" Grid.Column="2"/>
+        <ListView x:Name="ListView11" HorizontalAlignment="Left" Height="575" Margin="5,140,0,0" VerticalAlignment="Top" Width="377" Grid.ColumnSpan="3">
             <ListView.View>
                 <GridView>
                     <GridViewColumn Width="400"/>
                 </GridView>
             </ListView.View>
         </ListView>
-        <ListView x:Name="ListView21" HorizontalAlignment="Left" Height="575" Margin="403,140,0,0" VerticalAlignment="Top" Width="377">
+        <ListView x:Name="ListView21" HorizontalAlignment="Left" Height="575" Margin="113,140,0,0" VerticalAlignment="Top" Width="377" Grid.Column="2">
             <ListView.View>
                 <GridView>
                     <GridViewColumn Width="400"/>
                 </GridView>
             </ListView.View>
         </ListView>
-        <TextBox x:Name="TextBox11" HorizontalAlignment="Left" Height="25" Margin="5,113,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="378" TextChanged="TextBox11_TextChanged" IsEnabled="False"/>
-        <Button x:Name="BtnLoadIn" Content="&lt;Prev" HorizontalAlignment="Left" Height="30" Margin="5,729,0,0" VerticalAlignment="Top" Width="75" Click="BtnPrevCsIn_Click"/>
-        <Button x:Name="BtnCsLoadNameIn" Content="Next&gt;" HorizontalAlignment="Left" Height="30" Margin="227,729,0,0" VerticalAlignment="Top" Width="75" IsEnabled="True" Click="BtnNextCsIn_Click"/>
-        <TextBox x:Name="TextBox21" HorizontalAlignment="Left" Height="25" Margin="404,113,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="376" TextChanged="TextBox21_OnTextChangedChanged"/>
-        <Label x:Name="Label12" Content="Total packets:" HorizontalAlignment="Left" Margin="237,51,0,0" VerticalAlignment="Top"/>
-        <TextBox x:Name="TextBox12" HorizontalAlignment="Left" Height="22" Margin="318,55,0,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top" Width="65" IsEnabled="False"/>
-        <Label x:Name="Label13" Content="Current packet:" HorizontalAlignment="Left" Margin="227,82,0,0" VerticalAlignment="Top"/>
-        <TextBox x:Name="TextBox13" HorizontalAlignment="Left" Height="22" Margin="317,86,0,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top" Width="65"/>
-        <Label x:Name="Label22" Content="Total packets:" HorizontalAlignment="Left" Margin="634,52,0,0" VerticalAlignment="Top"/>
-        <TextBox x:Name="TextBox22" HorizontalAlignment="Left" Height="22" Margin="715,55,0,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top" Width="65" IsEnabled="False"/>
-        <Label x:Name="Label23" Content="Current packet:" HorizontalAlignment="Left" Margin="624,82,0,0" VerticalAlignment="Top"/>
-        <TextBox x:Name="TextBox23" HorizontalAlignment="Left" Height="22" Margin="715,86,0,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top" Width="65"/>
-        <Button x:Name="ButtonIn1" Content="Save" HorizontalAlignment="Left" Height="30" Margin="605,729,0,0" VerticalAlignment="Top" Width="75" IsEnabled="True" RenderTransformOrigin="1.133,0.5" Click="ButtonIn1_Click"/>
-        <Button x:Name="ButtonIn2" Content="Back" HorizontalAlignment="Left" Height="30" Margin="705,729,0,0" VerticalAlignment="Top" Width="75" IsEnabled="True" Click="ButtonIn2_Click"/>
-        <Button x:Name="BtnCsLoadNameIn_Copy" Content="Next&gt;" HorizontalAlignment="Left" Height="30" Margin="307,729,0,0" VerticalAlignment="Top" Width="75" IsEnabled="True" Click="BtnNextCsOut_Click" RenderTransformOrigin="0.5,0.5"/>
-        <Button x:Name="BtnLoadIn_Copy" Content="&lt;Prev" HorizontalAlignment="Left" Height="30" Margin="85,729,0,0" VerticalAlignment="Top" Width="75" Click="BtnPrevCsOut_Click"/>
-        <CheckBox x:Name="checkBoxInUse" Content="Already taken" HorizontalAlignment="Left" Height="16" Margin="198,27,0,0" VerticalAlignment="Top" Width="95" IsEnabled="False"/>
-        <CheckBox x:Name="checkBoxOutUse" Content="Already renamed" HorizontalAlignment="Left" Height="16" Margin="650,30,0,0" VerticalAlignment="Top" Width="130" IsEnabled="False"/>
-        <TextBox x:Name="TextBox12_Copy" HorizontalAlignment="Left" Height="22" Margin="318,27,0,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top" Width="65" IsEnabled="False"/>
-        <TextBox x:Name="TextBox22_Copy" HorizontalAlignment="Left" Height="22" Margin="560,28,0,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top" Width="65" IsEnabled="False"/>
-        <Label x:Name="label" Content=">>" HorizontalAlignment="Left" Height="30" Margin="293,22,0,0" VerticalAlignment="Top" Width="25" RenderTransformOrigin="4.2,0.5"/>
-        <Label x:Name="label_Copy" Content="&lt;&lt;" HorizontalAlignment="Left" Height="30" Margin="626,22,0,0" VerticalAlignment="Top" Width="25" RenderTransformOrigin="4.2,0.5"/>
-        <Button x:Name="BtnScLoadNameIn_Copy" Content="Clear Name" HorizontalAlignment="Left" Height="30" Margin="492,729,0,0" VerticalAlignment="Top" Width="75" IsEnabled="True" Click="BtnClearName_Click"/>
-        <Button x:Name="button" Content="Clear" HorizontalAlignment="Left" Height="21" Margin="140,27,0,0" VerticalAlignment="Top" Width="45" Click="button_Click" RenderTransformOrigin="0.556,0.571"/>
-        <Button x:Name="button1" Content="goto" HorizontalAlignment="Left" Height="22" Margin="560,86,0,0" VerticalAlignment="Top" Width="45" Click="button1_Click"/>
-        <Button x:Name="button1_Copy" Content="goto" HorizontalAlignment="Left" Height="22" Margin="140,86,0,0" VerticalAlignment="Top" Width="45" Click="button1_Copy_Click"/>
-        <CheckBox x:Name="CheckBoxRemoveOpcode" Content="Remove opcodes in packet name" HorizontalAlignment="Left" Margin="229,6,0,0" VerticalAlignment="Top" Width="197" IsChecked="True"/>
-        <CheckBox x:Name="CheckBoxAdd" Content="Add 'Packet' to end of name" HorizontalAlignment="Left" Margin="433,6,0,0" VerticalAlignment="Top" Width="172" IsChecked="False"/>
-        <CheckBox x:Name="CheckBoxToTitleCase" Content="Converted to a ToTitleCase" HorizontalAlignment="Left" Margin="613,7,0,0" VerticalAlignment="Top" Width="166" IsChecked="False"/>
-        <Button x:Name="BtnCsLoadNameIn_Copy1" Content="&gt;&gt;" HorizontalAlignment="Left" Height="30" Margin="206,729,0,0" VerticalAlignment="Top" Width="19" IsEnabled="True" Click="BtnNextR_Click"/>
-        <Button x:Name="BtnLoadIn_Copy1" Content="&lt;&lt;" HorizontalAlignment="Left" Height="30" Margin="164,729,0,0" VerticalAlignment="Top" Width="21" Click="BtnNextL_Click"/>
+        <TextBox x:Name="TextBoxNameIn" HorizontalAlignment="Left" Height="25" Margin="5,113,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="378" TextChanged="TextBox11_TextChanged" IsEnabled="False" Grid.ColumnSpan="3"/>
+        <Button x:Name="BtnPrevIn" Content="🢔 Prev" HorizontalAlignment="Left" Height="30" Margin="5,725,0,0" VerticalAlignment="Top" Width="75" Click="BtnPrevCsIn_Click" Grid.ColumnSpan="2"/>
+        <Button x:Name="BtnNextIn" Content="Next 🢖" HorizontalAlignment="Left" Height="30" Margin="152,725,0,0" VerticalAlignment="Top" Width="75" IsEnabled="True" Click="BtnNextCsIn_Click" Grid.Column="1" Grid.ColumnSpan="2"/>
+        <TextBox x:Name="TextBoxNameOut" HorizontalAlignment="Left" Height="25" Margin="114,113,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="376" TextChanged="TextBox21_TextChanged" Grid.Column="2"/>
+        <Label x:Name="LabelTotalIn" Content="Total packets:" HorizontalAlignment="Left" Margin="189,54,0,0" VerticalAlignment="Top" Grid.Column="1" Grid.ColumnSpan="2"/>
+        <TextBox x:Name="TextBoxTotalIn" HorizontalAlignment="Left" Height="22" Margin="60,56,0,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top" Width="32" IsEnabled="False" Grid.Column="2"/>
+        <Label x:Name="LabelCurPktIn" Content="Current packet:" HorizontalAlignment="Left" Margin="180,81,0,0" VerticalAlignment="Top" Grid.Column="1" Grid.ColumnSpan="2"/>
+        <TextBox x:Name="TextBoxCurPktIn" HorizontalAlignment="Left" Height="22" Margin="60,84,0,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top" Width="32" Grid.Column="2"/>
+        <Label x:Name="LabelTotalOut" Content="Total packets:" HorizontalAlignment="Left" Margin="374,54,0,0" VerticalAlignment="Top" Grid.Column="2"/>
+        <TextBox x:Name="TextBoxTotalOut" HorizontalAlignment="Left" Height="22" Margin="458,58,0,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top" Width="32" IsEnabled="False" Grid.Column="2"/>
+        <Label x:Name="LabelCurPktOut" Content="Current packet:" HorizontalAlignment="Left" Margin="365,81,0,0" VerticalAlignment="Top" Grid.Column="2"/>
+        <TextBox x:Name="TextBoxCurPktOut" HorizontalAlignment="Left" Height="22" Margin="458,84,0,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top" Width="32" Grid.Column="2"/>
+        <Button x:Name="BtnSaveOut" Content="Save" HorizontalAlignment="Left" Height="30" Margin="315,725,0,0" VerticalAlignment="Top" Width="75" IsEnabled="True" RenderTransformOrigin="1.133,0.5" Click="ButtonIn1_Click" Grid.Column="2"/>
+        <Button x:Name="BtnBack" Content="Back" HorizontalAlignment="Left" Height="30" Margin="415,725,0,0" VerticalAlignment="Top" Width="75" IsEnabled="True" Click="ButtonIn2_Click" Grid.Column="2"/>
+        <Button x:Name="BtnNextOut" Content="Next 🢖" HorizontalAlignment="Left" Height="30" Margin="17,725,0,0" VerticalAlignment="Top" Width="75" IsEnabled="True" Click="BtnNextCsOut_Click" RenderTransformOrigin="0.5,0.5" Grid.Column="2"/>
+        <Button x:Name="BtnPrevOut" Content="🢔 Prev" HorizontalAlignment="Left" Height="30" Margin="10,725,0,0" VerticalAlignment="Top" Width="75" Click="BtnPrevCsOut_Click" Grid.Column="1"/>
+        <CheckBox x:Name="checkBoxInUse" Content="Already taken" HorizontalAlignment="Left" Height="16" Margin="153,31,0,0" VerticalAlignment="Top" Width="95" IsEnabled="False" Grid.Column="1" Grid.ColumnSpan="2"/>
+        <CheckBox x:Name="checkBoxOutUse" Content="Already renamed" HorizontalAlignment="Left" Height="16" Margin="175,87,0,0" VerticalAlignment="Top" Width="114" IsEnabled="False" Grid.Column="2"/>
+        <TextBox x:Name="TextBoxPktInUse" HorizontalAlignment="Left" Height="22" Margin="60,29,0,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top" Width="32" IsEnabled="False" Grid.Column="2"/>
+        <TextBox x:Name="TextBoxPktOutUse" HorizontalAlignment="Left" Height="22" Margin="114,84,0,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top" Width="32" IsEnabled="False" Grid.Column="2"/>
+        <Label x:Name="label1" Content="🢂" HorizontalAlignment="Left" Height="30" Margin="35,25,0,0" VerticalAlignment="Top" Width="25" RenderTransformOrigin="0.48,0.501" Grid.Column="2"/>
+        <Label x:Name="label2" Content="🢀" HorizontalAlignment="Left" Height="26" Margin="149,81,0,0" VerticalAlignment="Top" Width="24" RenderTransformOrigin="0.737,0.809" Grid.Column="2"/>
+        <Button x:Name="btnClearNameOut" Content="Clear Name 🢖" HorizontalAlignment="Left" Height="30" Margin="202,725,0,0" VerticalAlignment="Top" Width="75" IsEnabled="True" Click="BtnClearName_Click" Grid.Column="2"/>
+        <Button x:Name="btnClearInUse" Content="Clear" HorizontalAlignment="Left" Height="21" Margin="135,53,0,0" VerticalAlignment="Top" Width="45" Click="button_Click" RenderTransformOrigin="0.556,0.571" Grid.Column="1"/>
+        <Button x:Name="BtnGotoOut" Content="GoTo" HorizontalAlignment="Left" Height="22" Margin="319,84,0,0" VerticalAlignment="Top" Width="45" Click="button1_Click" Grid.Column="2"/>
+        <Button x:Name="BtnGotoIn" Content="GoTo" HorizontalAlignment="Left" Height="22" Margin="135,83,0,0" VerticalAlignment="Top" Width="45" Click="button1_Copy_Click" Grid.Column="1"/>
+        <CheckBox x:Name="CheckBoxRemoveOpcode" Content="Remove opcodes in packet name" HorizontalAlignment="Left" Margin="154,6,0,0" VerticalAlignment="Top" Width="197" IsChecked="True" Grid.Column="1" Grid.ColumnSpan="2"/>
+        <CheckBox x:Name="CheckBoxAdd" Content="Add 'Packet' to end of name" HorizontalAlignment="Left" Margin="143,6,0,0" VerticalAlignment="Top" Width="172" IsChecked="False" Grid.Column="2"/>
+        <CheckBox x:Name="CheckBoxToTitleCase" Content="Converted to a ToTitleCase" HorizontalAlignment="Left" Margin="323,7,0,0" VerticalAlignment="Top" Width="166" IsChecked="False" Grid.Column="2"/>
+        <Button x:Name="BtnNext" Content="🢖🢖" HorizontalAlignment="Left" Height="30" Margin="131,725,0,0" VerticalAlignment="Top" Width="19" IsEnabled="True" Click="BtnNextR_Click" Grid.Column="1"/>
+        <Button x:Name="BtnPrev" Content="🢔🢔" HorizontalAlignment="Left" Height="30" Margin="89,725,0,0" VerticalAlignment="Top" Width="21" Click="BtnNextL_Click" Grid.Column="1"/>
+        <Label x:Name="LabelOpcodeOut" Content="Opcode:" HorizontalAlignment="Left" Margin="386,26,0,0" VerticalAlignment="Top" Grid.Column="2"/>
+        <TextBox x:Name="TextBoxOpcodeOut" HorizontalAlignment="Left" Height="22" Margin="445,29,0,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top" Width="45" IsEnabled="True" Grid.Column="2"/>
+        <CheckBox x:Name="CheckBoxForceRename" Content="Force Rename" HorizontalAlignment="Left" Margin="20,95,0,0" VerticalAlignment="Top" Width="102" IsChecked="False" Grid.ColumnSpan="2" Checked="CheckBoxForceRename_Checked" Unchecked="CheckBoxForceRename_UnChecked"/>
+        <Button x:Name="BtnSet" Content="ReSet" HorizontalAlignment="Left" Height="22" Margin="319,30,0,0" VerticalAlignment="Top" Width="45" Click="BtnSetOpcode_Click" Grid.Column="2"/>
     </Grid>
 </Window>

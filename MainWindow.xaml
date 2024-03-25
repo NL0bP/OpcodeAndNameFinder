@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:NameFinder"
         mc:Ignorable="d"
-        Title="MainWindow" Height="800" Width="1925">
+        Title="MainWindow" Height="800" Width="1920">
     <Grid>
         <Button x:Name="BtnScLoadNameIn" Content="SC" HorizontalAlignment="Left" Height="30" Margin="393,610,0,0" VerticalAlignment="Top" Width="75" Click="btn_SC_Load_Name1_Click" IsEnabled="False"/>
         <ListView x:Name="ListView11" HorizontalAlignment="Left" Height="350" Margin="5,240,0,0" VerticalAlignment="Top" Width="192">

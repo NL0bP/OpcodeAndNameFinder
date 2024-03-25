@@ -16,6 +16,7 @@ namespace NameFinder
     {
         public int IdxS { get; set; }
         public int IdxD { get; set; }
+        public bool isSourceNameChanged { get; set; }
 
         public CompareWindow()
         {
@@ -32,6 +33,7 @@ namespace NameFinder
         public static bool isRemoveOpcode = false;
         public static string StructStringIn = "";
         public static string StructStringOut = "";
+
 
         public void CompareSourceStructures(
             ref List<string> listNameSource,
@@ -55,6 +57,7 @@ namespace NameFinder
             // начнем с начала
             IdxD = 0;
             IdxS = 0;
+            isSourceNameChanged = false;
             ShowList();
         }
 
@@ -77,7 +80,7 @@ namespace NameFinder
             IdxD++; //взять следующий пакет
             ShowList();
         }
-        
+
         private void BtnNextCsOut_Click(object sender, RoutedEventArgs e)
         {
             IdxD++; //взять следующий пакет
@@ -367,10 +370,10 @@ namespace NameFinder
                 IdxD = ListNameCompare.Count - 1;
             }
 
-            TextBox11.Text = ListNameSource[IdxS];
-            TextBox12.Text = ListNameSource.Count.ToString();
+            TextBoxNameIn.Text = ListNameSource[IdxS];
+            TextBoxTotalIn.Text = ListNameSource.Count.ToString();
             var idxs = IdxS + 1;
-            TextBox13.Text = idxs.ToString();
+            TextBoxCurPktIn.Text = idxs.ToString();
             if (StructureSource[IdxS].Count == 0)
             {
                 ListView11.ItemsSource = "nullsub";
@@ -415,10 +418,11 @@ namespace NameFinder
                 ListView11.ItemsSource = source.ToList();
             }
 
-            TextBox21.Text = ListNameCompare[IdxD];
-            TextBox22.Text = ListNameCompare.Count.ToString();
+            TextBoxNameOut.Text = ListNameCompare[IdxD];
+            TextBoxTotalOut.Text = ListNameCompare.Count.ToString();
+            TextBoxOpcodeOut.Text = ListOpcodeDestination[IdxD];
             var idxd = IdxD + 1;
-            TextBox23.Text = idxd.ToString();
+            TextBoxCurPktOut.Text = idxd.ToString();
 
             if (StructureDestination[IdxD].Count == 0)
             {
@@ -469,24 +473,24 @@ namespace NameFinder
             {
                 checkBoxInUse.IsChecked = true;
                 var idxs2 = value + 1;
-                TextBox12_Copy.Text = idxs2.ToString();
+                TextBoxPktInUse.Text = idxs2.ToString();
             }
             else
             {
                 checkBoxInUse.IsChecked = false;
-                TextBox12_Copy.Text = "0";
+                TextBoxPktInUse.Text = "0";
             }
 
             if (MainWindow.InUseOut.TryGetValue(IdxD, out var value1))
             {
                 checkBoxOutUse.IsChecked = true;
                 var idxd2 = value1 + 1;
-                TextBox22_Copy.Text = idxd2.ToString();
+                TextBoxPktOutUse.Text = idxd2.ToString();
             }
             else
             {
                 checkBoxOutUse.IsChecked = false;
-                TextBox22_Copy.Text = "0";
+                TextBoxPktOutUse.Text = "0";
             }
         }
 
@@ -494,7 +498,8 @@ namespace NameFinder
         {
             if (ListNameCompare.Count != 0)
             {
-                ListNameCompare[IdxD] = TextBox21.Text;
+                MainWindow.ListNameCompare[IdxD] = TextBoxNameOut.Text;
+                ListNameCompare[IdxD] = TextBoxNameOut.Text;
             }
         }
 
@@ -502,7 +507,7 @@ namespace NameFinder
         {
             if (ListNameSource.Count != 0)
             {
-                ListNameSource[IdxS] = TextBox11.Text;
+                ListNameSource[IdxS] = TextBoxNameIn.Text;
             }
         }
 
@@ -631,6 +636,14 @@ namespace NameFinder
         private void ButtonIn2_Click(object sender, RoutedEventArgs e)
         {
             // продублируем в оба списка
+            if (isSourceNameChanged)
+            {
+                if (MainWindow.isCS)
+                    MainWindow.ListNameSourceCS = new List<string>(ListNameSource);
+                else
+                    MainWindow.ListNameSourceSC = new List<string>(ListNameSource);
+            }
+
             //MainWindow.ListNameDestinationSC = new List<string>(ListNameCompare);
             //MainWindow.ListNameDestinationCS = new List<string>(ListNameCompare);
 
@@ -650,8 +663,8 @@ namespace NameFinder
             }
 
             var useIn = MainWindow.InUseOut[IdxD];
-            TextBox21.Text = ListNameDestination[IdxD];
-            TextBox22.Text = ListNameDestination.Count.ToString();
+            TextBoxNameOut.Text = ListNameDestination[IdxD];
+            TextBoxTotalOut.Text = ListNameDestination.Count.ToString();
 
             ListNameCompare[IdxD] = ListNameDestination[IdxD];
             MainWindow.InUseOut.Remove(IdxD);
@@ -665,12 +678,12 @@ namespace NameFinder
                 {
                     checkBoxInUse.IsChecked = true;
                     var idxs2 = value + 1;
-                    TextBox12_Copy.Text = idxs2.ToString();
+                    TextBoxPktInUse.Text = idxs2.ToString();
                 }
                 else
                 {
                     checkBoxInUse.IsChecked = false;
-                    TextBox12_Copy.Text = "0";
+                    TextBoxPktInUse.Text = "0";
                 }
             }
 
@@ -678,21 +691,12 @@ namespace NameFinder
             {
                 checkBoxOutUse.IsChecked = true;
                 var idxd2 = value1 + 1;
-                TextBox22_Copy.Text = idxd2.ToString();
+                TextBoxPktOutUse.Text = idxd2.ToString();
             }
             else
             {
                 checkBoxOutUse.IsChecked = false;
-                TextBox22_Copy.Text = "0";
-            }
-        }
-
-        private void TextBox21_OnTextChangedChanged(object sender, TextChangedEventArgs e)
-        {
-            if (ListNameCompare.Count != 0)
-            {
-                MainWindow.ListNameCompare[IdxD] = TextBox21.Text;
-                ListNameCompare[IdxD] = TextBox21.Text;
+                TextBoxPktOutUse.Text = "0";
             }
         }
 
@@ -713,14 +717,14 @@ namespace NameFinder
                 if (MainWindow.InUseOut.ContainsKey(useOut))
                 {
                     checkBoxOutUse.IsChecked = false;
-                    TextBox22_Copy.Text = "0";
+                    TextBoxPktOutUse.Text = "0";
                     ListNameCompare[useOut] = ListNameDestination[useOut]; // восстановим старое имя пакета
-                    TextBox21.Text = ListNameDestination[useOut];
-                    TextBox22.Text = ListNameDestination.Count.ToString();
+                    TextBoxNameOut.Text = ListNameDestination[useOut];
+                    TextBoxTotalOut.Text = ListNameDestination.Count.ToString();
                 }
             }
             checkBoxInUse.IsChecked = false;
-            TextBox12_Copy.Text = "0";
+            TextBoxPktInUse.Text = "0";
 
             MainWindow.InUseOut.Remove(useOut);
             MainWindow.InUseIn.Remove(IdxS);
@@ -728,7 +732,7 @@ namespace NameFinder
 
         private void button1_Click(object sender, RoutedEventArgs e)
         {
-            var idxd = TextBox23.Text;
+            var idxd = TextBoxCurPktOut.Text;
             IdxD = Convert.ToInt32(idxd) - 1;
             if (IdxD < 0)
             {
@@ -743,7 +747,7 @@ namespace NameFinder
 
         private void button1_Copy_Click(object sender, RoutedEventArgs e)
         {
-            var idxs = TextBox13.Text;
+            var idxs = TextBoxCurPktIn.Text;
             IdxS = Convert.ToInt32(idxs) - 1;
             if (IdxS < 0)
             {
@@ -753,6 +757,34 @@ namespace NameFinder
             {
                 IdxS = ListNameSource.Count - 1;
             }
+            ShowList();
+        }
+
+        private void CheckBoxForceRename_Checked(object sender, RoutedEventArgs e)
+        {
+            TextBoxNameIn.IsEnabled = true;
+            isSourceNameChanged = true;
+        }
+        private void CheckBoxForceRename_UnChecked(object sender, RoutedEventArgs e)
+        {
+            TextBoxNameIn.IsEnabled = false;
+        }
+
+        private void BtnSetOpcode_Click(object sender, RoutedEventArgs e)
+        {
+            var opcode = TextBoxOpcodeOut.Text;
+            var idxd = TextBoxCurPktOut.Text;
+            IdxD = Convert.ToInt32(idxd) - 1;
+            if (IdxD < 0)
+            {
+                IdxD = 0;
+            }
+            if (IdxD > ListNameDestination.Count - 1)
+            {
+                IdxD = ListNameDestination.Count - 1;
+            }
+            ListOpcodeDestination[IdxD] = opcode;
+
             ShowList();
         }
     }
