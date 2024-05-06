@@ -502,6 +502,10 @@ namespace NameFinder
         {
             if (ListNameCompare.Count != 0)
             {
+                if (MainWindow.ListNameCompare.Count == 0)
+                {
+                    MainWindow.ListNameCompare = new List<string>(ListNameCompare);
+                }
                 MainWindow.ListNameCompare[IdxD] = TextBoxNameOut.Text;
                 ListNameCompare[IdxD] = TextBoxNameOut.Text;
                 isDestinationNameChanged = true;
