@@ -542,6 +542,21 @@ namespace NameFinder
                 File.WriteAllLines(FilePath, tmp);
             }
 
+
+            // сохраняем в виде файла для замены имен пакетов в IDA
+            tmp = new List<string>();
+            for (var i = 0; i < ListNameDestination.Count; i++)
+            {
+                if (ListNameCompare[i][0].ToString() == "o" && ListNameCompare[i][1].ToString() == "f" && ListNameCompare[i][2].ToString() == "f")
+                {
+                    continue;
+                }
+
+                var lst = ListNameDestination[i] + " " + ListNameCompare[i].Replace("Packet", "") + "_" + ListOpcodeDestination[i];
+                tmp.Add(lst);
+            }
+            File.WriteAllLines(FilePath + "_IDA.txt", tmp);
+
             // сохраняем в виде файла для внесения опкодов в PDEC
             tmp = new List<string>();
             for (var i = 0; i < ListNameCompare.Count; i++)
