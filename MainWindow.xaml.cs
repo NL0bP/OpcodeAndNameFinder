@@ -175,7 +175,8 @@ namespace NameFinder
         // Рефакторинг: заменено на свойства-обертки, использующие PacketDataService
         // public static Dictionary<int, int> InUseIn { get; set; } = new Dictionary<int, int>();
         // public static Dictionary<int, int> InUseOut { get; set; } = new Dictionary<int, int>();
-        public static Dictionary<int, bool> IsRenameDestination { get; set; } = new Dictionary<int, bool>(); // TODO: мигрировать
+        // Рефакторинг: заменено на свойство-обертку, использующее PacketDataService
+        // public static Dictionary<int, bool> IsRenameDestination { get; set; } = new Dictionary<int, bool>();
 
         // Рефакторинг: заменено на свойства-обертки, использующие PacketDataService
         // public static List<string> InListSource = new List<string>();
@@ -733,6 +734,26 @@ namespace NameFinder
                     foreach (var kvp in value)
                     {
                         _packetDataService.DestinationStructures[Models.PacketType.SC][kvp.Key] = new List<Struc>(kvp.Value);
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Рефакторинг: свойство-обертка для обратной совместимости
+        /// Использует PacketDataService.IsRenameDestination
+        /// </summary>
+        public Dictionary<int, bool> IsRenameDestination
+        {
+            get => _packetDataService.IsRenameDestination;
+            set
+            {
+                _packetDataService.IsRenameDestination.Clear();
+                if (value != null)
+                {
+                    foreach (var kvp in value)
+                    {
+                        _packetDataService.IsRenameDestination[kvp.Key] = kvp.Value;
                     }
                 }
             }
