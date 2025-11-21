@@ -3233,7 +3233,8 @@ namespace NameFinder
                     }
                     catch (Exception)
                     {
-                        MessageBox.Show("Проверте исходные данные файла в IDA, где-то в строке:" + index + "!", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                        // Рефакторинг: используем UIHelper для показа ошибки
+                        Helpers.UIHelper.ShowError(Dispatcher, $"Проверьте исходные данные файла в IDA, где-то в строке: {index}!", "Error");
                     }
                 }
 
@@ -3241,15 +3242,14 @@ namespace NameFinder
                 var lnCount = ListNameSourceCS.Count;
                 var lsCount = ListSubSourceCS.Count;
                 
-                // Рефакторинг: группируем UI обновления
-                Dispatcher.Invoke(DispatcherPriority.Background, new Action(() =>
-                {
-                    TextBox13.Text = lnCount.ToString();
-                    TextBox14.Text = lsCount.ToString();
-                    ListView12.ItemsSource = ListNameSourceCS;
-                    ListView13.ItemsSource = ListSubSourceCS;
-                    ProgressBar12.Maximum = ListNameSourceCS.Count;
-                }));
+                // Рефакторинг: используем UIHelper для группировки UI обновлений
+                Helpers.UIHelper.InvokeUIBatch(Dispatcher,
+                    () => TextBox13.Text = lnCount.ToString(),
+                    () => TextBox14.Text = lsCount.ToString(),
+                    () => ListView12.ItemsSource = ListNameSourceCS,
+                    () => ListView13.ItemsSource = ListSubSourceCS,
+                    () => ProgressBar12.Maximum = ListNameSourceCS.Count
+                );
                 if (FindStructIn)
                 {
                     //
@@ -3402,23 +3402,22 @@ namespace NameFinder
             ListSubSourceSC = new List<string>();
             XrefsIn = new Dictionary<int, List<string>>();
 
-            // Рефакторинг: группируем UI обновления для оптимизации
-            Dispatcher.Invoke(DispatcherPriority.Background, new Action(() =>
-            {
-                TextBox16.Text = "0";
-                TextBox17.Text = "0";
-                TextBox19.Text = "0";
-                ProgressBar12.Value = 0;
-                Label_Semafor1.Background = Brushes.Yellow;
-                ButtonSaveIn1.IsEnabled = false;
-                ButtonSaveIn2.IsEnabled = false;
-                BtnLoadIn.IsEnabled = false;
-                BtnLoadIn_Copy.IsEnabled = false;
-                BtnCsLoadNameIn.IsEnabled = false;
-                BtnScLoadNameIn.IsEnabled = false;
-                BtnMakePktIn.IsEnabled = false;
-                BtnGotoOpcodeIn.IsEnabled = false;
-            }));
+            // Рефакторинг: используем UIHelper для группировки UI обновлений
+            Helpers.UIHelper.InvokeUIBatch(Dispatcher,
+                () => TextBox16.Text = "0",
+                () => TextBox17.Text = "0",
+                () => TextBox19.Text = "0",
+                () => ProgressBar12.Value = 0,
+                () => Label_Semafor1.Background = Brushes.Yellow,
+                () => ButtonSaveIn1.IsEnabled = false,
+                () => ButtonSaveIn2.IsEnabled = false,
+                () => BtnLoadIn.IsEnabled = false,
+                () => BtnLoadIn_Copy.IsEnabled = false,
+                () => BtnCsLoadNameIn.IsEnabled = false,
+                () => BtnScLoadNameIn.IsEnabled = false,
+                () => BtnMakePktIn.IsEnabled = false,
+                () => BtnGotoOpcodeIn.IsEnabled = false
+            );
 
             //
             // начали предварительную работу по поиску имен и ссылок на подпрограммы со структурами
@@ -3508,7 +3507,8 @@ namespace NameFinder
                     }
                     catch (Exception)
                     {
-                        MessageBox.Show("Проверте исходные данные файла в IDA, где-то в строке:" + index + "!", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                        // Рефакторинг: используем UIHelper для показа ошибки
+                        Helpers.UIHelper.ShowError(Dispatcher, $"Проверьте исходные данные файла в IDA, где-то в строке: {index}!", "Error");
                     }
                 }
 
@@ -3784,7 +3784,8 @@ namespace NameFinder
                     }
                     catch (Exception)
                     {
-                        MessageBox.Show("Проверте исходные данные файла в IDA, где-то в строке:" + index + "!", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                        // Рефакторинг: используем UIHelper для показа ошибки
+                        Helpers.UIHelper.ShowError(Dispatcher, $"Проверьте исходные данные файла в IDA, где-то в строке: {index}!", "Error");
                     }
                 }
 
@@ -4064,7 +4065,8 @@ namespace NameFinder
                     }
                     catch (Exception)
                     {
-                        MessageBox.Show("Проверте исходные данные файла в IDA, где-то в строке:" + index + "!", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                        // Рефакторинг: используем UIHelper для показа ошибки
+                        Helpers.UIHelper.ShowError(Dispatcher, $"Проверьте исходные данные файла в IDA, где-то в строке: {index}!", "Error");
                     }
                 }
                 //
