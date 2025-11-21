@@ -96,6 +96,8 @@
     <Compile Include="Services\IPacketDataService.cs" />
     <Compile Include="Services\PacketDataService.cs" />
     <Compile Include="Services\OpcodeFinderWrapper.cs" />
+    <Compile Include="Services\IStructureFinderService.cs" />
+    <Compile Include="Services\StructureFinderService.cs" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs">

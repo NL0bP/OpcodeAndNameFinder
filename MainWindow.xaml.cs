@@ -153,6 +153,7 @@ namespace NameFinder
         private readonly IFileProcessor _fileProcessor;
         private readonly IOpcodeFinderService _opcodeFinderService;
         private readonly Services.OpcodeFinderWrapper _opcodeFinderWrapper;
+        private readonly Services.IStructureFinderService _structureFinderService;
 
         private readonly string[] _inF;
         private readonly string[] _outF;
@@ -240,6 +241,7 @@ namespace NameFinder
             _fileProcessor = new FileProcessor();
             _opcodeFinderService = new OpcodeFinderService();
             _opcodeFinderWrapper = new Services.OpcodeFinderWrapper(_opcodeFinderService, Dispatcher);
+            _structureFinderService = new Services.StructureFinderService();
             
             // Создаем объект для блокировки.
             //lockObj = new object();
