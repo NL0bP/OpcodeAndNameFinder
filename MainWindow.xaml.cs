@@ -389,24 +389,28 @@ namespace NameFinder
         {
             var stopWatch = new Stopwatch();
             stopWatch.Start();
-            ProgressBar13.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar13.Value = 0; }));
-            ProgressBar13.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar13.Maximum = XrefsIn.Count; }));
-            TextBox16Copy.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox16Copy.Text = "0"; }));
-            TextBox17Copy.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox17Copy.Text = "0"; }));
-            TextBox19Copy.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox19Copy.Text = "0"; }));
-            Label_Semafor1.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { Label_Semafor1.Background = Brushes.Yellow; }));
-            ButtonSaveIn1.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ButtonSaveIn1.IsEnabled = false; }));
-            ButtonSaveIn2.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ButtonSaveIn2.IsEnabled = false; }));
-            BtnLoadIn.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnLoadIn.IsEnabled = false; }));
-            BtnLoadIn_Copy.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnLoadIn_Copy.IsEnabled = false; }));
-            BtnCsLoadNameIn.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnCsLoadNameIn.IsEnabled = false; }));
-            BtnScLoadNameIn.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnScLoadNameIn.IsEnabled = false; }));
-            BtnMakePktIn.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnMakePktIn.IsEnabled = false; }));
-            BtnGotoOpcodeIn.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnGotoOpcodeIn.IsEnabled = false; }));
-
+            var maxXrefs = XrefsIn.Count;
             _isInCs = false;
-            ButtonCsCompare.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ButtonCsCompare.IsEnabled = false; }));
-            ButtonScCompare.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ButtonScCompare.IsEnabled = false; }));
+            
+            // Рефакторинг: используем UIHelper для группировки UI обновлений
+            Helpers.UIHelper.InvokeUIBatch(Dispatcher,
+                () => ProgressBar13.Value = 0,
+                () => ProgressBar13.Maximum = maxXrefs,
+                () => TextBox16Copy.Text = "0",
+                () => TextBox17Copy.Text = "0",
+                () => TextBox19Copy.Text = "0",
+                () => Label_Semafor1.Background = Brushes.Yellow,
+                () => ButtonSaveIn1.IsEnabled = false,
+                () => ButtonSaveIn2.IsEnabled = false,
+                () => BtnLoadIn.IsEnabled = false,
+                () => BtnLoadIn_Copy.IsEnabled = false,
+                () => BtnCsLoadNameIn.IsEnabled = false,
+                () => BtnScLoadNameIn.IsEnabled = false,
+                () => BtnMakePktIn.IsEnabled = false,
+                () => BtnGotoOpcodeIn.IsEnabled = false,
+                () => ButtonCsCompare.IsEnabled = false,
+                () => ButtonScCompare.IsEnabled = false
+            );
 
             var notFoundCount = 0;
             var subAddress = "";
@@ -674,23 +678,29 @@ namespace NameFinder
                     ListOpcodeSourceCS.Add("0xfff"); // не нашли опкод
                 }
 
-                ProgressBar13.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar13.Value = ListOpcodeSourceCS.Count; }));
+                // Рефакторинг: используем UIHelper для обновления прогрессбара
+                Helpers.UIHelper.InvokeUI(Dispatcher, () => ProgressBar13.Value = ListOpcodeSourceCS.Count);
             }
 
             var lnCount = ListOpcodeSourceCS.Count;
-            TextBox16Copy.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox16Copy.Text = lnCount.ToString(); }));
-            TextBox17Copy.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox17Copy.Text = notFoundCount.ToString(); }));
             stopWatch.Stop();
-            TextBox19Copy.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox19Copy.Text = stopWatch.Elapsed.ToString(); }));
-            ListView14.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ListView14.ItemsSource = ListOpcodeSourceCS; }));
-            Label_Semafor1.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { Label_Semafor1.Background = Brushes.GreenYellow; }));
-            ButtonSaveIn1.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ButtonSaveIn1.IsEnabled = true; }));
-            BtnLoadIn.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnLoadIn.IsEnabled = true; }));
-            BtnLoadIn_Copy.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnLoadIn_Copy.IsEnabled = true; }));
-            BtnMakePktIn.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnMakePktIn.IsEnabled = true; }));
-            BtnGotoOpcodeIn.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnGotoOpcodeIn.IsEnabled = true; }));
-            BtnCsLoadNameIn.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnCsLoadNameIn.IsEnabled = true; }));
-            BtnScLoadNameIn.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnScLoadNameIn.IsEnabled = true; }));
+            var elapsed = stopWatch.Elapsed.ToString();
+            
+            // Рефакторинг: используем UIHelper для группировки UI обновлений
+            Helpers.UIHelper.InvokeUIBatch(Dispatcher,
+                () => TextBox16Copy.Text = lnCount.ToString(),
+                () => TextBox17Copy.Text = notFoundCount.ToString(),
+                () => TextBox19Copy.Text = elapsed,
+                () => ListView14.ItemsSource = ListOpcodeSourceCS,
+                () => Label_Semafor1.Background = Brushes.GreenYellow,
+                () => ButtonSaveIn1.IsEnabled = true,
+                () => BtnLoadIn.IsEnabled = true,
+                () => BtnLoadIn_Copy.IsEnabled = true,
+                () => BtnMakePktIn.IsEnabled = true,
+                () => BtnGotoOpcodeIn.IsEnabled = true,
+                () => BtnCsLoadNameIn.IsEnabled = true,
+                () => BtnScLoadNameIn.IsEnabled = true
+            );
 
             _isInCs = true;
             if (_isInCs && _isOutCs)
@@ -2311,7 +2321,8 @@ namespace NameFinder
             {
                 if (index % progress == 0)
                 {
-                    ProgressBar21.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar21.Value = index; }));
+                    // Рефакторинг: используем UIHelper для обновления прогрессбара
+                    Helpers.UIHelper.InvokeUI(Dispatcher, () => ProgressBar21.Value = index);
                 }
 
                 var matchesProcNear = regexProcNear.Matches(InListDestination[index]);
@@ -2331,7 +2342,8 @@ namespace NameFinder
                 {
                     if (index % progress == 0)
                     {
-                        ProgressBar21.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar21.Value = index; }));
+                        // Рефакторинг: используем UIHelper для обновления прогрессбара
+                    Helpers.UIHelper.InvokeUI(Dispatcher, () => ProgressBar21.Value = index);
                     }
 
                     index++;
@@ -2481,7 +2493,8 @@ namespace NameFinder
             {
                 if (index % progress == 0)
                 {
-                    ProgressBar21.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar21.Value = index; }));
+                    // Рефакторинг: используем UIHelper для обновления прогрессбара
+                    Helpers.UIHelper.InvokeUI(Dispatcher, () => ProgressBar21.Value = index);
                 }
 
                 var matchesProcNear = regexProcNear.Matches(InListDestination[index]);
@@ -2501,7 +2514,8 @@ namespace NameFinder
                 {
                     if (index % progress == 0)
                     {
-                        ProgressBar21.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar21.Value = index; }));
+                        // Рефакторинг: используем UIHelper для обновления прогрессбара
+                    Helpers.UIHelper.InvokeUI(Dispatcher, () => ProgressBar21.Value = index);
                     }
 
                     var matchesSub = regexSub.Matches(InListDestination[index]);
@@ -2580,7 +2594,8 @@ namespace NameFinder
             {
                 if (index % progress == 0)
                 {
-                    ProgressBar21.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar21.Value = index; }));
+                    // Рефакторинг: используем UIHelper для обновления прогрессбара
+                    Helpers.UIHelper.InvokeUI(Dispatcher, () => ProgressBar21.Value = index);
                 }
 
                 // ??_7X2ClientToWorldPacket@@6B@ dd offset CS_PACKETS_return_0
@@ -2682,7 +2697,8 @@ namespace NameFinder
             {
                 if (index % progress == 0)
                 {
-                    ProgressBar21.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar21.Value = index; }));
+                    // Рефакторинг: используем UIHelper для обновления прогрессбара
+                    Helpers.UIHelper.InvokeUI(Dispatcher, () => ProgressBar21.Value = index);
                 }
 
                 var matches = regex.Matches(InListDestination[index]);
