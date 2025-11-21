@@ -184,9 +184,10 @@ namespace NameFinder
         // public static List<string> ListSubSourceCS = new List<string>();
         // public static List<string> ListSubSourceSC = new List<string>();
 
+        // Рефакторинг: заменено на свойства-обертки, использующие PacketDataService
         // здесь будем собирать структуры пакетов, где index из listName1 и соответственно listSub1
-        public static Dictionary<int, List<Struc>> StructureSourceCS = new Dictionary<int, List<Struc>>();
-        public static Dictionary<int, List<Struc>> StructureSourceSC = new Dictionary<int, List<Struc>>();
+        // public static Dictionary<int, List<Struc>> StructureSourceCS = new Dictionary<int, List<Struc>>();
+        // public static Dictionary<int, List<Struc>> StructureSourceSC = new Dictionary<int, List<Struc>>();
 
 
         // Рефакторинг: заменено на свойства-обертки, использующие PacketDataService
@@ -196,9 +197,10 @@ namespace NameFinder
         // public static List<string> ListSubDestinationCS = new List<string>();
         // public static List<string> ListSubDestinationSC = new List<string>();
 
+        // Рефакторинг: заменено на свойства-обертки, использующие PacketDataService
         // здесь будем собирать структуры пакетов, где index из listName1 и соответственно listSub1
-        public static Dictionary<int, List<Struc>> StructureDestinationCS = new Dictionary<int, List<Struc>>();
-        public static Dictionary<int, List<Struc>> StructureDestinationSC = new Dictionary<int, List<Struc>>();
+        // public static Dictionary<int, List<Struc>> StructureDestinationCS = new Dictionary<int, List<Struc>>();
+        // public static Dictionary<int, List<Struc>> StructureDestinationSC = new Dictionary<int, List<Struc>>();
 
         // Рефакторинг: заменено на свойства-обертки, использующие PacketDataService
         // public static Dictionary<int, List<string>> XrefsIn = new Dictionary<int, List<string>>();
@@ -651,6 +653,86 @@ namespace NameFinder
                     foreach (var kvp in value)
                     {
                         _packetDataService.InUseMapping[Models.PacketType.SC][kvp.Key] = kvp.Value;
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Рефакторинг: свойство-обертка для обратной совместимости
+        /// Использует PacketDataService.SourceStructures[PacketType.CS]
+        /// </summary>
+        public Dictionary<int, List<Struc>> StructureSourceCS
+        {
+            get => _packetDataService.SourceStructures[Models.PacketType.CS];
+            set
+            {
+                _packetDataService.SourceStructures[Models.PacketType.CS].Clear();
+                if (value != null)
+                {
+                    foreach (var kvp in value)
+                    {
+                        _packetDataService.SourceStructures[Models.PacketType.CS][kvp.Key] = new List<Struc>(kvp.Value);
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Рефакторинг: свойство-обертка для обратной совместимости
+        /// Использует PacketDataService.SourceStructures[PacketType.SC]
+        /// </summary>
+        public Dictionary<int, List<Struc>> StructureSourceSC
+        {
+            get => _packetDataService.SourceStructures[Models.PacketType.SC];
+            set
+            {
+                _packetDataService.SourceStructures[Models.PacketType.SC].Clear();
+                if (value != null)
+                {
+                    foreach (var kvp in value)
+                    {
+                        _packetDataService.SourceStructures[Models.PacketType.SC][kvp.Key] = new List<Struc>(kvp.Value);
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Рефакторинг: свойство-обертка для обратной совместимости
+        /// Использует PacketDataService.DestinationStructures[PacketType.CS]
+        /// </summary>
+        public Dictionary<int, List<Struc>> StructureDestinationCS
+        {
+            get => _packetDataService.DestinationStructures[Models.PacketType.CS];
+            set
+            {
+                _packetDataService.DestinationStructures[Models.PacketType.CS].Clear();
+                if (value != null)
+                {
+                    foreach (var kvp in value)
+                    {
+                        _packetDataService.DestinationStructures[Models.PacketType.CS][kvp.Key] = new List<Struc>(kvp.Value);
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Рефакторинг: свойство-обертка для обратной совместимости
+        /// Использует PacketDataService.DestinationStructures[PacketType.SC]
+        /// </summary>
+        public Dictionary<int, List<Struc>> StructureDestinationSC
+        {
+            get => _packetDataService.DestinationStructures[Models.PacketType.SC];
+            set
+            {
+                _packetDataService.DestinationStructures[Models.PacketType.SC].Clear();
+                if (value != null)
+                {
+                    foreach (var kvp in value)
+                    {
+                        _packetDataService.DestinationStructures[Models.PacketType.SC][kvp.Key] = new List<Struc>(kvp.Value);
                     }
                 }
             }
@@ -5450,10 +5532,14 @@ namespace NameFinder
                     var listNameSourceCS = ListNameSourceCS;
                     var listNameDestinationCS = ListNameDestinationCS;
                     var listSubDestinationCS = ListSubDestinationCS;
-                    CompareSourceStructuresCS(ref listNameSourceCS, ref listNameDestinationCS, ref listSubDestinationCS, ref StructureSourceCS, ref StructureDestinationCS, ListOpcodeDestinationCS);
+                    var structureSourceCS = StructureSourceCS;
+                    var structureDestinationCS = StructureDestinationCS;
+                    CompareSourceStructuresCS(ref listNameSourceCS, ref listNameDestinationCS, ref listSubDestinationCS, ref structureSourceCS, ref structureDestinationCS, ListOpcodeDestinationCS);
                     ListNameSourceCS = listNameSourceCS;
                     ListNameDestinationCS = listNameDestinationCS;
                     ListSubDestinationCS = listSubDestinationCS;
+                    StructureSourceCS = structureSourceCS;
+                    StructureDestinationCS = structureDestinationCS;
                     // сравнение пакетов проведено
                     CheckBoxLock.IsChecked = false;
                 }
@@ -5566,11 +5652,15 @@ namespace NameFinder
                 var listNameDestinationCS = ListNameDestinationCS;
                 var listNameCompareCS = ListNameCompareCS;
                 var listSubDestinationCS = ListSubDestinationCS;
-                compareWindow.CompareSourceStructures(ref listNameSourceCS, ref listNameDestinationCS, ref listNameCompareCS, ref listSubDestinationCS, ref StructureSourceCS, ref StructureDestinationCS, ListOpcodeDestinationCS);
+                var structureSourceCS = StructureSourceCS;
+                var structureDestinationCS = StructureDestinationCS;
+                compareWindow.CompareSourceStructures(ref listNameSourceCS, ref listNameDestinationCS, ref listNameCompareCS, ref listSubDestinationCS, ref structureSourceCS, ref structureDestinationCS, ListOpcodeDestinationCS);
                 ListNameSourceCS = listNameSourceCS;
                 ListNameDestinationCS = listNameDestinationCS;
                 ListNameCompareCS = listNameCompareCS;
                 ListSubDestinationCS = listSubDestinationCS;
+                StructureSourceCS = structureSourceCS;
+                StructureDestinationCS = structureDestinationCS;
                 isCompareCS = true;
                 CheckBoxLock.IsChecked = true;
             }
@@ -5654,10 +5744,14 @@ namespace NameFinder
                     var listNameSourceSC = ListNameSourceSC;
                     var listNameDestinationSC = ListNameDestinationSC;
                     var listSubDestinationSC = ListSubDestinationSC;
-                    CompareSourceStructuresSC(ref listNameSourceSC, ref listNameDestinationSC, ref listSubDestinationSC, ref StructureSourceSC, ref StructureDestinationSC, ListOpcodeDestinationSC);
+                    var structureSourceSC = StructureSourceSC;
+                    var structureDestinationSC = StructureDestinationSC;
+                    CompareSourceStructuresSC(ref listNameSourceSC, ref listNameDestinationSC, ref listSubDestinationSC, ref structureSourceSC, ref structureDestinationSC, ListOpcodeDestinationSC);
                     ListNameSourceSC = listNameSourceSC;
                     ListNameDestinationSC = listNameDestinationSC;
                     ListSubDestinationSC = listSubDestinationSC;
+                    StructureSourceSC = structureSourceSC;
+                    StructureDestinationSC = structureDestinationSC;
                     // сравнение пакетов проведено
                     CheckBoxLock.IsChecked = false;
                 }
@@ -5768,11 +5862,15 @@ namespace NameFinder
                 var listNameDestinationSC = ListNameDestinationSC;
                 var listNameCompareSC = ListNameCompareSC;
                 var listSubDestinationSC = ListSubDestinationSC;
-                compareWindow.CompareSourceStructures(ref listNameSourceSC, ref listNameDestinationSC, ref listNameCompareSC, ref listSubDestinationSC, ref StructureSourceSC, ref StructureDestinationSC, ListOpcodeDestinationSC);
+                var structureSourceSC = StructureSourceSC;
+                var structureDestinationSC = StructureDestinationSC;
+                compareWindow.CompareSourceStructures(ref listNameSourceSC, ref listNameDestinationSC, ref listNameCompareSC, ref listSubDestinationSC, ref structureSourceSC, ref structureDestinationSC, ListOpcodeDestinationSC);
                 ListNameSourceSC = listNameSourceSC;
                 ListNameDestinationSC = listNameDestinationSC;
                 ListNameCompareSC = listNameCompareSC;
                 ListSubDestinationSC = listSubDestinationSC;
+                StructureSourceSC = structureSourceSC;
+                StructureDestinationSC = structureDestinationSC;
                 isCompareSC = true;
                 CheckBoxLock.IsChecked = true;
             }

@@ -85,6 +85,20 @@ namespace NameFinder.Services
         public List<string> SourceFileLines { get; } = new List<string>();
         public List<string> DestinationFileLines { get; } = new List<string>();
 
+        // Структуры пакетов (Source) - используем Struc для обратной совместимости
+        public Dictionary<PacketType, Dictionary<int, List<NameFinder.Struc>>> SourceStructures { get; } = new Dictionary<PacketType, Dictionary<int, List<NameFinder.Struc>>>
+        {
+            { PacketType.CS, new Dictionary<int, List<NameFinder.Struc>>() },
+            { PacketType.SC, new Dictionary<int, List<NameFinder.Struc>>() }
+        };
+
+        // Структуры пакетов (Destination)
+        public Dictionary<PacketType, Dictionary<int, List<NameFinder.Struc>>> DestinationStructures { get; } = new Dictionary<PacketType, Dictionary<int, List<NameFinder.Struc>>>
+        {
+            { PacketType.CS, new Dictionary<int, List<NameFinder.Struc>>() },
+            { PacketType.SC, new Dictionary<int, List<NameFinder.Struc>>() }
+        };
+
         public void Clear()
         {
             ClearSource();
@@ -107,6 +121,8 @@ namespace NameFinder.Services
             SourcePacketNames[PacketType.SC].Clear();
             SourceSubNames[PacketType.CS].Clear();
             SourceSubNames[PacketType.SC].Clear();
+            SourceStructures[PacketType.CS].Clear();
+            SourceStructures[PacketType.SC].Clear();
             SourceFileLines.Clear();
         }
 
@@ -130,6 +146,8 @@ namespace NameFinder.Services
             CompareNames[PacketType.SC].Clear();
             InUseMapping[PacketType.CS].Clear();
             InUseMapping[PacketType.SC].Clear();
+            DestinationStructures[PacketType.CS].Clear();
+            DestinationStructures[PacketType.SC].Clear();
             DestinationFileLines.Clear();
         }
     }

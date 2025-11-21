@@ -36,6 +36,13 @@ namespace NameFinder.Services
         List<string> SourceFileLines { get; }
         List<string> DestinationFileLines { get; }
 
+        // Структуры пакетов (Source) - используем Struc для обратной совместимости
+        // TODO: В будущем можно мигрировать на StructureField из Models
+        Dictionary<PacketType, Dictionary<int, List<NameFinder.Struc>>> SourceStructures { get; }
+        
+        // Структуры пакетов (Destination)
+        Dictionary<PacketType, Dictionary<int, List<NameFinder.Struc>>> DestinationStructures { get; }
+
         void Clear();
         void ClearSource();
         void ClearDestination();
