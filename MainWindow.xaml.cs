@@ -152,6 +152,7 @@ namespace NameFinder
         private readonly IPacketDataService _packetDataService;
         private readonly IFileProcessor _fileProcessor;
         private readonly IOpcodeFinderService _opcodeFinderService;
+        private readonly Services.OpcodeFinderWrapper _opcodeFinderWrapper;
 
         private readonly string[] _inF;
         private readonly string[] _outF;
@@ -230,9 +231,73 @@ namespace NameFinder
             _packetDataService = new PacketDataService();
             _fileProcessor = new FileProcessor();
             _opcodeFinderService = new OpcodeFinderService();
+            _opcodeFinderWrapper = new Services.OpcodeFinderWrapper(_opcodeFinderService, Dispatcher);
             
             // Создаем объект для блокировки.
             //lockObj = new object();
+        }
+
+        /// <summary>
+        /// Рефакторинг: новый async метод для поиска опкодов CS (Source) с использованием сервиса
+        /// </summary>
+        private async Task FindOpcodeSourceCSAsync()
+        {
+            try
+            {
+                var opcodes = await _opcodeFinderWrapper.FindOpcodesWithUIAsync(
+                    Models.PacketType.CS,
+                    Models.PacketSource.In,
+                    InListSource,
+                    XrefsIn,
+                    percent => ProgressBar13.Value = percent,
+                    max => ProgressBar13.Maximum = max,
+                    count => TextBox16Copy.Text = count,
+                    notFound => TextBox17Copy.Text = notFound,
+                    time => TextBox19Copy.Text = time,
+                    brush => Label_Semafor1.Background = brush,
+                    enabled =>
+                    {
+                        ButtonSaveIn1.IsEnabled = enabled;
+                        ButtonSaveIn2.IsEnabled = enabled;
+                        BtnLoadIn.IsEnabled = enabled;
+                        BtnLoadIn_Copy.IsEnabled = enabled;
+                        BtnCsLoadNameIn.IsEnabled = enabled;
+                        BtnScLoadNameIn.IsEnabled = enabled;
+                        BtnMakePktIn.IsEnabled = enabled;
+                        BtnGotoOpcodeIn.IsEnabled = enabled;
+                        ButtonCsCompare.IsEnabled = enabled;
+                        ButtonScCompare.IsEnabled = enabled;
+                    });
+
+                // Сохраняем результаты
+                ListOpcodeSourceCS = opcodes;
+                _packetDataService.SourceOpcodes[Models.PacketType.CS] = opcodes;
+
+                // Обновляем UI
+                await Dispatcher.InvokeAsync(() =>
+                {
+                    ListView14.ItemsSource = ListOpcodeSourceCS;
+                    TextBox16Copy.Text = ListOpcodeSourceCS.Count.ToString();
+                    var notFound = ListOpcodeSourceCS.Count(o => o == "0xfff");
+                    TextBox17Copy.Text = notFound.ToString();
+                    
+                    _isInCs = true;
+                    if (_isInCs && _isOutCs)
+                    {
+                        ButtonCsCompare.IsEnabled = true;
+                        ButtonScCompare.IsEnabled = false;
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                await Dispatcher.InvokeAsync(() =>
+                {
+                    MessageBox.Show($"Ошибка при поиске опкодов CS: {ex.Message}", "Ошибка",
+                        MessageBoxButton.OK, MessageBoxImage.Error);
+                    Label_Semafor1.Background = Brushes.Red;
+                });
+            }
         }
 
         private void FindOpcodeSourceCS()
@@ -552,6 +617,69 @@ namespace NameFinder
             {
                 ButtonCsCompare.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ButtonCsCompare.IsEnabled = false; }));
                 ButtonScCompare.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ButtonScCompare.IsEnabled = false; }));
+            }
+        }
+
+        /// <summary>
+        /// Рефакторинг: новый async метод для поиска опкодов SC (Source) с использованием сервиса
+        /// </summary>
+        private async Task FindOpcodeSourceSCAsync()
+        {
+            try
+            {
+                var opcodes = await _opcodeFinderWrapper.FindOpcodesWithUIAsync(
+                    Models.PacketType.SC,
+                    Models.PacketSource.In,
+                    InListSource,
+                    XrefsIn,
+                    percent => ProgressBar13.Value = percent,
+                    max => ProgressBar13.Maximum = max,
+                    count => TextBox16Copy.Text = count,
+                    notFound => TextBox17Copy.Text = notFound,
+                    time => TextBox19Copy.Text = time,
+                    brush => Label_Semafor1.Background = brush,
+                    enabled =>
+                    {
+                        ButtonSaveIn1.IsEnabled = enabled;
+                        ButtonSaveIn2.IsEnabled = enabled;
+                        BtnLoadIn.IsEnabled = enabled;
+                        BtnLoadIn_Copy.IsEnabled = enabled;
+                        BtnCsLoadNameIn.IsEnabled = enabled;
+                        BtnScLoadNameIn.IsEnabled = enabled;
+                        BtnMakePktIn.IsEnabled = enabled;
+                        BtnGotoOpcodeIn.IsEnabled = enabled;
+                        ButtonCsCompare.IsEnabled = enabled;
+                        ButtonScCompare.IsEnabled = enabled;
+                    });
+
+                // Сохраняем результаты
+                ListOpcodeSourceSC = opcodes;
+                _packetDataService.SourceOpcodes[Models.PacketType.SC] = opcodes;
+
+                // Обновляем UI
+                await Dispatcher.InvokeAsync(() =>
+                {
+                    ListView14.ItemsSource = ListOpcodeSourceSC;
+                    TextBox16Copy.Text = ListOpcodeSourceSC.Count.ToString();
+                    var notFound = ListOpcodeSourceSC.Count(o => o == "0xfff");
+                    TextBox17Copy.Text = notFound.ToString();
+                    
+                    _isInSc = true;
+                    if (_isInSc && _isOutSc)
+                    {
+                        ButtonScCompare.IsEnabled = true;
+                        ButtonCsCompare.IsEnabled = false;
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                await Dispatcher.InvokeAsync(() =>
+                {
+                    MessageBox.Show($"Ошибка при поиске опкодов SC: {ex.Message}", "Ошибка",
+                        MessageBoxButton.OK, MessageBoxImage.Error);
+                    Label_Semafor1.Background = Brushes.Red;
+                });
             }
         }
 
@@ -4063,15 +4191,17 @@ namespace NameFinder
             isCompareCS = false;
             isCompareSC = false;
 
-            new Thread(() =>
+            // Рефакторинг: используем async/await вместо Thread
+            _ = Task.Run(async () =>
             {
                 FindSourceStructuresSC(inText);
 
                 if (FindOpcodeIn)
                 {
-                    FindOpcodeSourceSC();
+                    // Рефакторинг: используем новый сервис для поиска опкодов
+                    await FindOpcodeSourceSCAsync();
                 }
-            }).Start();
+            });
         }
 
         private void btn_CS_Clear_Click(object sender, RoutedEventArgs e)
@@ -4130,15 +4260,17 @@ namespace NameFinder
             isCompareCS = false;
             isCompareSC = false;
 
-            new Thread(() =>
+            // Рефакторинг: используем async/await вместо Thread
+            _ = Task.Run(async () =>
             {
                 FindSourceStructuresCS(inText);
 
                 if (FindOpcodeIn)
                 {
-                    FindOpcodeSourceCS();
+                    // Рефакторинг: используем новый сервис для поиска опкодов
+                    await FindOpcodeSourceCSAsync();
                 }
-            }).Start();
+            });
         }
 
         private async void btn_Load_Out_Click(object sender, RoutedEventArgs e)
