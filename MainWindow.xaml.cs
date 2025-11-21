@@ -176,26 +176,24 @@ namespace NameFinder
         public static Dictionary<int, int> InUseOut { get; set; } = new Dictionary<int, int>();
         public static Dictionary<int, bool> IsRenameDestination { get; set; } = new Dictionary<int, bool>();
 
-        // Рефакторинг: заменено на свойство-обертку, использующую PacketDataService
+        // Рефакторинг: заменено на свойства-обертки, использующие PacketDataService
         // public static List<string> InListSource = new List<string>();
-        public static List<string> ListNameSourceCS = new List<string>();
-        public static List<string> ListNameSourceSC = new List<string>();
-        public static List<string> ListSubSourceCS = new List<string>();
-
-        public static List<string> ListSubSourceSC = new List<string>();
+        // public static List<string> ListNameSourceCS = new List<string>();
+        // public static List<string> ListNameSourceSC = new List<string>();
+        // public static List<string> ListSubSourceCS = new List<string>();
+        // public static List<string> ListSubSourceSC = new List<string>();
 
         // здесь будем собирать структуры пакетов, где index из listName1 и соответственно listSub1
         public static Dictionary<int, List<Struc>> StructureSourceCS = new Dictionary<int, List<Struc>>();
         public static Dictionary<int, List<Struc>> StructureSourceSC = new Dictionary<int, List<Struc>>();
 
 
-        // Рефакторинг: заменено на свойство-обертку, использующую PacketDataService
+        // Рефакторинг: заменено на свойства-обертки, использующие PacketDataService
         // public static List<string> InListDestination = new List<string>();
-        public static List<string> ListNameDestinationCS = new List<string>();
-        public static List<string> ListNameDestinationSC = new List<string>();
-        public static List<string> ListSubDestinationCS = new List<string>();
-
-        public static List<string> ListSubDestinationSC = new List<string>();
+        // public static List<string> ListNameDestinationCS = new List<string>();
+        // public static List<string> ListNameDestinationSC = new List<string>();
+        // public static List<string> ListSubDestinationCS = new List<string>();
+        // public static List<string> ListSubDestinationSC = new List<string>();
 
         // здесь будем собирать структуры пакетов, где index из listName1 и соответственно listSub1
         public static Dictionary<int, List<Struc>> StructureDestinationCS = new Dictionary<int, List<Struc>>();
@@ -252,6 +250,142 @@ namespace NameFinder
                 if (value != null)
                 {
                     _packetDataService.SourceFileLines.AddRange(value);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Рефакторинг: свойство-обертка для обратной совместимости
+        /// Использует PacketDataService.SourcePacketNames
+        /// </summary>
+        public List<string> ListNameSourceCS
+        {
+            get => _packetDataService.SourcePacketNames[Models.PacketType.CS];
+            set
+            {
+                _packetDataService.SourcePacketNames[Models.PacketType.CS].Clear();
+                if (value != null)
+                {
+                    _packetDataService.SourcePacketNames[Models.PacketType.CS].AddRange(value);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Рефакторинг: свойство-обертка для обратной совместимости
+        /// Использует PacketDataService.SourcePacketNames
+        /// </summary>
+        public List<string> ListNameSourceSC
+        {
+            get => _packetDataService.SourcePacketNames[Models.PacketType.SC];
+            set
+            {
+                _packetDataService.SourcePacketNames[Models.PacketType.SC].Clear();
+                if (value != null)
+                {
+                    _packetDataService.SourcePacketNames[Models.PacketType.SC].AddRange(value);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Рефакторинг: свойство-обертка для обратной совместимости
+        /// Использует PacketDataService.SourceSubNames
+        /// </summary>
+        public List<string> ListSubSourceCS
+        {
+            get => _packetDataService.SourceSubNames[Models.PacketType.CS];
+            set
+            {
+                _packetDataService.SourceSubNames[Models.PacketType.CS].Clear();
+                if (value != null)
+                {
+                    _packetDataService.SourceSubNames[Models.PacketType.CS].AddRange(value);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Рефакторинг: свойство-обертка для обратной совместимости
+        /// Использует PacketDataService.SourceSubNames
+        /// </summary>
+        public List<string> ListSubSourceSC
+        {
+            get => _packetDataService.SourceSubNames[Models.PacketType.SC];
+            set
+            {
+                _packetDataService.SourceSubNames[Models.PacketType.SC].Clear();
+                if (value != null)
+                {
+                    _packetDataService.SourceSubNames[Models.PacketType.SC].AddRange(value);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Рефакторинг: свойство-обертка для обратной совместимости
+        /// Использует PacketDataService.DestinationPacketNames
+        /// </summary>
+        public List<string> ListNameDestinationCS
+        {
+            get => _packetDataService.DestinationPacketNames[Models.PacketType.CS];
+            set
+            {
+                _packetDataService.DestinationPacketNames[Models.PacketType.CS].Clear();
+                if (value != null)
+                {
+                    _packetDataService.DestinationPacketNames[Models.PacketType.CS].AddRange(value);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Рефакторинг: свойство-обертка для обратной совместимости
+        /// Использует PacketDataService.DestinationPacketNames
+        /// </summary>
+        public List<string> ListNameDestinationSC
+        {
+            get => _packetDataService.DestinationPacketNames[Models.PacketType.SC];
+            set
+            {
+                _packetDataService.DestinationPacketNames[Models.PacketType.SC].Clear();
+                if (value != null)
+                {
+                    _packetDataService.DestinationPacketNames[Models.PacketType.SC].AddRange(value);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Рефакторинг: свойство-обертка для обратной совместимости
+        /// Использует PacketDataService.DestinationSubNames
+        /// </summary>
+        public List<string> ListSubDestinationCS
+        {
+            get => _packetDataService.DestinationSubNames[Models.PacketType.CS];
+            set
+            {
+                _packetDataService.DestinationSubNames[Models.PacketType.CS].Clear();
+                if (value != null)
+                {
+                    _packetDataService.DestinationSubNames[Models.PacketType.CS].AddRange(value);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Рефакторинг: свойство-обертка для обратной совместимости
+        /// Использует PacketDataService.DestinationSubNames
+        /// </summary>
+        public List<string> ListSubDestinationSC
+        {
+            get => _packetDataService.DestinationSubNames[Models.PacketType.SC];
+            set
+            {
+                _packetDataService.DestinationSubNames[Models.PacketType.SC].Clear();
+                if (value != null)
+                {
+                    _packetDataService.DestinationSubNames[Models.PacketType.SC].AddRange(value);
                 }
             }
         }
@@ -5109,7 +5243,14 @@ namespace NameFinder
                 if (!isCompareCS)
                 {
                     // результат работы метода в ListNameCompareCS
-                    CompareSourceStructuresCS(ref ListNameSourceCS, ref ListNameDestinationCS, ref ListSubDestinationCS, ref StructureSourceCS, ref StructureDestinationCS, ListOpcodeDestinationCS);
+                    // Рефакторинг: создаем локальные переменные для ref параметров, так как свойства нельзя передавать как ref
+                    var listNameSourceCS = ListNameSourceCS;
+                    var listNameDestinationCS = ListNameDestinationCS;
+                    var listSubDestinationCS = ListSubDestinationCS;
+                    CompareSourceStructuresCS(ref listNameSourceCS, ref listNameDestinationCS, ref listSubDestinationCS, ref StructureSourceCS, ref StructureDestinationCS, ListOpcodeDestinationCS);
+                    ListNameSourceCS = listNameSourceCS;
+                    ListNameDestinationCS = listNameDestinationCS;
+                    ListSubDestinationCS = listSubDestinationCS;
                     // сравнение пакетов проведено
                     CheckBoxLock.IsChecked = false;
                 }
@@ -5215,9 +5356,18 @@ namespace NameFinder
                 CompareWindow.isRemoveOpcode = isRemoveOpcode;
                 CompareWindow.StructStringIn = StructStringIn;
                 CompareWindow.StructStringOut = StructStringOut;
-                var compareWindow = new CompareWindow();
+                var compareWindow = new CompareWindow(this);
                 compareWindow.Show();
-                compareWindow.CompareSourceStructures(ref ListNameSourceCS, ref ListNameDestinationCS, ref ListNameCompareCS, ref ListSubDestinationCS, ref StructureSourceCS, ref StructureDestinationCS, ListOpcodeDestinationCS);
+                // Рефакторинг: создаем локальные переменные для ref параметров, так как свойства нельзя передавать как ref
+                var listNameSourceCS = ListNameSourceCS;
+                var listNameDestinationCS = ListNameDestinationCS;
+                var listNameCompareCS = ListNameCompareCS;
+                var listSubDestinationCS = ListSubDestinationCS;
+                compareWindow.CompareSourceStructures(ref listNameSourceCS, ref listNameDestinationCS, ref listNameCompareCS, ref listSubDestinationCS, ref StructureSourceCS, ref StructureDestinationCS, ListOpcodeDestinationCS);
+                ListNameSourceCS = listNameSourceCS;
+                ListNameDestinationCS = listNameDestinationCS;
+                ListNameCompareCS = listNameCompareCS;
+                ListSubDestinationCS = listSubDestinationCS;
                 isCompareCS = true;
                 CheckBoxLock.IsChecked = true;
             }
@@ -5295,7 +5445,14 @@ namespace NameFinder
                 if (!isCompareSC)
                 {
                     // результат работы метода в ListNameCompareSC
-                    CompareSourceStructuresSC(ref ListNameSourceSC, ref ListNameDestinationSC, ref ListSubDestinationSC, ref StructureSourceSC, ref StructureDestinationSC, ListOpcodeDestinationSC);
+                    // Рефакторинг: создаем локальные переменные для ref параметров, так как свойства нельзя передавать как ref
+                    var listNameSourceSC = ListNameSourceSC;
+                    var listNameDestinationSC = ListNameDestinationSC;
+                    var listSubDestinationSC = ListSubDestinationSC;
+                    CompareSourceStructuresSC(ref listNameSourceSC, ref listNameDestinationSC, ref listSubDestinationSC, ref StructureSourceSC, ref StructureDestinationSC, ListOpcodeDestinationSC);
+                    ListNameSourceSC = listNameSourceSC;
+                    ListNameDestinationSC = listNameDestinationSC;
+                    ListSubDestinationSC = listSubDestinationSC;
                     // сравнение пакетов проведено
                     CheckBoxLock.IsChecked = false;
                 }
@@ -5399,9 +5556,18 @@ namespace NameFinder
             {
                 isCS = false;
                 CompareWindow.isRemoveOpcode = isRemoveOpcode;
-                var compareWindow = new CompareWindow();
+                var compareWindow = new CompareWindow(this);
                 compareWindow.Show();
-                compareWindow.CompareSourceStructures(ref ListNameSourceSC, ref ListNameDestinationSC, ref ListNameCompareSC, ref ListSubDestinationSC, ref StructureSourceSC, ref StructureDestinationSC, ListOpcodeDestinationSC);
+                // Рефакторинг: создаем локальные переменные для ref параметров, так как свойства нельзя передавать как ref
+                var listNameSourceSC = ListNameSourceSC;
+                var listNameDestinationSC = ListNameDestinationSC;
+                var listNameCompareSC = ListNameCompareSC;
+                var listSubDestinationSC = ListSubDestinationSC;
+                compareWindow.CompareSourceStructures(ref listNameSourceSC, ref listNameDestinationSC, ref listNameCompareSC, ref listSubDestinationSC, ref StructureSourceSC, ref StructureDestinationSC, ListOpcodeDestinationSC);
+                ListNameSourceSC = listNameSourceSC;
+                ListNameDestinationSC = listNameDestinationSC;
+                ListNameCompareSC = listNameCompareSC;
+                ListSubDestinationSC = listSubDestinationSC;
                 isCompareSC = true;
                 CheckBoxLock.IsChecked = true;
             }
