@@ -14,15 +14,18 @@ namespace NameFinder
     /// </summary>
     public partial class CompareWindow : Window
     {
+        private readonly MainWindow _mainWindow;
+
         public int IdxS { get; set; }
         public int IdxD { get; set; }
         public bool isSourceNameChanged { get; set; }
         public bool isDestinationNameChanged { get; set; }
         public bool isResetOpcode { get; set; }
 
-        public CompareWindow()
+        public CompareWindow(MainWindow mainWindow)
         {
             InitializeComponent();
+            _mainWindow = mainWindow ?? throw new ArgumentNullException(nameof(mainWindow));
         }
 
         public static List<string> ListNameCompare = new List<string>();
@@ -661,13 +664,14 @@ namespace NameFinder
         {
             if (isSourceNameChanged)
             {
+                // Рефакторинг: используем ссылку на экземпляр MainWindow вместо статического доступа
                 if (MainWindow.isCS)
                 {
-                    MainWindow.ListNameSourceCS = new List<string>(ListNameSource);
+                    _mainWindow.ListNameSourceCS = new List<string>(ListNameSource);
                 }
                 else
                 {
-                    MainWindow.ListNameSourceSC = new List<string>(ListNameSource);
+                    _mainWindow.ListNameSourceSC = new List<string>(ListNameSource);
                 }
             }
             if (isDestinationNameChanged)
