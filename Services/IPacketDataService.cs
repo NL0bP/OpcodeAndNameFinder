@@ -24,6 +24,14 @@ namespace NameFinder.Services
         Dictionary<PacketType, List<string>> SourceOpcodes { get; }
         Dictionary<PacketType, List<string>> DestinationOpcodes { get; }
 
+        // Списки имен пакетов (Source)
+        Dictionary<PacketType, List<string>> SourcePacketNames { get; }
+        Dictionary<PacketType, List<string>> SourceSubNames { get; }
+        
+        // Списки имен пакетов (Destination)
+        Dictionary<PacketType, List<string>> DestinationPacketNames { get; }
+        Dictionary<PacketType, List<string>> DestinationSubNames { get; }
+
         // Файловые данные
         List<string> SourceFileLines { get; }
         List<string> DestinationFileLines { get; }

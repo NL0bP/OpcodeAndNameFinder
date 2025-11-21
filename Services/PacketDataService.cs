@@ -56,6 +56,32 @@ namespace NameFinder.Services
             { PacketType.SC, new List<string>() }
         };
 
+        // Списки имен пакетов (Source)
+        public Dictionary<PacketType, List<string>> SourcePacketNames { get; } = new Dictionary<PacketType, List<string>>
+        {
+            { PacketType.CS, new List<string>() },
+            { PacketType.SC, new List<string>() }
+        };
+
+        public Dictionary<PacketType, List<string>> SourceSubNames { get; } = new Dictionary<PacketType, List<string>>
+        {
+            { PacketType.CS, new List<string>() },
+            { PacketType.SC, new List<string>() }
+        };
+
+        // Списки имен пакетов (Destination)
+        public Dictionary<PacketType, List<string>> DestinationPacketNames { get; } = new Dictionary<PacketType, List<string>>
+        {
+            { PacketType.CS, new List<string>() },
+            { PacketType.SC, new List<string>() }
+        };
+
+        public Dictionary<PacketType, List<string>> DestinationSubNames { get; } = new Dictionary<PacketType, List<string>>
+        {
+            { PacketType.CS, new List<string>() },
+            { PacketType.SC, new List<string>() }
+        };
+
         public List<string> SourceFileLines { get; } = new List<string>();
         public List<string> DestinationFileLines { get; } = new List<string>();
 
@@ -77,6 +103,10 @@ namespace NameFinder.Services
             }
             SourceOpcodes[PacketType.CS].Clear();
             SourceOpcodes[PacketType.SC].Clear();
+            SourcePacketNames[PacketType.CS].Clear();
+            SourcePacketNames[PacketType.SC].Clear();
+            SourceSubNames[PacketType.CS].Clear();
+            SourceSubNames[PacketType.SC].Clear();
             SourceFileLines.Clear();
         }
 
@@ -92,6 +122,10 @@ namespace NameFinder.Services
             }
             DestinationOpcodes[PacketType.CS].Clear();
             DestinationOpcodes[PacketType.SC].Clear();
+            DestinationPacketNames[PacketType.CS].Clear();
+            DestinationPacketNames[PacketType.SC].Clear();
+            DestinationSubNames[PacketType.CS].Clear();
+            DestinationSubNames[PacketType.SC].Clear();
             CompareNames[PacketType.CS].Clear();
             CompareNames[PacketType.SC].Clear();
             InUseMapping[PacketType.CS].Clear();
