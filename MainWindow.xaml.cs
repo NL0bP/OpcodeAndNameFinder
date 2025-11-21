@@ -216,8 +216,9 @@ namespace NameFinder
         // public static List<string> ListNameCompareCS = new List<string>();
         // public static List<string> ListNameCompareSC = new List<string>();
         public static List<string> ListNameCompare = new List<string>(); // Используется в CompareWindow как временный список
-        public static List<string> ListNameCompareOutCS = new List<string>(); // TODO: мигрировать
-        public static List<string> ListNameCompareOutSC = new List<string>(); // TODO: мигрировать
+        // Рефакторинг: заменено на свойства-обертки, использующие PacketDataService
+        // public static List<string> ListNameCompareOutCS = new List<string>();
+        // public static List<string> ListNameCompareOutSC = new List<string>();
 
         public bool isCleaningIn = false;
         public bool isCleaningOut = false;
@@ -755,6 +756,40 @@ namespace NameFinder
                     {
                         _packetDataService.IsRenameDestination[kvp.Key] = kvp.Value;
                     }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Рефакторинг: свойство-обертка для обратной совместимости
+        /// Использует PacketDataService.CompareOutNames[PacketType.CS]
+        /// </summary>
+        public List<string> ListNameCompareOutCS
+        {
+            get => _packetDataService.CompareOutNames[Models.PacketType.CS];
+            set
+            {
+                _packetDataService.CompareOutNames[Models.PacketType.CS].Clear();
+                if (value != null)
+                {
+                    _packetDataService.CompareOutNames[Models.PacketType.CS].AddRange(value);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Рефакторинг: свойство-обертка для обратной совместимости
+        /// Использует PacketDataService.CompareOutNames[PacketType.SC]
+        /// </summary>
+        public List<string> ListNameCompareOutSC
+        {
+            get => _packetDataService.CompareOutNames[Models.PacketType.SC];
+            set
+            {
+                _packetDataService.CompareOutNames[Models.PacketType.SC].Clear();
+                if (value != null)
+                {
+                    _packetDataService.CompareOutNames[Models.PacketType.SC].AddRange(value);
                 }
             }
         }

@@ -20,6 +20,7 @@ namespace NameFinder.Services
         Dictionary<PacketType, List<string>> CompareNames { get; }
         Dictionary<PacketType, Dictionary<int, int>> InUseMapping { get; }
         Dictionary<int, bool> IsRenameDestination { get; }
+        Dictionary<PacketType, List<string>> CompareOutNames { get; }
         
         // Опкоды
         Dictionary<PacketType, List<string>> SourceOpcodes { get; }
