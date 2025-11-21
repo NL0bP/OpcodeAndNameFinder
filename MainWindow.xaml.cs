@@ -4280,17 +4280,22 @@ namespace NameFinder
                 () => ButtonScCompare.IsEnabled = canCompareSC
             );
 
-            ButtonSaveOut2.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ButtonSaveOut2.IsEnabled = true; }));
             stopWatch.Stop();
-            TextBox29.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox29.Text = stopWatch.Elapsed.ToString(); }));
-            Label_Semafor2.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { Label_Semafor2.Background = Brushes.GreenYellow; }));
-            BtnUpdStruct.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnUpdStruct.IsEnabled = true; }));
-            ButtonEditOutOpcode.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ButtonEditOutOpcode.IsEnabled = true; }));
-            BtnMakePktOut.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnMakePktOut.IsEnabled = true; }));
-            BtnGotoOpcodeOut.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnGotoOpcodeOut.IsEnabled = true; }));
-            BtnSaveSnapshot.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnSaveSnapshot.IsEnabled = true; }));
-            BtnLoadSnapshotCS.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnLoadSnapshotCS.IsEnabled = true; }));
-            BtnLoadSnapshotSC.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnLoadSnapshotSC.IsEnabled = true; }));
+            var elapsedTime = stopWatch.Elapsed.ToString();
+            
+            // Рефакторинг: используем UIHelper для группировки UI обновлений
+            Helpers.UIHelper.InvokeUIBatch(Dispatcher,
+                () => ButtonSaveOut2.IsEnabled = true,
+                () => TextBox29.Text = elapsedTime,
+                () => Label_Semafor2.Background = Brushes.GreenYellow,
+                () => BtnUpdStruct.IsEnabled = true,
+                () => ButtonEditOutOpcode.IsEnabled = true,
+                () => BtnMakePktOut.IsEnabled = true,
+                () => BtnGotoOpcodeOut.IsEnabled = true,
+                () => BtnSaveSnapshot.IsEnabled = true,
+                () => BtnLoadSnapshotCS.IsEnabled = true,
+                () => BtnLoadSnapshotSC.IsEnabled = true
+            );
         }
 
         private async void btn_Load_In_Click(object sender, RoutedEventArgs e)
@@ -4912,9 +4917,14 @@ namespace NameFinder
             }
             //TextBox31.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox31.Text = totalFound.ToString(); }));
             //totalNotfound = dictDestination.Count - totalFound;
-            TextBox32.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox32.Text = totalNotfound.ToString(); }));
             stopWatch.Stop();
-            TextBox33.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox33.Text = stopWatch.Elapsed.ToString(); }));
+            var elapsedTime = stopWatch.Elapsed.ToString();
+            
+            // Рефакторинг: используем UIHelper для группировки UI обновлений
+            Helpers.UIHelper.InvokeUIBatch(Dispatcher,
+                () => TextBox32.Text = totalNotfound.ToString(),
+                () => TextBox33.Text = elapsedTime
+            );
         }
 
         private void CompareSourceStructuresSC(ref List<string> listNameSource, ref List<string> listNameDestination, ref List<string> listSubDestination, ref Dictionary<int, List<Struc>> dictSource, ref Dictionary<int, List<Struc>> dictDestination, List<string> listOpcodes)
@@ -5081,9 +5091,14 @@ namespace NameFinder
                     repeat = true; // нужно будет повторять поиск
                 } while (IdxD < lenDestinationListName);
             }
-            TextBox32.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox32.Text = totalNotfound.ToString(); }));
             stopWatch.Stop();
-            TextBox33.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox33.Text = stopWatch.Elapsed.ToString(); }));
+            var elapsedTime = stopWatch.Elapsed.ToString();
+            
+            // Рефакторинг: используем UIHelper для группировки UI обновлений
+            Helpers.UIHelper.InvokeUIBatch(Dispatcher,
+                () => TextBox32.Text = totalNotfound.ToString(),
+                () => TextBox33.Text = elapsedTime
+            );
         }
 
         private void button2_Copy1_Click(object sender, RoutedEventArgs e)
@@ -5455,9 +5470,13 @@ namespace NameFinder
         {
             var stopWatch = new Stopwatch();
             stopWatch.Start();
-            Label_Semafor2.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { Label_Semafor2.Background = Brushes.Yellow; }));
-            ProgressBar21.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar21.Value = 0; }));
-            ProgressBar21.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar21.Maximum = listName.Count; }));
+            
+            // Рефакторинг: используем UIHelper для группировки UI обновлений
+            Helpers.UIHelper.InvokeUIBatch(Dispatcher,
+                () => Label_Semafor2.Background = Brushes.Yellow,
+                () => ProgressBar21.Value = 0,
+                () => ProgressBar21.Maximum = listName.Count
+            );
             //
             // начали работу по поиску имен пакетов
             //
@@ -5477,14 +5496,20 @@ namespace NameFinder
                     // нашли старое имя пакета, заменяем на новое
                     InListDestination[index] = InListDestination[index].Replace(listName[i], listNameCompare[i]); // переименуем имя пакета
                 }
-                ProgressBar21.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar21.Value = i; }));
+                // Рефакторинг: используем UIHelper для обновления прогрессбара
+                Helpers.UIHelper.InvokeUI(Dispatcher, () => ProgressBar21.Value = i);
             }
             stopWatch.Stop();
-            TextBox25.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox25.Text = stopWatch.Elapsed.ToString(); }));
-            ProgressBar22.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar22.Value = listName.Count; }));
-            Label_Semafor2.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { Label_Semafor2.Background = Brushes.GreenYellow; }));
+            var elapsedTime = stopWatch.Elapsed.ToString();
             listName = listNameCompare;
-            ListView22.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ListView22.ItemsSource = listName; }));
+            
+            // Рефакторинг: используем UIHelper для группировки UI обновлений
+            Helpers.UIHelper.InvokeUIBatch(Dispatcher,
+                () => TextBox25.Text = elapsedTime,
+                () => ProgressBar22.Value = listName.Count,
+                () => Label_Semafor2.Background = Brushes.GreenYellow,
+                () => ListView22.ItemsSource = listName
+            );
         }
 
         private string FilePathOut3 = "";
