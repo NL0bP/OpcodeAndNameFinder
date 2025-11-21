@@ -176,7 +176,8 @@ namespace NameFinder
         public static Dictionary<int, int> InUseOut { get; set; } = new Dictionary<int, int>();
         public static Dictionary<int, bool> IsRenameDestination { get; set; } = new Dictionary<int, bool>();
 
-        public static List<string> InListSource = new List<string>();
+        // Рефакторинг: заменено на свойство-обертку, использующую PacketDataService
+        // public static List<string> InListSource = new List<string>();
         public static List<string> ListNameSourceCS = new List<string>();
         public static List<string> ListNameSourceSC = new List<string>();
         public static List<string> ListSubSourceCS = new List<string>();
@@ -188,7 +189,8 @@ namespace NameFinder
         public static Dictionary<int, List<Struc>> StructureSourceSC = new Dictionary<int, List<Struc>>();
 
 
-        public static List<string> InListDestination = new List<string>();
+        // Рефакторинг: заменено на свойство-обертку, использующую PacketDataService
+        // public static List<string> InListDestination = new List<string>();
         public static List<string> ListNameDestinationCS = new List<string>();
         public static List<string> ListNameDestinationSC = new List<string>();
         public static List<string> ListSubDestinationCS = new List<string>();
@@ -235,6 +237,40 @@ namespace NameFinder
             
             // Создаем объект для блокировки.
             //lockObj = new object();
+        }
+
+        /// <summary>
+        /// Рефакторинг: свойство-обертка для обратной совместимости
+        /// Использует PacketDataService.SourceFileLines
+        /// </summary>
+        private List<string> InListSource
+        {
+            get => _packetDataService.SourceFileLines;
+            set
+            {
+                _packetDataService.SourceFileLines.Clear();
+                if (value != null)
+                {
+                    _packetDataService.SourceFileLines.AddRange(value);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Рефакторинг: свойство-обертка для обратной совместимости
+        /// Использует PacketDataService.DestinationFileLines
+        /// </summary>
+        private List<string> InListDestination
+        {
+            get => _packetDataService.DestinationFileLines;
+            set
+            {
+                _packetDataService.DestinationFileLines.Clear();
+                if (value != null)
+                {
+                    _packetDataService.DestinationFileLines.AddRange(value);
+                }
+            }
         }
 
         /// <summary>
@@ -4216,21 +4252,22 @@ namespace NameFinder
                 stopWatch.Start();
                 try
                 {
-                    InListSource = new List<string>();
                     // Рефакторинг: использование FileProcessor вместо File.ReadAllLines
                     var progress = new Progress<int>(percent =>
                     {
                         Dispatcher.Invoke(() => ProgressBar11.Value = percent);
                     });
                     
-                    InListSource = await _fileProcessor.ReadFileLinesAsync(FilePathIn1, progress);
-                    
-                    // Сохраняем в сервис для дальнейшего использования
+                    // Загружаем файл напрямую в PacketDataService
+                    var fileLines = await _fileProcessor.ReadFileLinesAsync(FilePathIn1, progress);
                     _packetDataService.SourceFileLines.Clear();
-                    _packetDataService.SourceFileLines.AddRange(InListSource);
+                    _packetDataService.SourceFileLines.AddRange(fileLines);
                     
-                    // заполним ListView
-                    ListView11.ItemsSource = InListSource;
+                    // Устанавливаем ItemsSource в UI потоке
+                    await Dispatcher.InvokeAsync(() =>
+                    {
+                        ListView11.ItemsSource = _packetDataService.SourceFileLines;
+                    });
                 }
                 catch (Exception ex)
                 {
@@ -4469,21 +4506,22 @@ namespace NameFinder
                 stopWatch.Start();
                 try
                 {
-                    InListDestination = new List<string>();
                     // Рефакторинг: использование FileProcessor вместо File.ReadAllLines
                     var progress = new Progress<int>(percent =>
                     {
                         Dispatcher.Invoke(() => ProgressBar21.Value = percent);
                     });
                     
-                    InListDestination = await _fileProcessor.ReadFileLinesAsync(FilePathIn2, progress);
-                    
-                    // Сохраняем в сервис для дальнейшего использования
+                    // Загружаем файл напрямую в PacketDataService
+                    var fileLines = await _fileProcessor.ReadFileLinesAsync(FilePathIn2, progress);
                     _packetDataService.DestinationFileLines.Clear();
-                    _packetDataService.DestinationFileLines.AddRange(InListDestination);
+                    _packetDataService.DestinationFileLines.AddRange(fileLines);
                     
-                    // заполним ListView
-                    ListView21.ItemsSource = InListDestination;
+                    // Устанавливаем ItemsSource в UI потоке
+                    await Dispatcher.InvokeAsync(() =>
+                    {
+                        ListView21.ItemsSource = _packetDataService.DestinationFileLines;
+                    });
                 }
                 catch (Exception ex)
                 {
