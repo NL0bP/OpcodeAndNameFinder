@@ -201,10 +201,11 @@ namespace NameFinder
 
         public static Dictionary<int, List<string>> XrefsIn = new Dictionary<int, List<string>>();
         public static Dictionary<int, List<string>> XrefsOut = new Dictionary<int, List<string>>();
-        public static List<string> ListOpcodeSourceCS = new List<string>();
-        public static List<string> ListOpcodeSourceSC = new List<string>();
-        public static List<string> ListOpcodeDestinationCS = new List<string>();
-        public static List<string> ListOpcodeDestinationSC = new List<string>();
+        // Рефакторинг: заменено на свойства-обертки, использующие PacketDataService
+        // public static List<string> ListOpcodeSourceCS = new List<string>();
+        // public static List<string> ListOpcodeSourceSC = new List<string>();
+        // public static List<string> ListOpcodeDestinationCS = new List<string>();
+        // public static List<string> ListOpcodeDestinationSC = new List<string>();
 
         public static List<string> ListNameCompareCS = new List<string>();
         public static List<string> ListNameCompareSC = new List<string>();
@@ -386,6 +387,74 @@ namespace NameFinder
                 if (value != null)
                 {
                     _packetDataService.DestinationSubNames[Models.PacketType.SC].AddRange(value);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Рефакторинг: свойство-обертка для обратной совместимости
+        /// Использует PacketDataService.SourceOpcodes
+        /// </summary>
+        public List<string> ListOpcodeSourceCS
+        {
+            get => _packetDataService.SourceOpcodes[Models.PacketType.CS];
+            set
+            {
+                _packetDataService.SourceOpcodes[Models.PacketType.CS].Clear();
+                if (value != null)
+                {
+                    _packetDataService.SourceOpcodes[Models.PacketType.CS].AddRange(value);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Рефакторинг: свойство-обертка для обратной совместимости
+        /// Использует PacketDataService.SourceOpcodes
+        /// </summary>
+        public List<string> ListOpcodeSourceSC
+        {
+            get => _packetDataService.SourceOpcodes[Models.PacketType.SC];
+            set
+            {
+                _packetDataService.SourceOpcodes[Models.PacketType.SC].Clear();
+                if (value != null)
+                {
+                    _packetDataService.SourceOpcodes[Models.PacketType.SC].AddRange(value);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Рефакторинг: свойство-обертка для обратной совместимости
+        /// Использует PacketDataService.DestinationOpcodes
+        /// </summary>
+        public List<string> ListOpcodeDestinationCS
+        {
+            get => _packetDataService.DestinationOpcodes[Models.PacketType.CS];
+            set
+            {
+                _packetDataService.DestinationOpcodes[Models.PacketType.CS].Clear();
+                if (value != null)
+                {
+                    _packetDataService.DestinationOpcodes[Models.PacketType.CS].AddRange(value);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Рефакторинг: свойство-обертка для обратной совместимости
+        /// Использует PacketDataService.DestinationOpcodes
+        /// </summary>
+        public List<string> ListOpcodeDestinationSC
+        {
+            get => _packetDataService.DestinationOpcodes[Models.PacketType.SC];
+            set
+            {
+                _packetDataService.DestinationOpcodes[Models.PacketType.SC].Clear();
+                if (value != null)
+                {
+                    _packetDataService.DestinationOpcodes[Models.PacketType.SC].AddRange(value);
                 }
             }
         }
