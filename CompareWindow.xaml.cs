@@ -676,14 +676,15 @@ namespace NameFinder
             }
             if (isDestinationNameChanged)
             {
+                // Рефакторинг: используем ссылку на экземпляр MainWindow вместо статического доступа
                 if (MainWindow.isCS)
                 {
-                    MainWindow.ListNameCompareCS = new List<string>(ListNameCompare);
+                    _mainWindow.ListNameCompareCS = new List<string>(ListNameCompare);
                     //MainWindow.ListNameDestinationCS = new List<string>(ListNameCompare);
                 }
                 else
                 {
-                    MainWindow.ListNameCompareSC = new List<string>(ListNameCompare);
+                    _mainWindow.ListNameCompareSC = new List<string>(ListNameCompare);
                     //MainWindow.ListNameDestinationSC = new List<string>(ListNameCompare);
                 }
             }
