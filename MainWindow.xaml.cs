@@ -1,4 +1,5 @@
 ﻿using NameFinder.Conversion;
+using NameFinder.Services;
 
 using Newtonsoft.Json;
 
@@ -9,6 +10,7 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Forms;
 using System.Windows.Media;
@@ -146,6 +148,11 @@ namespace NameFinder
 
         public EndianBitConverter Converter => (IsLittleEndian ? EndianBitConverter.Little : (EndianBitConverter)EndianBitConverter.Big);
 
+        // Сервисы (рефакторинг)
+        private readonly IPacketDataService _packetDataService;
+        private readonly IFileProcessor _fileProcessor;
+        private readonly IOpcodeFinderService _opcodeFinderService;
+
         private readonly string[] _inF;
         private readonly string[] _outF;
         private bool _isOutCs;
@@ -218,6 +225,12 @@ namespace NameFinder
         public MainWindow()
         {
             InitializeComponent();
+            
+            // Инициализация сервисов (рефакторинг)
+            _packetDataService = new PacketDataService();
+            _fileProcessor = new FileProcessor();
+            _opcodeFinderService = new OpcodeFinderService();
+            
             // Создаем объект для блокировки.
             //lockObj = new object();
         }
@@ -3875,7 +3888,7 @@ namespace NameFinder
             BtnLoadSnapshotSC.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnLoadSnapshotSC.IsEnabled = true; }));
         }
 
-        private void btn_Load_In_Click(object sender, RoutedEventArgs e)
+        private async void btn_Load_In_Click(object sender, RoutedEventArgs e)
         {
             Label_Semafor1.Background = Brushes.Red;
             BtnLoadIn_Copy.IsEnabled = false;
@@ -3890,13 +3903,30 @@ namespace NameFinder
                 TextBoxPathIn.Text = FilePathIn1;
                 var stopWatch = new Stopwatch();
                 stopWatch.Start();
-                //lock (lockObj)
+                try
                 {
                     InListSource = new List<string>();
-                    // чтение из файла
-                    InListSource = File.ReadAllLines(FilePathIn1).ToList();
+                    // Рефакторинг: использование FileProcessor вместо File.ReadAllLines
+                    var progress = new Progress<int>(percent =>
+                    {
+                        Dispatcher.Invoke(() => ProgressBar11.Value = percent);
+                    });
+                    
+                    InListSource = await _fileProcessor.ReadFileLinesAsync(FilePathIn1, progress);
+                    
+                    // Сохраняем в сервис для дальнейшего использования
+                    _packetDataService.SourceFileLines.Clear();
+                    _packetDataService.SourceFileLines.AddRange(InListSource);
+                    
                     // заполним ListView
                     ListView11.ItemsSource = InListSource;
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Ошибка при загрузке файла: {ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                    Label_Semafor1.Background = Brushes.Red;
+                    BtnLoadIn.IsEnabled = true;
+                    return;
                 }
 
                 // инициализируем прогрессбары и списки
@@ -3905,10 +3935,10 @@ namespace NameFinder
                 isCleaningIn = CheckBoxCleaningIn.IsChecked == true;
                 if (isCleaningIn)
                 {
-                    new Thread(() =>
+                    await Task.Run(() =>
                     {
                         CleanSource();
-                    }).Start();
+                    });
                 }
                 else
                 {
@@ -4111,7 +4141,7 @@ namespace NameFinder
             }).Start();
         }
 
-        private void btn_Load_Out_Click(object sender, RoutedEventArgs e)
+        private async void btn_Load_Out_Click(object sender, RoutedEventArgs e)
         {
             Label_Semafor2.Background = Brushes.Red;
             //BtnLoadIn_Copy.IsEnabled = false;
@@ -4122,13 +4152,30 @@ namespace NameFinder
                 TextBoxPathOut.Text = FilePathIn2;
                 var stopWatch = new Stopwatch();
                 stopWatch.Start();
-                //lock (lockObj)
+                try
                 {
                     InListDestination = new List<string>();
-                    // чтение из файла
-                    InListDestination = File.ReadAllLines(FilePathIn2).ToList();
+                    // Рефакторинг: использование FileProcessor вместо File.ReadAllLines
+                    var progress = new Progress<int>(percent =>
+                    {
+                        Dispatcher.Invoke(() => ProgressBar21.Value = percent);
+                    });
+                    
+                    InListDestination = await _fileProcessor.ReadFileLinesAsync(FilePathIn2, progress);
+                    
+                    // Сохраняем в сервис для дальнейшего использования
+                    _packetDataService.DestinationFileLines.Clear();
+                    _packetDataService.DestinationFileLines.AddRange(InListDestination);
+                    
                     // заполним ListView
                     ListView21.ItemsSource = InListDestination;
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Ошибка при загрузке файла: {ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                    Label_Semafor2.Background = Brushes.Red;
+                    BtnLoadOut.IsEnabled = true;
+                    return;
                 }
                 //
                 // инициализируем прогрессбары и списки
@@ -4138,10 +4185,10 @@ namespace NameFinder
                 isCleaningOut = CheckBoxCleaningOut.IsChecked == true;
                 if (isCleaningOut)
                 {
-                    new Thread(() =>
+                    await Task.Run(() =>
                     {
                         CleanDestination();
-                    }).Start();
+                    });
                 }
                 else
                 {
