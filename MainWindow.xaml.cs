@@ -3642,1143 +3642,525 @@ namespace NameFinder
             return tmpLst;
         }
 
-        private void FindSourceStructuresCS(string str)
+        /// <summary>
+        /// Рефакторинг: универсальный метод для поиска структур пакетов
+        /// Объединяет общую логику всех четырех методов FindSourceStructuresCS, FindSourceStructuresSC, FindDestinationStructuresCS, FindDestinationStructuresSC
+        /// </summary>
+        private void FindStructuresInternal(
+            List<string> fileLines,
+            string searchPattern,
+            Dictionary<int, List<Struc>> structures,
+            List<string> packetNames,
+            List<string> subAddresses,
+            Dictionary<int, List<string>> xrefs,
+            string unknownNamePrefix,
+            Func<string, List<string>, int, List<Struc>> findStructureFunc,
+            Action<int> progressUpdate,
+            bool findStruct,
+            bool useCallSpaces4,
+            bool skipRegisterCalls,
+            Action initialUIUpdate,
+            Action<int, int> afterExtractionUIUpdate,
+            Action<string, bool, bool> finalUIUpdate,
+            Action<bool> setFlag)
         {
             var stopWatch = new Stopwatch();
             stopWatch.Start();
-            // уничтожаем ненужный список
-            StructureSourceCS = new Dictionary<int, List<Struc>>();
-            ListNameSourceCS = new List<string>();
-            ListSubSourceCS = new List<string>();
-            XrefsIn = new Dictionary<int, List<string>>();
 
-            // Рефакторинг: используем UIHelper для группировки UI обновлений
-            Helpers.UIHelper.InvokeUIBatch(Dispatcher,
-                () => TextBox13.Text = "0",
-                () => TextBox14.Text = "0",
-                () => TextBox18.Text = "0",
-                () => ProgressBar11.Value = InListSource.Count,
-                () => ProgressBar12.Value = 0,
-                () => Label_Semafor1.Background = Brushes.Yellow,
-                () => ButtonSaveIn1.IsEnabled = false,
-                () => ButtonSaveIn2.IsEnabled = false
-            );
+            // Инициализация структур данных
+            structures.Clear();
+            packetNames.Clear();
+            subAddresses.Clear();
+            xrefs.Clear();
 
-            //
-            // начали предварительную работу по поиску имен и ссылок на подпрограммы со структурами
-            //
-            //"CS_PACKET_TODAY_ASSIGNMENT_11Ah dd offset SC_PACKETS_return_2"
-            var indexRefs = 0;
+            // Начальное обновление UI
+            initialUIUpdate?.Invoke();
 
-            // Блокируем объект.
-            //lock (lockObj)
+            // Извлечение информации о пакетах
+            ExtractPacketInfo(fileLines, searchPattern, packetNames, subAddresses, xrefs, unknownNamePrefix);
+
+            // Обновление UI после извлечения информации
+            var packetCount = packetNames.Count;
+            var subCount = subAddresses.Count;
+            afterExtractionUIUpdate?.Invoke(packetCount, subCount);
+
+            // Поиск структур, если нужно
+            if (findStruct)
             {
-                var regex = new Regex(@"^[a-zA-Z0-9_?@]+\s+dd\soffset\s" + str, RegexOptions.Compiled);
-                var regexXREF = new Regex(@"(^\s+;[a-zA-Z:\s]*\s(sub_\w+|X2\w+|w+))", RegexOptions.Compiled);
-                for (var index = 0; index < InListSource.Count; index++)
-                {
-                    var foundName = false;
-                    var matches = regex.Matches(InListSource[index]);
-                    if (matches.Count <= 0)
-                    {
-                        continue;
-                    }
-
-                    var lst = new List<string>();
-                    var tmpIdx = index;
-                    var tmpIdxMax = tmpIdx + 2;
-                    do
-                    {
-                        tmpIdx++;
-                        // ищем "; DATA XREF: sub_3922E1C0+79↑o" или "; sub_3922E1C0:loc_3922E37F↑o"
-                        var matchesXREF = regexXREF.Matches(InListSource[tmpIdx]);
-                        if (matchesXREF.Count <= 0)
-                        {
-                            continue;
-                        }
-
-                        foreach (var match in matchesXREF)
-                        {
-                            lst.Add(match.ToString()); // сохранили XREF
-                        }
-                    } while (tmpIdx < tmpIdxMax);
-
-                    XrefsIn.Add(indexRefs, lst); // сохраним список XREF для пакета
-                    indexRefs++; // следующий номер пакета
-
-                    var regex2 = new Regex(@"^(\S+)", RegexOptions.IgnoreCase);
-                    var matches2 = regex2.Matches(InListSource[index]);
-                    foreach (var match2 in matches2)
-                    {
-                        ListNameSourceCS.Add(match2.ToString()); // сохранили имя
-                        foundName = true;
-                    }
-
-                    if (!foundName)
-                    {
-                        // не нашли имя пакета, бывает что его нет из-зи защиты themida
-                        ListNameSourceCS.Add("CS_Unknown"); // сохранили адрес подпрограммы
-                    }
-
-                    // сначала нужно пропустить строки с начальными пробелами [40]; DATA XREF: sub_39015740+1A↑o, таких строк 1 или 2
-                    do
-                    {
-                        index++;
-                        var regexSpace40 = new Regex(@"^\s{40}", RegexOptions.IgnoreCase);
-                        var matchesSpace40 = regexSpace40.Matches(InListSource[index]);
-                        if (matchesSpace40.Count <= 0)
-                        {
-                            break;
-                        }
-                    } while (true);
-
-                    // пропускаем
-                    // dd offset CS_PACKET
-                    // или
-                    // dd offset SC_PACKET
-                    // затем одну строку с начальными пробелами  [16]dd offset CS_SC_PACKET
-                    index++;
-
-                    // ищем "dd offset sub_395D0370"
-                    // dd offset nullsub_18
-                    // dd offset CSInteractGimmickPacket
-                    // dd offset CSGmCommandPacket
-                    try
-                    {
-                        var regexBody = new Regex(@"(dd\soffset\snullsub|dd\soffset\ssub_\w+|dd\soffset\s\w+)", RegexOptions.Compiled);
-                        var matchesBodys = regexBody.Match(InListSource[index]);
-                        ListSubSourceCS.Add(matchesBodys.ToString().Substring(10)); // сохранили адрес подпрограммы
-                    }
-                    catch (Exception)
-                    {
-                        // Рефакторинг: используем UIHelper для показа ошибки
-                        Helpers.UIHelper.ShowError(Dispatcher, $"Проверьте исходные данные файла в IDA, где-то в строке: {index}!", "Error");
-                    }
-                }
-
-                // закончили предварительную работу по поиску имен и ссылок на подпрограммы со структурами
-                var lnCount = ListNameSourceCS.Count;
-                var lsCount = ListSubSourceCS.Count;
-                
-                // Рефакторинг: используем UIHelper для группировки UI обновлений
-                Helpers.UIHelper.InvokeUIBatch(Dispatcher,
-                    () => TextBox13.Text = lnCount.ToString(),
-                    () => TextBox14.Text = lsCount.ToString(),
-                    () => ListView12.ItemsSource = ListNameSourceCS,
-                    () => ListView13.ItemsSource = ListSubSourceCS,
-                    () => ProgressBar12.Maximum = ListNameSourceCS.Count
+                FindStructuresForSubAddresses(
+                    fileLines,
+                    subAddresses,
+                    structures,
+                    findStructureFunc,
+                    progressUpdate,
+                    useCallSpaces4,
+                    skipRegisterCalls
                 );
-                if (FindStructIn)
-                {
-                    //
-                    // начали предварительную работу по поиску структур пакетов
-                    //
-                    // начнем с начала файла
-                    var regexEndP = new Regex(@"\s+endp\s*", RegexOptions.Compiled); // ищем конец подпрограммы
-                    var regexCall = new Regex(@"(\x22[0-z._]+\x22)|(call\s+(sub_\w+)|(call\s+(\w+)))", RegexOptions.Compiled);
-                    /*
-                       sub_395D3050    proc near               ; CODE XREF: sub_391DE5C0+47↑p
-                       push    offset aBc      ; "bc"
-                       call    sub_395E18A0
-                       call    sub_395E1730
-                       call    sub_395E16B0
-                       push    offset aAction  ; "action"
-                       sub_395D3050    endp              
-
-                       sub_395E18A0    proc near               ; CODE XREF: .text:394B5DEC↑p
-                       push    offset aType    ; "type"
-                       push    offset aType    ; "type"
-                       push    offset aType    ; "type"
-                       push    offset aType    ; "type"
-                       mov     eax, [edx+38h]
-                       push    offset aModified ; "modified"
-                       sub_395E18A0    endp
-
-                       sub_395E1730    proc near               ; CODE XREF: .text:394B1C67↑p
-                       push    offset aType    ; "type"
-                       push    offset asc_396AFCE0 ; "x"
-                       push    offset aY       ; "y"
-                       push    offset aZ_0     ; "z"
-                       mov     eax, [edx+38h]
-                       push    offset aModified ; "modified"
-                       sub_395E1730    endp
-
-                       sub_395E16B0    proc near               ; CODE XREF: .text:394B1CB7↑p
-                       push    offset aType    ; "type"
-                       push    offset aData    ; "data"
-                       push    offset aData    ; "data"
-                       mov     eax, [edx+38h]
-                       push    offset aModified ; "modified"
-                       sub_395E16B0    endp
-                    */
-
-                    for (var i = 0; i < ListSubSourceCS.Count; i++)
-                    {
-                        var found = false;
-                        var regexSub = new Regex(@"^" + ListSubSourceCS[i], RegexOptions.Compiled); // ищем начало подпрограммы, каждый раз с начала файла
-                        for (var index = 0; index < InListSource.Count; index++)
-                        {
-                            var matchesSub = regexSub.Matches(InListSource[index]);
-                            if (matchesSub.Count <= 0)
-                            {
-                                continue;
-                            }
-                            // нашли начало подпрограммы, ищем структуры, пока не "endp"
-                            var foundEndp = false;
-                            //var lst = new List<string>();
-                            var lst = new List<Struc>();
-                            do
-                            {
-                                var matchesCalls = regexCall.Matches(InListSource[index]);
-                                foreach (var matchCall in matchesCalls)
-                                {
-                                    if (matchCall.ToString().Length >= 4 && matchCall.ToString().Substring(0, 4) == "call")
-                                    {
-                                        // Рефакторинг: используем сервис для поиска структуры
-                                        var callStr = matchCall.ToString();
-                                        if (callStr.Length >= 8)
-                                        {
-                                            var findList = _structureFinderService.FindStructureIn(callStr.Substring(8), InListSource, DepthMax);
-                                            if (findList.Count > 0)
-                                            {
-                                                lst.AddRange(findList); // сохранили несколько строк структуры пакета найденной в подпрограмме
-                                            }
-                                        }
-                                    }
-                                    else
-                                    {
-                                        var aa = new Struc();
-                                        aa.Name = matchCall.ToString().Replace("\"", "");
-                                        index--;
-                                        var offset = InListSource[index].LastIndexOf("]", StringComparison.Ordinal) - 3;
-                                        // проверка на bc
-                                        string num;
-                                        try
-                                        {
-                                            num = offset < 0 ? "CC" : InListSource[index].Substring(offset, 2);
-                                            aa.Type = Convert.ToInt32(num, 16);
-                                        }
-                                        catch (Exception)
-                                        {
-                                            num = "CC";
-                                            aa.Type = Convert.ToInt32(num, 16);
-                                        }
-                                        lst.Add(aa); // сохранили одну строку структуры пакета
-                                        index++;
-                                    }
-                                }
-
-                                var matchesEndP = regexEndP.Matches(InListSource[index]);
-                                if (matchesEndP.Count > 0)
-                                {
-                                    foundEndp = true;
-                                }
-                                index++;
-                            } while (index < InListSource.Count && !foundEndp);
-
-                            StructureSourceCS.Add(i, lst); // сохранили всю структуру пакета
-                            found = true; // нашли структуру
-                            break;
-                        }
-
-                        if (!found)
-                        {
-                            // не нашли структуру
-                            var lst = new List<Struc>();
-                            StructureSourceCS.Add(i, lst); // сохраним пустой список, так как ничего не нашли 
-                        }
-
-                        // Рефакторинг: используем UIHelper для обновления прогрессбара
-                        Helpers.UIHelper.InvokeUI(Dispatcher, () => ProgressBar12.Value = StructureSourceCS.Count);
-                    }
-                }
             }
 
             stopWatch.Stop();
             var elapsed = stopWatch.Elapsed.ToString();
-            _isInCs = true;
+            setFlag?.Invoke(true);
             var canCompareCS = _isInCs && _isOutCs;
-            
-            // Рефакторинг: используем UIHelper для группировки UI обновлений
-            Helpers.UIHelper.InvokeUIBatch(Dispatcher,
-                () => BtnLoadIn.IsEnabled = true,
-                () => BtnLoadIn_Copy.IsEnabled = true,
-                () => ButtonCsCompare.IsEnabled = canCompareCS,
-                () => ButtonScCompare.IsEnabled = false,
-                () => ButtonSaveIn1.IsEnabled = true,
-                () => TextBox18.Text = elapsed,
-                () => Label_Semafor1.Background = Brushes.GreenYellow,
-                () => BtnMakePktIn.IsEnabled = true,
-                () => BtnGotoOpcodeIn.IsEnabled = true,
-                () => BtnCsLoadNameIn.IsEnabled = true,
-                () => BtnScLoadNameIn.IsEnabled = true
+            var canCompareSC = _isInSc && _isOutSc;
+
+            // Финальное обновление UI
+            finalUIUpdate?.Invoke(elapsed, canCompareCS, canCompareSC);
+        }
+
+        /// <summary>
+        /// Рефакторинг: извлекает общую логику поиска имен пакетов, адресов подпрограмм и XREF
+        /// </summary>
+        private void ExtractPacketInfo(
+            List<string> fileLines,
+            string searchPattern,
+            List<string> packetNames,
+            List<string> subAddresses,
+            Dictionary<int, List<string>> xrefs,
+            string unknownNamePrefix = "CS_Unknown")
+        {
+            var regex = new Regex(@"^[a-zA-Z0-9_?@]+\s+dd\soffset\s" + searchPattern, RegexOptions.Compiled);
+            var regexXREF = new Regex(@"(^\s+;[a-zA-Z:\s]*\s(sub_\w+|X2\w+|w+))", RegexOptions.Compiled);
+            var indexRefs = 0;
+
+            for (var index = 0; index < fileLines.Count; index++)
+            {
+                var foundName = false;
+                var matches = regex.Matches(fileLines[index]);
+                if (matches.Count <= 0)
+                {
+                    continue;
+                }
+
+                var lst = new List<string>();
+                var tmpIdx = index;
+                var tmpIdxMax = tmpIdx + 2;
+                do
+                {
+                    tmpIdx++;
+                    if (tmpIdx >= fileLines.Count)
+                        break;
+
+                    // ищем "; DATA XREF: sub_3922E1C0+79↑o" или "; sub_3922E1C0:loc_3922E37F↑o"
+                    var matchesXREF = regexXREF.Matches(fileLines[tmpIdx]);
+                    if (matchesXREF.Count <= 0)
+                    {
+                        continue;
+                    }
+
+                    foreach (var match in matchesXREF)
+                    {
+                        lst.Add(match.ToString()); // сохранили XREF
+                    }
+                } while (tmpIdx < tmpIdxMax);
+
+                xrefs.Add(indexRefs, lst); // сохраним список XREF для пакета
+                indexRefs++; // следующий номер пакета
+
+                var regex2 = new Regex(@"^(\S+)", RegexOptions.IgnoreCase);
+                var matches2 = regex2.Matches(fileLines[index]);
+                foreach (var match2 in matches2)
+                {
+                    packetNames.Add(match2.ToString()); // сохранили имя
+                    foundName = true;
+                }
+
+                if (!foundName)
+                {
+                    // не нашли имя пакета, бывает что его нет из-зи защиты themida
+                    packetNames.Add(unknownNamePrefix); // сохранили адрес подпрограммы
+                }
+
+                // сначала нужно пропустить строки с начальными пробелами [40]; DATA XREF: sub_39015740+1A↑o, таких строк 1 или 2
+                do
+                {
+                    index++;
+                    if (index >= fileLines.Count)
+                        break;
+
+                    var regexSpace40 = new Regex(@"^\s{40}", RegexOptions.IgnoreCase);
+                    var matchesSpace40 = regexSpace40.Matches(fileLines[index]);
+                    if (matchesSpace40.Count <= 0)
+                    {
+                        break;
+                    }
+                } while (true);
+
+                // пропускаем
+                // dd offset CS_PACKET
+                // или
+                // dd offset SC_PACKET
+                // затем одну строку с начальными пробелами  [16]dd offset CS_SC_PACKET
+                index++;
+                if (index >= fileLines.Count)
+                    continue;
+
+                // ищем "dd offset sub_395D0370"
+                // dd offset nullsub_18
+                // dd offset CSInteractGimmickPacket
+                // dd offset CSGmCommandPacket
+                try
+                {
+                    var regexBody = new Regex(@"(dd\soffset\snullsub|dd\soffset\ssub_\w+|dd\soffset\s\w+)", RegexOptions.Compiled);
+                    var matchesBodys = regexBody.Match(fileLines[index]);
+                    if (matchesBodys.Success)
+                    {
+                        subAddresses.Add(matchesBodys.ToString().Substring(10)); // сохранили адрес подпрограммы
+                    }
+                }
+                catch (Exception)
+                {
+                    // Рефакторинг: используем UIHelper для показа ошибки
+                    Helpers.UIHelper.ShowError(Dispatcher, $"Проверьте исходные данные файла в IDA, где-то в строке: {index}!", "Error");
+                }
+            }
+        }
+
+        /// <summary>
+        /// Рефакторинг: извлекает общую логику поиска структур для подпрограмм
+        /// </summary>
+        private void FindStructuresForSubAddresses(
+            List<string> fileLines,
+            List<string> subAddresses,
+            Dictionary<int, List<Struc>> structures,
+            Func<string, List<string>, int, List<Struc>> findStructureFunc,
+            Action<int> progressUpdate,
+            bool useCallSpaces4 = false,
+            bool skipRegisterCalls = false)
+        {
+            if (subAddresses == null || subAddresses.Count == 0)
+                return;
+
+            // Рефакторинг: создаем regex паттерны один раз
+            var regexEndP = new Regex(@"\s+endp\s*", RegexOptions.Compiled);
+            var regexCallPattern = useCallSpaces4
+                ? @"(\x22[0-z._]+\x22)|(call\s{4}(sub_\w+)|(call\s{4}(\w+)))"
+                : @"(\x22[0-z._]+\x22)|(call\s+(sub_\w+)|(call\s+(\w+)))";
+            var regexCall = new Regex(regexCallPattern, RegexOptions.Compiled);
+
+            for (var i = 0; i < subAddresses.Count; i++)
+            {
+                var found = false;
+                var regexSub = new Regex(@"^" + subAddresses[i], RegexOptions.Compiled);
+                
+                for (var index = 0; index < fileLines.Count; index++)
+                {
+                    var matchesSub = regexSub.Matches(fileLines[index]);
+                    if (matchesSub.Count <= 0)
+                    {
+                        continue;
+                    }
+
+                    // Нашли начало подпрограммы, ищем структуры, пока не "endp"
+                    var foundEndp = false;
+                    var lst = new List<Struc>();
+                    
+                    do
+                    {
+                        var matchesCalls = regexCall.Matches(fileLines[index]);
+                        foreach (var matchCall in matchesCalls)
+                        {
+                            var callStr = matchCall.ToString();
+                            
+                            // Рефакторинг: пропускаем вызовы регистров, если нужно
+                            if (skipRegisterCalls && (callStr == "call    eax" || callStr == "call    ebx" ||
+                                callStr == "call    edx" || callStr == "call    ecx"))
+                            {
+                                continue;
+                            }
+
+                            if (callStr.Length >= 4 && callStr.Substring(0, 4) == "call")
+                            {
+                                // Рефакторинг: используем переданную функцию для поиска структуры
+                                if (callStr.Length >= 8)
+                                {
+                                    var findList = findStructureFunc(callStr.Substring(8), fileLines, DepthMax);
+                                    if (findList.Count > 0)
+                                    {
+                                        lst.AddRange(findList);
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                var aa = new Struc();
+                                aa.Name = callStr.Replace("\"", "");
+                                index--;
+                                var offset = fileLines[index].LastIndexOf("]", StringComparison.Ordinal) - 3;
+                                
+                                string num;
+                                try
+                                {
+                                    num = offset < 0 ? "CC" : fileLines[index].Substring(offset, 2);
+                                    aa.Type = Convert.ToInt32(num, 16);
+                                }
+                                catch (Exception)
+                                {
+                                    num = "CC";
+                                    aa.Type = Convert.ToInt32(num, 16);
+                                }
+                                lst.Add(aa);
+                                index++;
+                            }
+                        }
+
+                        var matchesEndP = regexEndP.Matches(fileLines[index]);
+                        if (matchesEndP.Count > 0)
+                        {
+                            foundEndp = true;
+                        }
+                        index++;
+                    } while (index < fileLines.Count && !foundEndp);
+
+                    structures.Add(i, lst);
+                    found = true;
+                    break;
+                }
+
+                if (!found)
+                {
+                    // Не нашли структуру
+                    structures.Add(i, new List<Struc>());
+                }
+
+                // Рефакторинг: обновляем прогресс
+                progressUpdate(structures.Count);
+            }
+        }
+
+        private void FindSourceStructuresCS(string str)
+        {
+            // Рефакторинг: используем универсальный метод
+            FindStructuresInternal(
+                InListSource,
+                str,
+                StructureSourceCS,
+                ListNameSourceCS,
+                ListSubSourceCS,
+                XrefsIn,
+                "CS_Unknown",
+                (address, lines, depth) => _structureFinderService.FindStructureIn(address, lines, depth),
+                count => Helpers.UIHelper.InvokeUI(Dispatcher, () => ProgressBar12.Value = count),
+                FindStructIn,
+                false,
+                false,
+                () => Helpers.UIHelper.InvokeUIBatch(Dispatcher,
+                    () => TextBox13.Text = "0",
+                    () => TextBox14.Text = "0",
+                    () => TextBox18.Text = "0",
+                    () => ProgressBar11.Value = InListSource.Count,
+                    () => ProgressBar12.Value = 0,
+                    () => Label_Semafor1.Background = Brushes.Yellow,
+                    () => ButtonSaveIn1.IsEnabled = false,
+                    () => ButtonSaveIn2.IsEnabled = false
+                ),
+                (packetCount, subCount) => Helpers.UIHelper.InvokeUIBatch(Dispatcher,
+                    () => TextBox13.Text = packetCount.ToString(),
+                    () => TextBox14.Text = subCount.ToString(),
+                    () => ListView12.ItemsSource = ListNameSourceCS,
+                    () => ListView13.ItemsSource = ListSubSourceCS,
+                    () => ProgressBar12.Maximum = packetCount
+                ),
+                (elapsed, canCompareCS, canCompareSC) => Helpers.UIHelper.InvokeUIBatch(Dispatcher,
+                    () => BtnLoadIn.IsEnabled = true,
+                    () => BtnLoadIn_Copy.IsEnabled = true,
+                    () => ButtonCsCompare.IsEnabled = canCompareCS,
+                    () => ButtonScCompare.IsEnabled = false,
+                    () => ButtonSaveIn1.IsEnabled = true,
+                    () => TextBox18.Text = elapsed,
+                    () => Label_Semafor1.Background = Brushes.GreenYellow,
+                    () => BtnMakePktIn.IsEnabled = true,
+                    () => BtnGotoOpcodeIn.IsEnabled = true,
+                    () => BtnCsLoadNameIn.IsEnabled = true,
+                    () => BtnScLoadNameIn.IsEnabled = true
+                ),
+                isInCs => _isInCs = isInCs
             );
         }
 
         private void FindSourceStructuresSC(string str)
         {
-            var stopWatch = new Stopwatch();
-            stopWatch.Start();
-            // уничтожаем ненужный список
-            StructureSourceSC = new Dictionary<int, List<Struc>>();
-            ListNameSourceSC = new List<string>();
-            ListSubSourceSC = new List<string>();
-            XrefsIn = new Dictionary<int, List<string>>();
-
-            // Рефакторинг: используем UIHelper для группировки UI обновлений
-            Helpers.UIHelper.InvokeUIBatch(Dispatcher,
-                () => TextBox16.Text = "0",
-                () => TextBox17.Text = "0",
-                () => TextBox19.Text = "0",
-                () => ProgressBar12.Value = 0,
-                () => Label_Semafor1.Background = Brushes.Yellow,
-                () => ButtonSaveIn1.IsEnabled = false,
-                () => ButtonSaveIn2.IsEnabled = false,
-                () => BtnLoadIn.IsEnabled = false,
-                () => BtnLoadIn_Copy.IsEnabled = false,
-                () => BtnCsLoadNameIn.IsEnabled = false,
-                () => BtnScLoadNameIn.IsEnabled = false,
-                () => BtnMakePktIn.IsEnabled = false,
-                () => BtnGotoOpcodeIn.IsEnabled = false
-            );
-
-            //
-            // начали предварительную работу по поиску имен и ссылок на подпрограммы со структурами
-            //
-            //"CS_PACKET_TODAY_ASSIGNMENT_11Ah dd offset SC_PACKETS_return_2"
-            var indexRefs = 0;
-
-            // Блокируем объект.
-            //lock (lockObj)
-            {
-                var regex = new Regex(@"^[a-zA-Z0-9_?@]+\s+dd\soffset\s" + str, RegexOptions.Compiled);
-                var regexXREF = new Regex(@"(^\s+;[a-zA-Z:\s]*\s(sub_\w+|X2\w+|w+))", RegexOptions.Compiled);
-                for (var index = 0; index < InListSource.Count; index++)
-                {
-                    var foundName = false;
-                    var matches = regex.Matches(InListSource[index]);
-                    if (matches.Count <= 0)
-                    {
-                        continue;
-                    }
-
-                    var lst = new List<string>();
-                    var tmpIdx = index;
-                    var tmpIdxMax = tmpIdx + 2;
-                    do
-                    {
-                        tmpIdx++;
-                        //var regexXREF = new Regex(@"((sub_\w+\+\w{1,3}|loc_\w{8}))", RegexOptions.IgnoreCase);
-                        // ищем "; DATA XREF: sub_3922E1C0+79↑o" или "; sub_3922E1C0:loc_3922E37F↑o"
-                        var matchesXREF = regexXREF.Matches(InListSource[tmpIdx]);
-                        if (matchesXREF.Count <= 0)
-                        {
-                            continue;
-                        }
-
-                        foreach (var match in matchesXREF)
-                        {
-                            lst.Add(match.ToString()); // сохранили XREF
-                        }
-                    } while (tmpIdx < tmpIdxMax);
-
-                    XrefsIn.Add(indexRefs, lst); // сохраним список XREF для пакета
-                    indexRefs++; // следующий номер пакета
-
-                    var regex2 = new Regex(@"^(\S+)", RegexOptions.IgnoreCase);
-                    var matches2 = regex2.Matches(InListSource[index]);
-                    foreach (var match2 in matches2)
-                    {
-                        ListNameSourceSC.Add(match2.ToString()); // сохранили имя
-                        foundName = true;
-                    }
-
-                    if (!foundName)
-                    {
-                        // не нашли имя пакета, бывает что его нет из-зи защиты themida
-                        ListNameSourceSC.Add("CS_Unknown"); // сохранили адрес подпрограммы
-                    }
-
-                    // сначала нужно пропустить строки с начальными пробелами [40]; DATA XREF: sub_39015740+1A↑o, таких строк 1 или 2
-                    do
-                    {
-                        index++;
-                        var regexSpace40 = new Regex(@"^\s{40}", RegexOptions.IgnoreCase);
-                        var matchesSpace40 = regexSpace40.Matches(InListSource[index]);
-                        if (matchesSpace40.Count <= 0)
-                        {
-                            break;
-                        }
-                    } while (true);
-
-                    // пропускаем
-                    // dd offset CS_PACKET
-                    // или
-                    // dd offset SC_PACKET
-                    // затем одну строку с начальными пробелами  [16]dd offset CS_SC_PACKET
-                    index++;
-
-                    // ищем "dd offset sub_395D0370"
-                    // dd offset nullsub_18
-                    // dd offset CSInteractGimmickPacket
-                    // dd offset CSGmCommandPacket
-                    try
-                    {
-                        var regexBody = new Regex(@"(dd\soffset\snullsub|dd\soffset\ssub_\w+|dd\soffset\s\w+)", RegexOptions.Compiled);
-                        var matchesBodys = regexBody.Match(InListSource[index]);
-                        ListSubSourceSC.Add(matchesBodys.ToString().Substring(10)); // сохранили адрес подпрограммы
-                    }
-                    catch (Exception)
-                    {
-                        // Рефакторинг: используем UIHelper для показа ошибки
-                        Helpers.UIHelper.ShowError(Dispatcher, $"Проверьте исходные данные файла в IDA, где-то в строке: {index}!", "Error");
-                    }
-                }
-
-                // закончили предварительную работу по поиску имен и ссылок на подпрограммы со структурами
-                var lnCount = ListNameSourceSC.Count;
-                var lsCount = ListSubSourceSC.Count;
-                
-                // Рефакторинг: используем UIHelper для группировки UI обновлений
-                Helpers.UIHelper.InvokeUIBatch(Dispatcher,
-                    () => TextBox16.Text = lnCount.ToString(),
-                    () => TextBox17.Text = lsCount.ToString(),
+            // Рефакторинг: используем универсальный метод
+            FindStructuresInternal(
+                InListSource,
+                str,
+                StructureSourceSC,
+                ListNameSourceSC,
+                ListSubSourceSC,
+                XrefsIn,
+                "CS_Unknown",
+                (address, lines, depth) => _structureFinderService.FindStructureIn(address, lines, depth),
+                count => Helpers.UIHelper.InvokeUI(Dispatcher, () => ProgressBar12.Value = count),
+                FindStructIn,
+                false,
+                false,
+                () => Helpers.UIHelper.InvokeUIBatch(Dispatcher,
+                    () => TextBox16.Text = "0",
+                    () => TextBox17.Text = "0",
+                    () => TextBox19.Text = "0",
+                    () => ProgressBar12.Value = 0,
+                    () => Label_Semafor1.Background = Brushes.Yellow,
+                    () => ButtonSaveIn1.IsEnabled = false,
+                    () => ButtonSaveIn2.IsEnabled = false,
+                    () => BtnLoadIn.IsEnabled = false,
+                    () => BtnLoadIn_Copy.IsEnabled = false,
+                    () => BtnCsLoadNameIn.IsEnabled = false,
+                    () => BtnScLoadNameIn.IsEnabled = false,
+                    () => BtnMakePktIn.IsEnabled = false,
+                    () => BtnGotoOpcodeIn.IsEnabled = false
+                ),
+                (packetCount, subCount) => Helpers.UIHelper.InvokeUIBatch(Dispatcher,
+                    () => TextBox16.Text = packetCount.ToString(),
+                    () => TextBox17.Text = subCount.ToString(),
                     () => ListView12.ItemsSource = ListNameSourceSC,
                     () => ListView13.ItemsSource = ListSubSourceSC,
-                    () => ProgressBar12.Maximum = ListNameSourceSC.Count
-                );
-                if (FindStructIn)
-                {
-                    //
-                    // начали предварительную работу по поиску структур пакетов
-                    //
-                    // начнем с начала файла
-                    var regexEndP = new Regex(@"\s+endp\s*", RegexOptions.Compiled); // ищем конец подпрограммы
-                    var regexCall = new Regex(@"(\x22[0-z._]+\x22)|(call\s+(sub_\w+)|(call\s+(\w+)))", RegexOptions.Compiled);
-                    /*
-                       sub_395D3050    proc near               ; CODE XREF: sub_391DE5C0+47↑p
-                       push    offset aBc      ; "bc"
-                       call    sub_395E18A0
-                       call    sub_395E1730
-                       call    sub_395E16B0
-                       push    offset aAction  ; "action"
-                       sub_395D3050    endp              
-
-                       sub_395E18A0    proc near               ; CODE XREF: .text:394B5DEC↑p
-                       push    offset aType    ; "type"
-                       push    offset aType    ; "type"
-                       push    offset aType    ; "type"
-                       push    offset aType    ; "type"
-                       push    offset aModified ; "modified"
-                       sub_395E18A0    endp
-
-                       sub_395E1730    proc near               ; CODE XREF: .text:394B1C67↑p
-                       push    offset aType    ; "type"
-                       push    offset asc_396AFCE0 ; "x"
-                       push    offset aY       ; "y"
-                       push    offset aZ_0     ; "z"
-                       push    offset aModified ; "modified"
-                       sub_395E1730    endp
-
-                       sub_395E16B0    proc near               ; CODE XREF: .text:394B1CB7↑p
-                       push    offset aType    ; "type"
-                       push    offset aData    ; "data"
-                       push    offset aData    ; "data"
-                       push    offset aModified ; "modified"
-                       sub_395E16B0    endp
-
-                    */
-
-                    for (var i = 0; i < ListSubSourceSC.Count; i++)
-                    {
-                        var found = false;
-                        var regexSub = new Regex(@"^" + ListSubSourceSC[i], RegexOptions.Compiled); // ищем начало подпрограммы, каждый раз с начала файла
-                        for (var index = 0; index < InListSource.Count; index++)
-                        {
-                            var matchesSub = regexSub.Matches(InListSource[index]);
-                            if (matchesSub.Count <= 0)
-                            {
-                                continue;
-                            }
-
-                            // нашли начало подпрограммы, ищем структуры, пока не "endp"
-                            var foundEndp = false;
-                            var lst = new List<Struc>();
-                            do
-                            {
-                                var matchesCalls = regexCall.Matches(InListSource[index]);
-                                foreach (var matchCall in matchesCalls)
-                                {
-                                    if (matchCall.ToString().Length >= 4 && matchCall.ToString().Substring(0, 4) == "call")
-                                    {
-                                        // Рефакторинг: используем сервис для поиска структуры
-                                        var callStr = matchCall.ToString();
-                                        if (callStr.Length >= 8)
-                                        {
-                                            var findList = _structureFinderService.FindStructureIn(callStr.Substring(8), InListSource, DepthMax);
-                                            if (findList.Count > 0)
-                                            {
-                                                lst.AddRange(findList); // сохранили несколько строк структуры пакета найденной в подпрограмме
-                                            }
-                                        }
-                                    }
-                                    else
-                                    {
-                                        var aa = new Struc();
-                                        aa.Name = matchCall.ToString().Replace("\"", "");
-                                        index--;
-                                        var offset = InListSource[index].LastIndexOf("]", StringComparison.Ordinal) - 3;
-                                        // проверка на bc
-                                        string num;
-                                        try
-                                        {
-                                            num = offset < 0 ? "CC" : InListSource[index].Substring(offset, 2);
-                                            aa.Type = Convert.ToInt32(num, 16);
-                                        }
-                                        catch (Exception)
-                                        {
-                                            num = "CC";
-                                            aa.Type = Convert.ToInt32(num, 16);
-                                        }
-                                        lst.Add(aa); // сохранили одну строку структуры пакета
-                                        index++;
-                                    }
-                                }
-
-                                var matchesEndP = regexEndP.Matches(InListSource[index]);
-                                if (matchesEndP.Count > 0)
-                                {
-                                    foundEndp = true;
-                                }
-                                index++;
-                            } while (index < InListSource.Count && !foundEndp);
-
-                            StructureSourceSC.Add(i, lst); // сохранили всю структуру пакета
-                            found = true; // нашли структуру
-                            break;
-                        }
-
-                        if (!found)
-                        {
-                            // не нашли структуру
-                            var lst = new List<Struc>();
-                            StructureSourceSC.Add(i, lst); // сохраним пустой список, так как ничего не нашли 
-                        }
-
-                        // Рефакторинг: используем UIHelper для обновления прогрессбара
-                        Helpers.UIHelper.InvokeUI(Dispatcher, () => ProgressBar12.Value = StructureSourceSC.Count);
-                    }
-                }
-            }
-
-            stopWatch.Stop();
-            var elapsed = stopWatch.Elapsed.ToString();
-            _isInSc = true;
-            var canCompareSC = _isInSc && _isOutSc;
-            
-            // Рефакторинг: используем UIHelper для группировки UI обновлений
-            Helpers.UIHelper.InvokeUIBatch(Dispatcher,
-                () => BtnLoadIn.IsEnabled = true,
-                () => BtnLoadIn_Copy.IsEnabled = true,
-                () => ButtonCsCompare.IsEnabled = false,
-                () => ButtonScCompare.IsEnabled = canCompareSC,
-                () => ButtonSaveIn2.IsEnabled = true,
-                () => TextBox19.Text = elapsed,
-                () => Label_Semafor1.Background = Brushes.GreenYellow,
-                () => BtnMakePktIn.IsEnabled = true,
-                () => BtnGotoOpcodeIn.IsEnabled = true,
-                () => BtnCsLoadNameIn.IsEnabled = true,
-                () => BtnScLoadNameIn.IsEnabled = true
+                    () => ProgressBar12.Maximum = packetCount
+                ),
+                (elapsed, canCompareCS, canCompareSC) => Helpers.UIHelper.InvokeUIBatch(Dispatcher,
+                    () => BtnLoadIn.IsEnabled = true,
+                    () => BtnLoadIn_Copy.IsEnabled = true,
+                    () => ButtonCsCompare.IsEnabled = false,
+                    () => ButtonScCompare.IsEnabled = canCompareSC,
+                    () => ButtonSaveIn2.IsEnabled = true,
+                    () => TextBox19.Text = elapsed,
+                    () => Label_Semafor1.Background = Brushes.GreenYellow,
+                    () => BtnMakePktIn.IsEnabled = true,
+                    () => BtnGotoOpcodeIn.IsEnabled = true,
+                    () => BtnCsLoadNameIn.IsEnabled = true,
+                    () => BtnScLoadNameIn.IsEnabled = true
+                ),
+                isInSc => _isInSc = isInSc
             );
         }
 
         private void FindDestinationStructuresCS(string str)
         {
-            var stopWatch = new Stopwatch();
-            stopWatch.Start();
-            // уничтожаем ненужный список
-            StructureDestinationCS = new Dictionary<int, List<Struc>>();
-            ListNameDestinationCS = new List<string>();
-            ListSubDestinationCS = new List<string>();
-            XrefsOut = new Dictionary<int, List<string>>();
-
-            // Рефакторинг: используем UIHelper для группировки UI обновлений
-            Helpers.UIHelper.InvokeUIBatch(Dispatcher,
-                () => TextBox23.Text = "0",
-                () => TextBox24.Text = "0",
-                () => TextBox28.Text = "0",
-                () => ProgressBar21.Value = InListDestination.Count,
-                () => ProgressBar22.Value = 0,
-                () => Label_Semafor2.Background = Brushes.Yellow,
-                () => ButtonSaveOut1.IsEnabled = false,
-                () => ButtonSaveOut2.IsEnabled = false,
-                () => BtnLoadOut.IsEnabled = false,
-                () => BtnCsLoadNameOut.IsEnabled = false,
-                () => BtnScLoadNameOut.IsEnabled = false,
-                () => BtnUpdStruct.IsEnabled = false,
-                () => ButtonEditOutOpcode.IsEnabled = false,
-                () => BtnMakePktOut.IsEnabled = false,
-                () => BtnGotoOpcodeOut.IsEnabled = false,
-                () => ButtonCsCompare.IsEnabled = false,
-                () => ButtonScCompare.IsEnabled = false,
-                () => BtnSaveSnapshot.IsEnabled = false,
-                () => BtnLoadSnapshotCS.IsEnabled = false,
-                () => BtnLoadSnapshotSC.IsEnabled = false
-            );
-
-            //
-            // начали предварительную работу по поиску имен и ссылок на подпрограммы со структурами
-            //
-            //"CS_PACKET_TODAY_ASSIGNMENT_11Ah dd offset SC_PACKETS_return_2"
-            var indexRefs = 0;
-
-            // Блокируем объект.
-            //lock (lockObj)
-            {
-                var regex = new Regex(@"^[a-zA-Z0-9_?@]+\s+dd\soffset\s" + str, RegexOptions.Compiled);
-                var regexXREF = new Regex(@"(^\s+;[a-zA-Z:\s]*\s(sub_\w+|X2\w+))", RegexOptions.Compiled);
-                for (var index = 0; index < InListDestination.Count; index++)
-                {
-                    var foundName = false;
-                    var matches = regex.Matches(InListDestination[index]);
-                    if (matches.Count <= 0)
-                    {
-                        continue;
-                    }
-
-                    var lst = new List<string>();
-                    var tmpIdx = index;
-                    var tmpIdxMax = tmpIdx + 2;
-                    do
-                    {
-                        tmpIdx++;
-                        //var regexXREF = new Regex(@"((sub_\w+\+\w{1,3}|loc_\w{8}))", RegexOptions.IgnoreCase);
-                        // ищем "; DATA XREF: sub_3922E1C0+79↑o" или "; sub_3922E1C0:loc_3922E37F↑o"
-                        var matchesXREF = regexXREF.Matches(InListDestination[tmpIdx]);
-                        if (matchesXREF.Count <= 0)
-                        {
-                            continue;
-                        }
-
-                        foreach (var match in matchesXREF)
-                        {
-                            lst.Add(match.ToString()); // сохранили XREF
-                        }
-                    } while (tmpIdx < tmpIdxMax);
-
-                    XrefsOut.Add(indexRefs, lst); // сохраним список XREF для пакета
-                    indexRefs++; // следующий номер пакета
-
-                    var regex2 = new Regex(@"^(\S+)", RegexOptions.IgnoreCase);
-                    var matches2 = regex2.Matches(InListDestination[index]);
-                    foreach (var match2 in matches2)
-                    {
-                        ListNameDestinationCS.Add(match2.ToString()); // сохранили имя
-                        foundName = true;
-                    }
-
-                    if (!foundName)
-                    {
-                        // не нашли имя пакета, бывает что его нет из-зи защиты themida
-                        ListNameDestinationCS.Add("CS_Unknown"); // сохранили адрес подпрограммы
-                    }
-
-                    // сначала нужно пропустить строки с начальными пробелами [40]; DATA XREF: sub_39015740+1A↑o, таких строк 1 или 2
-                    do
-                    {
-                        index++;
-                        var regexSpace40 = new Regex(@"^\s{40}", RegexOptions.IgnoreCase);
-                        var matchesSpace40 = regexSpace40.Matches(InListDestination[index]);
-                        if (matchesSpace40.Count <= 0)
-                        {
-                            break;
-                        }
-                    } while (true);
-
-                    // пропускаем
-                    // dd offset CS_PACKET
-                    // или
-                    // dd offset SC_PACKET
-                    // затем одну строку с начальными пробелами  [16]dd offset CS_SC_PACKET
-                    index++;
-
-                    // ищем "dd offset sub_395D0370"
-                    // dd offset nullsub_18
-                    // dd offset CSInteractGimmickPacket
-                    // dd offset CSGmCommandPacket
-                    try
-                    {
-                        var regexBody = new Regex(@"(dd\soffset\snullsub|dd\soffset\ssub_\w+|dd\soffset\s\w+)", RegexOptions.Compiled);
-                        var matchesBodys = regexBody.Match(InListDestination[index]);
-                        ListSubDestinationCS.Add(matchesBodys.ToString().Substring(10)); // сохранили адрес подпрограммы
-                    }
-                    catch (Exception)
-                    {
-                        // Рефакторинг: используем UIHelper для показа ошибки
-                        Helpers.UIHelper.ShowError(Dispatcher, $"Проверьте исходные данные файла в IDA, где-то в строке: {index}!", "Error");
-                    }
-                }
-
-                // закончили предварительную работу по поиску имен и ссылок на подпрограммы со структурами
-                var lnCount = ListNameDestinationCS.Count;
-                var lsCount = ListSubDestinationCS.Count;
-                
-                // Рефакторинг: используем UIHelper для группировки UI обновлений
-                Helpers.UIHelper.InvokeUIBatch(Dispatcher,
-                    () => TextBox23.Text = lnCount.ToString(),
-                    () => TextBox24.Text = lsCount.ToString(),
+            // Рефакторинг: используем универсальный метод
+            FindStructuresInternal(
+                InListDestination,
+                str,
+                StructureDestinationCS,
+                ListNameDestinationCS,
+                ListSubDestinationCS,
+                XrefsOut,
+                "CS_Unknown",
+                (address, lines, depth) => _structureFinderService.FindStructureOut(address, lines, depth),
+                count => Helpers.UIHelper.InvokeUI(Dispatcher, () => ProgressBar22.Value = count),
+                FindStructOut,
+                true,
+                false,
+                () => Helpers.UIHelper.InvokeUIBatch(Dispatcher,
+                    () => TextBox23.Text = "0",
+                    () => TextBox24.Text = "0",
+                    () => TextBox28.Text = "0",
+                    () => ProgressBar21.Value = InListDestination.Count,
+                    () => ProgressBar22.Value = 0,
+                    () => Label_Semafor2.Background = Brushes.Yellow,
+                    () => ButtonSaveOut1.IsEnabled = false,
+                    () => ButtonSaveOut2.IsEnabled = false,
+                    () => BtnLoadOut.IsEnabled = false,
+                    () => BtnCsLoadNameOut.IsEnabled = false,
+                    () => BtnScLoadNameOut.IsEnabled = false,
+                    () => BtnUpdStruct.IsEnabled = false,
+                    () => ButtonEditOutOpcode.IsEnabled = false,
+                    () => BtnMakePktOut.IsEnabled = false,
+                    () => BtnGotoOpcodeOut.IsEnabled = false,
+                    () => ButtonCsCompare.IsEnabled = false,
+                    () => ButtonScCompare.IsEnabled = false,
+                    () => BtnSaveSnapshot.IsEnabled = false,
+                    () => BtnLoadSnapshotCS.IsEnabled = false,
+                    () => BtnLoadSnapshotSC.IsEnabled = false
+                ),
+                (packetCount, subCount) => Helpers.UIHelper.InvokeUIBatch(Dispatcher,
+                    () => TextBox23.Text = packetCount.ToString(),
+                    () => TextBox24.Text = subCount.ToString(),
                     () => ListView22.ItemsSource = ListNameDestinationCS,
                     () => ListView23.ItemsSource = ListSubDestinationCS,
-                    () => ProgressBar22.Maximum = ListNameDestinationCS.Count
-                );
-                if (FindStructOut)
-                {
-                    //
-                    // начали предварительную работу по поиску структур пакетов
-                    //
-                    // начнем с начала файла
-                    var regexEndP = new Regex(@"\s+endp\s*", RegexOptions.Compiled); // ищем конец подпрограммы
-                    var regexCall = new Regex(@"(\x22[0-z._]+\x22)|(call\s{4}(sub_\w+)|(call\s{4}(\w+)))", RegexOptions.Compiled);
-                    /*
-                       sub_395D3050    proc near               ; CODE XREF: sub_391DE5C0+47↑p
-                       push    offset aBc      ; "bc"
-                       call    sub_395E18A0
-                       call    sub_395E1730
-                       call    sub_395E16B0
-                       push    offset aAction  ; "action"
-                       sub_395D3050    endp              
-
-                       sub_395E18A0    proc near               ; CODE XREF: .text:394B5DEC↑p
-                       push    offset aType    ; "type"
-                       push    offset aType    ; "type"
-                       push    offset aType    ; "type"
-                       push    offset aType    ; "type"
-                       push    offset aModified ; "modified"
-                       sub_395E18A0    endp
-
-                       sub_395E1730    proc near               ; CODE XREF: .text:394B1C67↑p
-                       push    offset aType    ; "type"
-                       push    offset asc_396AFCE0 ; "x"
-                       push    offset aY       ; "y"
-                       push    offset aZ_0     ; "z"
-                       push    offset aModified ; "modified"
-                       sub_395E1730    endp
-
-                       sub_395E16B0    proc near               ; CODE XREF: .text:394B1CB7↑p
-                       push    offset aType    ; "type"
-                       push    offset aData    ; "data"
-                       push    offset aData    ; "data"
-                       push    offset aModified ; "modified"
-                       sub_395E16B0    endp
-
-                    */
-
-                    for (var i = 0; i < ListSubDestinationCS.Count; i++)
-                    {
-                        var found = false;
-                        var regexSub = new Regex(@"^" + ListSubDestinationCS[i], RegexOptions.Compiled); // ищем начало подпрограммы, каждый раз с начала файла
-                        for (var index = 0; index < InListDestination.Count; index++)
-                        {
-                            var matchesSub = regexSub.Matches(InListDestination[index]);
-                            if (matchesSub.Count <= 0)
-                            {
-                                continue;
-                            }
-
-                            // нашли начало подпрограммы, ищем структуры, пока не "endp"
-                            var foundEndp = false;
-                            var lst = new List<Struc>();
-                            do
-                            {
-                                var matchesCalls = regexCall.Matches(InListDestination[index]);
-                                foreach (var matchCall in matchesCalls)
-                                {
-                                    if (matchCall.ToString().Length >= 4 && matchCall.ToString().Substring(0, 4) == "call")
-                                    {
-                                        // Рефакторинг: используем сервис для поиска структуры
-                                        var callStr = matchCall.ToString();
-                                        if (callStr.Length >= 8)
-                                        {
-                                            var findList = _structureFinderService.FindStructureOut(callStr.Substring(8), InListDestination, DepthMax);
-                                            if (findList.Count > 0)
-                                            {
-                                                lst.AddRange(findList); // сохранили несколько строк структуры пакета найденной в подпрограмме
-                                            }
-                                        }
-                                    }
-                                    else
-                                    {
-                                        var aa = new Struc();
-                                        aa.Name = matchCall.ToString().Replace("\"", "");
-                                        index--;
-                                        var offset = InListDestination[index].LastIndexOf("]", StringComparison.Ordinal) - 3;
-                                        // проверка на bc
-                                        string num;
-                                        try
-                                        {
-                                            num = offset < 0 ? "CC" : InListDestination[index].Substring(offset, 2);
-                                            aa.Type = Convert.ToInt32(num, 16);
-                                        }
-                                        catch (Exception)
-                                        {
-                                            num = "CC";
-                                            aa.Type = Convert.ToInt32(num, 16);
-                                        }
-                                        lst.Add(aa); // сохранили одну строку структуры пакета
-                                        index++;
-                                    }
-                                }
-
-                                var matchesEndP = regexEndP.Matches(InListDestination[index]);
-                                if (matchesEndP.Count > 0)
-                                {
-                                    foundEndp = true;
-                                }
-                                index++;
-                            } while (index < InListDestination.Count && !foundEndp);
-
-                            StructureDestinationCS.Add(i, lst); // сохранили всю структуру пакета
-                            found = true; // нашли структуру
-                            break;
-                        }
-
-                        if (!found)
-                        {
-                            // не нашли структуру
-                            var lst = new List<Struc>();
-                            StructureDestinationCS.Add(i, lst); // сохраним пустой список, так как ничего не нашли 
-                        }
-
-                        // Рефакторинг: используем UIHelper для обновления прогрессбара
-                        Helpers.UIHelper.InvokeUI(Dispatcher, () => ProgressBar22.Value = StructureDestinationCS.Count);
-                    }
-                }
-            }
-
-            stopWatch.Stop();
-            var elapsed = stopWatch.Elapsed.ToString();
-            _isOutCs = true;
-            var canCompareCS = _isInCs && _isOutCs;
-            
-            // Рефакторинг: используем UIHelper для группировки UI обновлений
-            Helpers.UIHelper.InvokeUIBatch(Dispatcher,
-                () => BtnCsLoadNameOut.IsEnabled = true,
-                () => BtnScLoadNameOut.IsEnabled = true,
-                () => BtnLoadOut.IsEnabled = true,
-                () => ButtonCsCompare.IsEnabled = canCompareCS,
-                () => ButtonScCompare.IsEnabled = false,
-                () => ButtonSaveOut1.IsEnabled = true,
-                () => TextBox28.Text = elapsed,
-                () => Label_Semafor2.Background = Brushes.GreenYellow,
-                () => BtnUpdStruct.IsEnabled = true,
-                () => ButtonEditOutOpcode.IsEnabled = true,
-                () => BtnMakePktOut.IsEnabled = true,
-                () => BtnGotoOpcodeOut.IsEnabled = true,
-                () => BtnSaveSnapshot.IsEnabled = true,
-                () => BtnLoadSnapshotCS.IsEnabled = true,
-                () => BtnLoadSnapshotSC.IsEnabled = true
+                    () => ProgressBar22.Maximum = packetCount
+                ),
+                (elapsed, canCompareCS, canCompareSC) => Helpers.UIHelper.InvokeUIBatch(Dispatcher,
+                    () => BtnCsLoadNameOut.IsEnabled = true,
+                    () => BtnScLoadNameOut.IsEnabled = true,
+                    () => BtnLoadOut.IsEnabled = true,
+                    () => ButtonCsCompare.IsEnabled = canCompareCS,
+                    () => ButtonScCompare.IsEnabled = false,
+                    () => ButtonSaveOut1.IsEnabled = true,
+                    () => TextBox28.Text = elapsed,
+                    () => Label_Semafor2.Background = Brushes.GreenYellow,
+                    () => BtnUpdStruct.IsEnabled = true,
+                    () => ButtonEditOutOpcode.IsEnabled = true,
+                    () => BtnMakePktOut.IsEnabled = true,
+                    () => BtnGotoOpcodeOut.IsEnabled = true,
+                    () => BtnSaveSnapshot.IsEnabled = true,
+                    () => BtnLoadSnapshotCS.IsEnabled = true,
+                    () => BtnLoadSnapshotSC.IsEnabled = true
+                ),
+                isOutCs => _isOutCs = isOutCs
             );
         }
 
         private void FindDestinationStructuresSC(string str)
         {
-            var stopWatch = new Stopwatch();
-            stopWatch.Start();
-            // уничтожаем ненужный список
-            StructureDestinationSC = new Dictionary<int, List<Struc>>();
-            ListNameDestinationSC = new List<string>();
-            ListSubDestinationSC = new List<string>();
-            XrefsOut = new Dictionary<int, List<string>>();
-
-            // Рефакторинг: используем UIHelper для группировки UI обновлений
-            Helpers.UIHelper.InvokeUIBatch(Dispatcher,
-                () => TextBox26.Text = "0",
-                () => TextBox27.Text = "0",
-                () => TextBox29.Text = "0",
-                () => ProgressBar22.Value = 0,
-                () => Label_Semafor2.Background = Brushes.Yellow,
-                () => ButtonSaveOut1.IsEnabled = false,
-                () => ButtonSaveOut2.IsEnabled = false,
-                () => BtnLoadOut.IsEnabled = false,
-                () => BtnCsLoadNameOut.IsEnabled = false,
-                () => BtnScLoadNameOut.IsEnabled = false,
-                () => BtnUpdStruct.IsEnabled = false,
-                () => ButtonEditOutOpcode.IsEnabled = false,
-                () => BtnMakePktOut.IsEnabled = false,
-                () => BtnGotoOpcodeOut.IsEnabled = false,
-                () => ButtonCsCompare.IsEnabled = false,
-                () => ButtonScCompare.IsEnabled = false,
-                () => BtnSaveSnapshot.IsEnabled = false,
-                () => BtnLoadSnapshotCS.IsEnabled = false,
-                () => BtnLoadSnapshotSC.IsEnabled = false
-            );
-
-            //
-            // начали предварительную работу по поиску имен и ссылок на подпрограммы со структурами
-            //
-            //"CS_PACKET_TODAY_ASSIGNMENT_11Ah dd offset SC_PACKETS_return_2"
-            var indexRefs = 0;
-
-            // Блокируем объект.
-            //lock (lockObj)
-            {
-                var regex = new Regex(@"^[a-zA-Z0-9_?@]+\s+dd\soffset\s" + str, RegexOptions.Compiled);
-                var regexXREF = new Regex(@"(^\s+;[a-zA-Z:\s]*\s(sub_\w+|X2\w+|w+))", RegexOptions.Compiled);
-                for (var index = 0; index < InListDestination.Count; index++)
-                {
-                    var foundName = false;
-                    var matches = regex.Matches(InListDestination[index]);
-                    if (matches.Count <= 0)
-                    {
-                        continue;
-                    }
-
-                    var lst = new List<string>();
-                    var tmpIdx = index;
-                    var tmpIdxMax = tmpIdx + 2;
-                    do
-                    {
-                        tmpIdx++;
-                        //var regexXREF = new Regex(@"((sub_\w+\+\w{1,3}|loc_\w{8}))", RegexOptions.IgnoreCase);
-                        // ищем "; DATA XREF: sub_3922E1C0+79↑o" или "; sub_3922E1C0:loc_3922E37F↑o"
-                        var matchesXREF = regexXREF.Matches(InListDestination[tmpIdx]);
-                        if (matchesXREF.Count <= 0)
-                        {
-                            continue;
-                        }
-
-                        foreach (var match in matchesXREF)
-                        {
-                            lst.Add(match.ToString()); // сохранили XREF
-                        }
-                    } while (tmpIdx < tmpIdxMax);
-
-                    XrefsOut.Add(indexRefs, lst); // сохраним список XREF для пакета
-                    indexRefs++; // следующий номер пакета
-
-                    var regex2 = new Regex(@"^(\S+)", RegexOptions.IgnoreCase);
-                    var matches2 = regex2.Matches(InListDestination[index]);
-                    foreach (var match2 in matches2)
-                    {
-                        ListNameDestinationSC.Add(match2.ToString()); // сохранили имя
-                        foundName = true;
-                    }
-
-                    if (!foundName)
-                    {
-                        // не нашли имя пакета, бывает что его нет из-зи защиты themida
-                        ListNameDestinationSC.Add("SC_Unknown"); // сохранили адрес подпрограммы
-                    }
-
-                    // сначала нужно пропустить строки с начальными пробелами [40]; DATA XREF: sub_39015740+1A↑o, таких строк 1 или 2
-                    do
-                    {
-                        index++;
-                        var regexSpace40 = new Regex(@"^\s{40}", RegexOptions.IgnoreCase);
-                        var matchesSpace40 = regexSpace40.Matches(InListDestination[index]);
-                        if (matchesSpace40.Count <= 0)
-                        {
-                            break;
-                        }
-                    } while (true);
-
-                    // пропускаем
-                    // dd offset CS_PACKET
-                    // или
-                    // dd offset SC_PACKET
-                    // затем одну строку с начальными пробелами  [16]dd offset CS_SC_PACKET
-                    index++;
-
-                    // ищем "dd offset sub_395D0370"
-                    // dd offset nullsub_18
-                    // dd offset CSInteractGimmickPacket
-                    // dd offset CSGmCommandPacket
-                    try
-                    {
-                        var regexBody = new Regex(@"(dd\soffset\snullsub|dd\soffset\ssub_\w+|dd\soffset\s\w+)", RegexOptions.Compiled);
-                        var matchesBodys = regexBody.Match(InListDestination[index]);
-                        ListSubDestinationSC.Add(matchesBodys.ToString().Substring(10)); // сохранили адрес подпрограммы
-                    }
-                    catch (Exception)
-                    {
-                        // Рефакторинг: используем UIHelper для показа ошибки
-                        Helpers.UIHelper.ShowError(Dispatcher, $"Проверьте исходные данные файла в IDA, где-то в строке: {index}!", "Error");
-                    }
-                }
-                //
-                // закончили предварительную работу по поиску имен и ссылок на подпрограммы со структурами
-                //
-                var lnCount = ListNameDestinationSC.Count;
-                var lsCount = ListSubDestinationSC.Count;
-                
-                // Рефакторинг: используем UIHelper для группировки UI обновлений
-                Helpers.UIHelper.InvokeUIBatch(Dispatcher,
-                    () => TextBox26.Text = lnCount.ToString(),
-                    () => TextBox27.Text = lsCount.ToString(),
+            // Рефакторинг: используем универсальный метод
+            FindStructuresInternal(
+                InListDestination,
+                str,
+                StructureDestinationSC,
+                ListNameDestinationSC,
+                ListSubDestinationSC,
+                XrefsOut,
+                "SC_Unknown",
+                (address, lines, depth) => _structureFinderService.FindStructureOut(address, lines, depth),
+                count => Helpers.UIHelper.InvokeUI(Dispatcher, () => ProgressBar22.Value = count),
+                FindStructOut,
+                false,
+                true,
+                () => Helpers.UIHelper.InvokeUIBatch(Dispatcher,
+                    () => TextBox26.Text = "0",
+                    () => TextBox27.Text = "0",
+                    () => TextBox29.Text = "0",
+                    () => ProgressBar22.Value = 0,
+                    () => Label_Semafor2.Background = Brushes.Yellow,
+                    () => ButtonSaveOut1.IsEnabled = false,
+                    () => ButtonSaveOut2.IsEnabled = false,
+                    () => BtnLoadOut.IsEnabled = false,
+                    () => BtnCsLoadNameOut.IsEnabled = false,
+                    () => BtnScLoadNameOut.IsEnabled = false,
+                    () => BtnUpdStruct.IsEnabled = false,
+                    () => ButtonEditOutOpcode.IsEnabled = false,
+                    () => BtnMakePktOut.IsEnabled = false,
+                    () => BtnGotoOpcodeOut.IsEnabled = false,
+                    () => ButtonCsCompare.IsEnabled = false,
+                    () => ButtonScCompare.IsEnabled = false,
+                    () => BtnSaveSnapshot.IsEnabled = false,
+                    () => BtnLoadSnapshotCS.IsEnabled = false,
+                    () => BtnLoadSnapshotSC.IsEnabled = false
+                ),
+                (packetCount, subCount) => Helpers.UIHelper.InvokeUIBatch(Dispatcher,
+                    () => TextBox26.Text = packetCount.ToString(),
+                    () => TextBox27.Text = subCount.ToString(),
                     () => ListView22.ItemsSource = ListNameDestinationSC,
                     () => ListView23.ItemsSource = ListSubDestinationSC,
-                    () => ProgressBar22.Maximum = ListNameDestinationSC.Count
-                );
-
-                if (FindStructOut)
-                {
-                    //
-                    // начали предварительную работу по поиску структур пакетов
-                    //
-                    // начнем с начала файла
-                    var regexEndP = new Regex(@"\s+endp\s*", RegexOptions.Compiled); // ищем конец подпрограммы
-                    var regexCall = new Regex(@"(\x22[0-z._]+\x22)|(call\s+(sub_\w+)|(call\s+(\w+)))", RegexOptions.Compiled);
-                    /*
-                       sub_395D3050    proc near               ; CODE XREF: sub_391DE5C0+47↑p
-                       push    offset aBc      ; "bc"
-                       call    sub_395E18A0
-                       call    sub_395E1730
-                       call    sub_395E16B0
-                       push    offset aAction  ; "action"
-                       sub_395D3050    endp              
-
-                       sub_395E18A0    proc near               ; CODE XREF: .text:394B5DEC↑p
-                       push    offset aType    ; "type"
-                       push    offset aType    ; "type"
-                       push    offset aType    ; "type"
-                       push    offset aType    ; "type"
-                       push    offset aModified ; "modified"
-                       sub_395E18A0    endp
-
-                       sub_395E1730    proc near               ; CODE XREF: .text:394B1C67↑p
-                       push    offset aType    ; "type"
-                       push    offset asc_396AFCE0 ; "x"
-                       push    offset aY       ; "y"
-                       push    offset aZ_0     ; "z"
-                       push    offset aModified ; "modified"
-                       sub_395E1730    endp
-
-                       sub_395E16B0    proc near               ; CODE XREF: .text:394B1CB7↑p
-                       push    offset aType    ; "type"
-                       push    offset aData    ; "data"
-                       push    offset aData    ; "data"
-                       push    offset aModified ; "modified"
-                       sub_395E16B0    endp
-
-                    */
-
-                    for (var i = 0; i < ListSubDestinationSC.Count; i++)
-                    {
-                        var found = false;
-                        //
-                        // ищем начало подпрограммы, каждый раз с начала файла
-                        //
-                        var regexSub = new Regex(@"^" + ListSubDestinationSC[i], RegexOptions.Compiled);
-                        for (var index = 0; index < InListDestination.Count; index++)
-                        {
-                            var matchesSub = regexSub.Matches(InListDestination[index]);
-                            if (matchesSub.Count <= 0)
-                            {
-                                continue;
-                            }
-                            //
-                            // нашли начало подпрограммы, ищем структуры, пока не "endp"
-                            //
-                            var foundEndp = false;
-                            var lst = new List<Struc>();
-                            do
-                            {
-                                var matchesCalls = regexCall.Matches(InListDestination[index]);
-                                foreach (var matchCall in matchesCalls)
-                                {
-                                    if (matchCall.ToString() == "call    eax" || matchCall.ToString() == "call    ebx" || matchCall.ToString() == "call    edx" || matchCall.ToString() == "call    ecx")
-                                    {
-                                        continue;
-                                    }
-                                    if (matchCall.ToString().Length >= 4 && matchCall.ToString().Substring(0, 4) == "call")
-                                    {
-                                        // Рефакторинг: используем сервис для поиска структуры
-                                        var callStr = matchCall.ToString();
-                                        if (callStr.Length >= 8)
-                                        {
-                                            var findList = _structureFinderService.FindStructureOut(callStr.Substring(8), InListDestination, DepthMax);
-                                            if (findList.Count > 0)
-                                            {
-                                                lst.AddRange(findList); // сохранили несколько строк структуры пакета найденной в подпрограмме
-                                            }
-                                        }
-                                    }
-                                    else
-                                    {
-                                        var aa = new Struc();
-                                        aa.Name = matchCall.ToString().Replace("\"", "");
-                                        index--;
-                                        var offset = InListDestination[index].LastIndexOf("]", StringComparison.Ordinal) - 3;
-                                        // проверка на bc
-                                        string num;
-                                        try
-                                        {
-                                            num = offset < 0 ? "CC" : InListDestination[index].Substring(offset, 2);
-                                            aa.Type = Convert.ToInt32(num, 16);
-                                        }
-                                        catch (Exception)
-                                        {
-                                            num = "CC";
-                                            aa.Type = Convert.ToInt32(num, 16);
-                                        }
-                                        lst.Add(aa); // сохранили одну строку структуры пакета
-                                        index++;
-                                    }
-                                }
-
-                                var matchesEndP = regexEndP.Matches(InListDestination[index]);
-                                if (matchesEndP.Count > 0)
-                                {
-                                    foundEndp = true;
-                                }
-                                index++;
-                            } while (index < InListDestination.Count && !foundEndp);
-
-                            StructureDestinationSC.Add(i, lst); // сохранили всю структуру пакета
-                            found = true; // нашли структуру
-                            break;
-                        }
-
-                        if (!found)
-                        {
-                            // не нашли структуру
-                            var lst = new List<Struc>();
-                            StructureDestinationSC.Add(i, lst); // сохраним пустой список, так как ничего не нашли 
-                        }
-
-                        // Рефакторинг: используем UIHelper для обновления прогрессбара
-                        Helpers.UIHelper.InvokeUI(Dispatcher, () => ProgressBar22.Value = StructureDestinationSC.Count);
-                    }
-                }
-            }
-
-            _isOutSc = true;
-            var canCompareSC = _isInSc && _isOutSc;
-            
-            // Рефакторинг: используем UIHelper для группировки UI обновлений
-            Helpers.UIHelper.InvokeUIBatch(Dispatcher,
-                () => BtnCsLoadNameOut.IsEnabled = true,
-                () => BtnScLoadNameOut.IsEnabled = true,
-                () => BtnLoadOut.IsEnabled = true,
-                () => ButtonCsCompare.IsEnabled = false,
-                () => ButtonScCompare.IsEnabled = canCompareSC
-            );
-
-            stopWatch.Stop();
-            var elapsedTime = stopWatch.Elapsed.ToString();
-            
-            // Рефакторинг: используем UIHelper для группировки UI обновлений
-            Helpers.UIHelper.InvokeUIBatch(Dispatcher,
-                () => ButtonSaveOut2.IsEnabled = true,
-                () => TextBox29.Text = elapsedTime,
-                () => Label_Semafor2.Background = Brushes.GreenYellow,
-                () => BtnUpdStruct.IsEnabled = true,
-                () => ButtonEditOutOpcode.IsEnabled = true,
-                () => BtnMakePktOut.IsEnabled = true,
-                () => BtnGotoOpcodeOut.IsEnabled = true,
-                () => BtnSaveSnapshot.IsEnabled = true,
-                () => BtnLoadSnapshotCS.IsEnabled = true,
-                () => BtnLoadSnapshotSC.IsEnabled = true
+                    () => ProgressBar22.Maximum = packetCount
+                ),
+                (elapsed, canCompareCS, canCompareSC) => Helpers.UIHelper.InvokeUIBatch(Dispatcher,
+                    () => BtnCsLoadNameOut.IsEnabled = true,
+                    () => BtnScLoadNameOut.IsEnabled = true,
+                    () => BtnLoadOut.IsEnabled = true,
+                    () => ButtonCsCompare.IsEnabled = false,
+                    () => ButtonScCompare.IsEnabled = canCompareSC,
+                    () => ButtonSaveOut2.IsEnabled = true,
+                    () => TextBox29.Text = elapsed,
+                    () => Label_Semafor2.Background = Brushes.GreenYellow,
+                    () => BtnUpdStruct.IsEnabled = true,
+                    () => ButtonEditOutOpcode.IsEnabled = true,
+                    () => BtnMakePktOut.IsEnabled = true,
+                    () => BtnGotoOpcodeOut.IsEnabled = true,
+                    () => BtnSaveSnapshot.IsEnabled = true,
+                    () => BtnLoadSnapshotCS.IsEnabled = true,
+                    () => BtnLoadSnapshotSC.IsEnabled = true
+                ),
+                isOutSc => _isOutSc = isOutSc
             );
         }
 
