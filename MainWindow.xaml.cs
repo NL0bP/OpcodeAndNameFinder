@@ -3834,10 +3834,15 @@ namespace NameFinder
                                 {
                                     if (matchCall.ToString().Length >= 4 && matchCall.ToString().Substring(0, 4) == "call")
                                     {
-                                        var findList = FindStructureIn(matchCall.ToString().Substring(8));
-                                        if (findList.Count > 0)
+                                        // Рефакторинг: используем сервис для поиска структуры
+                                        var callStr = matchCall.ToString();
+                                        if (callStr.Length >= 8)
                                         {
-                                            lst.AddRange(findList); // сохранили несколько строк структуры пакета найденной в подпрограмме
+                                            var findList = _structureFinderService.FindStructureIn(callStr.Substring(8), InListSource, DepthMax);
+                                            if (findList.Count > 0)
+                                            {
+                                                lst.AddRange(findList); // сохранили несколько строк структуры пакета найденной в подпрограмме
+                                            }
                                         }
                                     }
                                     else
@@ -4106,10 +4111,15 @@ namespace NameFinder
                                 {
                                     if (matchCall.ToString().Length >= 4 && matchCall.ToString().Substring(0, 4) == "call")
                                     {
-                                        var findList = FindStructureIn(matchCall.ToString().Substring(8));
-                                        if (findList.Count > 0)
+                                        // Рефакторинг: используем сервис для поиска структуры
+                                        var callStr = matchCall.ToString();
+                                        if (callStr.Length >= 8)
                                         {
-                                            lst.AddRange(findList); // сохранили несколько строк структуры пакета найденной в подпрограмме
+                                            var findList = _structureFinderService.FindStructureIn(callStr.Substring(8), InListSource, DepthMax);
+                                            if (findList.Count > 0)
+                                            {
+                                                lst.AddRange(findList); // сохранили несколько строк структуры пакета найденной в подпрограмме
+                                            }
                                         }
                                     }
                                     else
@@ -4385,10 +4395,15 @@ namespace NameFinder
                                 {
                                     if (matchCall.ToString().Length >= 4 && matchCall.ToString().Substring(0, 4) == "call")
                                     {
-                                        var findList = FindStructureOut(matchCall.ToString().Substring(8));
-                                        if (findList.Count > 0)
+                                        // Рефакторинг: используем сервис для поиска структуры
+                                        var callStr = matchCall.ToString();
+                                        if (callStr.Length >= 8)
                                         {
-                                            lst.AddRange(findList); // сохранили несколько строк структуры пакета найденной в подпрограмме
+                                            var findList = _structureFinderService.FindStructureOut(callStr.Substring(8), InListDestination, DepthMax);
+                                            if (findList.Count > 0)
+                                            {
+                                                lst.AddRange(findList); // сохранили несколько строк структуры пакета найденной в подпрограмме
+                                            }
                                         }
                                     }
                                     else
@@ -4677,10 +4692,15 @@ namespace NameFinder
                                     }
                                     if (matchCall.ToString().Length >= 4 && matchCall.ToString().Substring(0, 4) == "call")
                                     {
-                                        var findList = FindStructureOut(matchCall.ToString().Substring(8));
-                                        if (findList.Count > 0)
+                                        // Рефакторинг: используем сервис для поиска структуры
+                                        var callStr = matchCall.ToString();
+                                        if (callStr.Length >= 8)
                                         {
-                                            lst.AddRange(findList); // сохранили несколько строк структуры пакета найденной в подпрограмме
+                                            var findList = _structureFinderService.FindStructureOut(callStr.Substring(8), InListDestination, DepthMax);
+                                            if (findList.Count > 0)
+                                            {
+                                                lst.AddRange(findList); // сохранили несколько строк структуры пакета найденной в подпрограмме
+                                            }
                                         }
                                     }
                                     else
