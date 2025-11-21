@@ -691,11 +691,12 @@ namespace NameFinder
             {
                 if (MainWindow.isCS)
                 {
-                    MainWindow.ListOpcodeDestinationCS = new List<string>(ListOpcodeDestination);
+                    // Рефакторинг: используем ссылку на экземпляр MainWindow вместо статического доступа
+                    _mainWindow.ListOpcodeDestinationCS = new List<string>(ListOpcodeDestination);
                 }
                 else
                 {
-                    MainWindow.ListOpcodeDestinationSC = new List<string>(ListOpcodeDestination);
+                    _mainWindow.ListOpcodeDestinationSC = new List<string>(ListOpcodeDestination);
                 }
             }
 
