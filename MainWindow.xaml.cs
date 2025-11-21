@@ -4271,9 +4271,13 @@ namespace NameFinder
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show($"Ошибка при загрузке файла: {ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
-                    Label_Semafor1.Background = Brushes.Red;
-                    BtnLoadIn.IsEnabled = true;
+                    // Рефакторинг: используем UIHelper для показа ошибки
+                    Helpers.UIHelper.ShowError(Dispatcher, $"Ошибка при загрузке файла: {ex.Message}", "Ошибка");
+                    Helpers.UIHelper.InvokeUI(Dispatcher, () =>
+                    {
+                        Label_Semafor1.Background = Brushes.Red;
+                        BtnLoadIn.IsEnabled = true;
+                    });
                     return;
                 }
 
@@ -4525,9 +4529,13 @@ namespace NameFinder
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show($"Ошибка при загрузке файла: {ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
-                    Label_Semafor2.Background = Brushes.Red;
-                    BtnLoadOut.IsEnabled = true;
+                    // Рефакторинг: используем UIHelper для показа ошибки
+                    Helpers.UIHelper.ShowError(Dispatcher, $"Ошибка при загрузке файла: {ex.Message}", "Ошибка");
+                    Helpers.UIHelper.InvokeUI(Dispatcher, () =>
+                    {
+                        Label_Semafor2.Background = Brushes.Red;
+                        BtnLoadOut.IsEnabled = true;
+                    });
                     return;
                 }
                 //
