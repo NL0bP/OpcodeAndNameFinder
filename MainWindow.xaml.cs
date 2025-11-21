@@ -3956,17 +3956,19 @@ namespace NameFinder
             ListSubDestinationSC = new List<string>();
             XrefsOut = new Dictionary<int, List<string>>();
 
-            TextBox26.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox26.Text = "0"; }));
-            TextBox27.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox27.Text = "0"; }));
-            TextBox29.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox29.Text = "0"; }));
-            ProgressBar22.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar22.Value = 0; }));
-            Label_Semafor2.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { Label_Semafor2.Background = Brushes.Yellow; }));
-            ButtonSaveOut1.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ButtonSaveOut1.IsEnabled = false; }));
-            ButtonSaveOut2.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ButtonSaveOut2.IsEnabled = false; }));
-            BtnLoadOut.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnLoadOut.IsEnabled = false; }));
-            //BtnLoadIn_Copy.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnLoadIn_Copy.IsEnabled = false; }));
-            BtnCsLoadNameOut.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnCsLoadNameOut.IsEnabled = false; }));
-            BtnScLoadNameOut.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnScLoadNameOut.IsEnabled = false; }));
+            // Рефакторинг: используем UIHelper для группировки UI обновлений
+            Helpers.UIHelper.InvokeUIBatch(Dispatcher,
+                () => TextBox26.Text = "0",
+                () => TextBox27.Text = "0",
+                () => TextBox29.Text = "0",
+                () => ProgressBar22.Value = 0,
+                () => Label_Semafor2.Background = Brushes.Yellow,
+                () => ButtonSaveOut1.IsEnabled = false,
+                () => ButtonSaveOut2.IsEnabled = false,
+                () => BtnLoadOut.IsEnabled = false,
+                () => BtnCsLoadNameOut.IsEnabled = false,
+                () => BtnScLoadNameOut.IsEnabled = false
+            );
             BtnUpdStruct.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnUpdStruct.IsEnabled = false; }));
             ButtonEditOutOpcode.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ButtonEditOutOpcode.IsEnabled = false; }));
             BtnMakePktOut.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnMakePktOut.IsEnabled = false; }));
