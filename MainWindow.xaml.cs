@@ -2807,19 +2807,22 @@ namespace NameFinder
             //
             // заполним ListView
             //
-            ListView11.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ListView11.ItemsSource = InListSource; }));
-            BtnLoadIn_Copy.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnLoadIn_Copy.IsEnabled = true; }));
-            BtnLoadIn.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnLoadIn.IsEnabled = true; }));
-            Label_Semafor1.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { Label_Semafor1.Background = Brushes.GreenYellow; }));
             stopWatch.Stop();
-            TextBox15.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox15.Text = stopWatch.Elapsed.ToString(); }));
+            var elapsed = stopWatch.Elapsed.ToString();
+            
+            // Рефакторинг: используем UIHelper для группировки UI обновлений
+            Helpers.UIHelper.InvokeUIBatch(Dispatcher,
+                () => ListView11.ItemsSource = InListSource,
+                () => BtnLoadIn_Copy.IsEnabled = true,
+                () => BtnLoadIn.IsEnabled = true,
+                () => Label_Semafor1.Background = Brushes.GreenYellow,
+                () => TextBox15.Text = elapsed
+            );
         }
 
         private void CleanSource0()
         {
-            ProgressBar11.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar11.Value = 0; }));
-            ProgressBar11.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar11.Maximum = InListSource.Count; }));
-
+            var maxCount = InListSource.Count;
             var tmp = new List<string>();
             //
             // чистим сначала от пустых строк
@@ -2829,11 +2832,17 @@ namespace NameFinder
 
             InListSource = new List<string>(tmp);
 
-            ProgressBar11.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar11.Value = InListSource.Count; }));
-            ListView11.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ListView11.ItemsSource = InListSource; }));
+            // Рефакторинг: используем UIHelper для группировки UI обновлений
+            Helpers.UIHelper.InvokeUIBatch(Dispatcher,
+                () => ProgressBar11.Value = 0,
+                () => ProgressBar11.Maximum = maxCount,
+                () => ProgressBar11.Value = InListSource.Count,
+                () => ListView11.ItemsSource = InListSource,
+                () => CheckBoxCleaningIn.IsChecked = false,
+                () => Label_Semafor1.Background = Brushes.Yellow
+            );
+            
             File.WriteAllLines(FilePathIn1, InListSource);
-            CheckBoxCleaningIn.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { CheckBoxCleaningIn.IsChecked = false; }));
-            Label_Semafor1.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { Label_Semafor1.Background = Brushes.Yellow; }));
         }
 
         /// <summary>
@@ -2844,9 +2853,7 @@ namespace NameFinder
             var stopWatch = new Stopwatch();
             stopWatch.Start();
 
-            ProgressBar11.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar11.Value = 0; }));
-            ProgressBar11.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar11.Maximum = InListSource.Count; }));
-
+            var maxCount = InListSource.Count;
             var tmp = new List<string>();
 
             // затем ищем подпрограммы
@@ -2865,19 +2872,25 @@ namespace NameFinder
             tmp.AddRange(tmpSCOffs);
 
             InListSource = new List<string>(tmp);
-
-            ProgressBar11.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar11.Value = InListSource.Count; }));
-            ListView11.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ListView11.ItemsSource = InListSource; }));
-            File.WriteAllLines(FilePathIn1, InListSource);
-            CheckBoxCleaningIn.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { CheckBoxCleaningIn.IsChecked = false; }));
-
             stopWatch.Stop();
-            TextBox15.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox15.Text = stopWatch.Elapsed.ToString(); }));
-            Label_Semafor1.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { Label_Semafor1.Background = Brushes.GreenYellow; }));
-            BtnCsLoadNameIn.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnCsLoadNameIn.IsEnabled = true; }));
-            BtnScLoadNameIn.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnScLoadNameIn.IsEnabled = true; }));
-            BtnLoadIn_Copy.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnLoadIn_Copy.IsEnabled = true; }));
-            BtnLoadIn.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnLoadIn.IsEnabled = true; }));
+            var elapsed = stopWatch.Elapsed.ToString();
+
+            // Рефакторинг: используем UIHelper для группировки UI обновлений
+            Helpers.UIHelper.InvokeUIBatch(Dispatcher,
+                () => ProgressBar11.Value = 0,
+                () => ProgressBar11.Maximum = maxCount,
+                () => ProgressBar11.Value = InListSource.Count,
+                () => ListView11.ItemsSource = InListSource,
+                () => CheckBoxCleaningIn.IsChecked = false,
+                () => TextBox15.Text = elapsed,
+                () => Label_Semafor1.Background = Brushes.GreenYellow,
+                () => BtnCsLoadNameIn.IsEnabled = true,
+                () => BtnScLoadNameIn.IsEnabled = true,
+                () => BtnLoadIn_Copy.IsEnabled = true,
+                () => BtnLoadIn.IsEnabled = true
+            );
+            
+            File.WriteAllLines(FilePathIn1, InListSource);
         }
 
         /// <summary>
@@ -2888,9 +2901,7 @@ namespace NameFinder
             var stopWatch = new Stopwatch();
             stopWatch.Start();
 
-            ProgressBar21.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar21.Value = 0; }));
-            ProgressBar21.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar21.Maximum = InListDestination.Count; }));
-
+            var maxCount = InListDestination.Count;
             var tmp = new List<string>();
 
             // затем ищем подпрограммы
@@ -2909,19 +2920,24 @@ namespace NameFinder
             tmp.AddRange(tmpSCOffs);
 
             InListDestination = new List<string>(tmp);
-
-            ProgressBar21.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar21.Value = InListDestination.Count; }));
-            ListView21.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ListView21.ItemsSource = InListDestination; }));
-            File.WriteAllLines(FilePathIn2, InListDestination);
-            CheckBoxCleaningOut.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { CheckBoxCleaningOut.IsChecked = false; }));
-
             stopWatch.Stop();
-            TextBox25.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox25.Text = stopWatch.Elapsed.ToString(); }));
-            Label_Semafor2.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { Label_Semafor2.Background = Brushes.GreenYellow; }));
-            BtnCsLoadNameOut.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnCsLoadNameOut.IsEnabled = true; }));
-            BtnScLoadNameOut.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnScLoadNameOut.IsEnabled = true; }));
-            //BtnLoadIn_Copy.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnLoadIn_Copy.IsEnabled = true; }));
-            BtnLoadOut.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnLoadOut.IsEnabled = true; }));
+            var elapsed = stopWatch.Elapsed.ToString();
+
+            // Рефакторинг: используем UIHelper для группировки UI обновлений
+            Helpers.UIHelper.InvokeUIBatch(Dispatcher,
+                () => ProgressBar21.Value = 0,
+                () => ProgressBar21.Maximum = maxCount,
+                () => ProgressBar21.Value = InListDestination.Count,
+                () => ListView21.ItemsSource = InListDestination,
+                () => CheckBoxCleaningOut.IsChecked = false,
+                () => TextBox25.Text = elapsed,
+                () => Label_Semafor2.Background = Brushes.GreenYellow,
+                () => BtnCsLoadNameOut.IsEnabled = true,
+                () => BtnScLoadNameOut.IsEnabled = true,
+                () => BtnLoadOut.IsEnabled = true
+            );
+            
+            File.WriteAllLines(FilePathIn2, InListDestination);
         }
 
         private List<Struc> FindStructureIn(string address)
@@ -3365,7 +3381,8 @@ namespace NameFinder
                             StructureSourceCS.Add(i, lst); // сохраним пустой список, так как ничего не нашли 
                         }
 
-                        ProgressBar12.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar12.Value = StructureSourceCS.Count; }));
+                        // Рефакторинг: используем UIHelper для обновления прогрессбара
+                        Helpers.UIHelper.InvokeUI(Dispatcher, () => ProgressBar12.Value = StructureSourceCS.Count);
                     }
                 }
             }
@@ -3634,7 +3651,8 @@ namespace NameFinder
                             StructureSourceSC.Add(i, lst); // сохраним пустой список, так как ничего не нашли 
                         }
 
-                        ProgressBar12.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar12.Value = StructureSourceSC.Count; }));
+                        // Рефакторинг: используем UIHelper для обновления прогрессбара
+                        Helpers.UIHelper.InvokeUI(Dispatcher, () => ProgressBar12.Value = StructureSourceSC.Count);
                     }
                 }
             }
@@ -3912,7 +3930,8 @@ namespace NameFinder
                             StructureDestinationCS.Add(i, lst); // сохраним пустой список, так как ничего не нашли 
                         }
 
-                        ProgressBar22.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar22.Value = StructureDestinationCS.Count; }));
+                        // Рефакторинг: используем UIHelper для обновления прогрессбара
+                        Helpers.UIHelper.InvokeUI(Dispatcher, () => ProgressBar22.Value = StructureDestinationCS.Count);
                     }
                 }
             }
@@ -4203,7 +4222,8 @@ namespace NameFinder
                             StructureDestinationSC.Add(i, lst); // сохраним пустой список, так как ничего не нашли 
                         }
 
-                        ProgressBar22.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar22.Value = StructureDestinationSC.Count; }));
+                        // Рефакторинг: используем UIHelper для обновления прогрессбара
+                        Helpers.UIHelper.InvokeUI(Dispatcher, () => ProgressBar22.Value = StructureDestinationSC.Count);
                     }
                 }
             }
