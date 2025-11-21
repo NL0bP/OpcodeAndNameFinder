@@ -87,6 +87,7 @@
     </Compile>
     <Compile Include="Constants\PacketConstants.cs" />
     <Compile Include="Helpers\RegexPatterns.cs" />
+    <Compile Include="Helpers\UIHelper.cs" />
     <Compile Include="Models\PacketInfo.cs" />
     <Compile Include="Services\FileProcessor.cs" />
     <Compile Include="Services\IFileProcessor.cs" />
