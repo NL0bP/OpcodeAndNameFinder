@@ -172,9 +172,10 @@ namespace NameFinder
         public static bool isCS = false;
 
         //public static Dictionary<int, int> InUseSource { get; set; } = new Dictionary<int, int>();
-        public static Dictionary<int, int> InUseIn { get; set; } = new Dictionary<int, int>();
-        public static Dictionary<int, int> InUseOut { get; set; } = new Dictionary<int, int>();
-        public static Dictionary<int, bool> IsRenameDestination { get; set; } = new Dictionary<int, bool>();
+        // Рефакторинг: заменено на свойства-обертки, использующие PacketDataService
+        // public static Dictionary<int, int> InUseIn { get; set; } = new Dictionary<int, int>();
+        // public static Dictionary<int, int> InUseOut { get; set; } = new Dictionary<int, int>();
+        public static Dictionary<int, bool> IsRenameDestination { get; set; } = new Dictionary<int, bool>(); // TODO: мигрировать
 
         // Рефакторинг: заменено на свойства-обертки, использующие PacketDataService
         // public static List<string> InListSource = new List<string>();
@@ -595,6 +596,63 @@ namespace NameFinder
             foreach (var kvp in csXrefs)
             {
                 _packetDataService.DestinationXrefs[Models.PacketType.SC][kvp.Key] = new List<string>(kvp.Value);
+            }
+        }
+
+        /// <summary>
+        /// Рефакторинг: свойство-обертка для обратной совместимости
+        /// Использует PacketDataService.InUseMapping[PacketType.CS]
+        /// Примечание: InUseIn синхронизируется одинаково для CS и SC, поэтому используем CS данные
+        /// </summary>
+        public Dictionary<int, int> InUseIn
+        {
+            get => _packetDataService.InUseMapping[Models.PacketType.CS];
+            set
+            {
+                _packetDataService.InUseMapping[Models.PacketType.CS].Clear();
+                if (value != null)
+                {
+                    foreach (var kvp in value)
+                    {
+                        _packetDataService.InUseMapping[Models.PacketType.CS][kvp.Key] = kvp.Value;
+                    }
+                    // Синхронизируем SC с теми же данными
+                    _packetDataService.InUseMapping[Models.PacketType.SC].Clear();
+                    foreach (var kvp in value)
+                    {
+                        _packetDataService.InUseMapping[Models.PacketType.SC][kvp.Key] = kvp.Value;
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Рефакторинг: свойство-обертка для обратной совместимости
+        /// Использует PacketDataService.InUseMapping[PacketType.CS] (для Out используем тот же словарь)
+        /// Примечание: InUseOut синхронизируется одинаково для CS и SC, поэтому используем CS данные
+        /// TODO: Возможно, нужно разделить InUseIn и InUseOut в PacketDataService
+        /// </summary>
+        public Dictionary<int, int> InUseOut
+        {
+            get => _packetDataService.InUseMapping[Models.PacketType.CS];
+            set
+            {
+                // Для InUseOut используем тот же словарь, что и для InUseIn
+                // В будущем можно разделить на отдельные свойства в PacketDataService
+                _packetDataService.InUseMapping[Models.PacketType.CS].Clear();
+                if (value != null)
+                {
+                    foreach (var kvp in value)
+                    {
+                        _packetDataService.InUseMapping[Models.PacketType.CS][kvp.Key] = kvp.Value;
+                    }
+                    // Синхронизируем SC с теми же данными
+                    _packetDataService.InUseMapping[Models.PacketType.SC].Clear();
+                    foreach (var kvp in value)
+                    {
+                        _packetDataService.InUseMapping[Models.PacketType.SC][kvp.Key] = kvp.Value;
+                    }
+                }
             }
         }
 

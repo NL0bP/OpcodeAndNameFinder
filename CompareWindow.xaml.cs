@@ -110,31 +110,32 @@ namespace NameFinder
         {
             // проверим что имя не используется
             var offset = 0;
-            if (MainWindow.InUseIn.TryGetValue(IdxS, out var useOut))
+            // Рефакторинг: используем ссылку на экземпляр MainWindow вместо статического доступа
+            if (_mainWindow.InUseIn.TryGetValue(IdxS, out var useOut))
             {
-                MainWindow.InUseOut.Remove(useOut);
+                _mainWindow.InUseOut.Remove(useOut);
                 ListNameCompare[useOut] = ListNameDestination[useOut];
             }
-            if (MainWindow.InUseOut.TryGetValue(IdxD, out var useIn))
+            if (_mainWindow.InUseOut.TryGetValue(IdxD, out var useIn))
             {
-                MainWindow.InUseIn.Remove(useIn);
+                _mainWindow.InUseIn.Remove(useIn);
             }
-            if (MainWindow.InUseIn.ContainsKey(IdxS))
+            if (_mainWindow.InUseIn.ContainsKey(IdxS))
             {
-                MainWindow.InUseIn[IdxS] = IdxD;
+                _mainWindow.InUseIn[IdxS] = IdxD;
             }
             else
             {
-                MainWindow.InUseIn.Add(IdxS, IdxD); // отметим, что найденное имя занято
+                _mainWindow.InUseIn.Add(IdxS, IdxD); // отметим, что найденное имя занято
             }
 
-            if (MainWindow.InUseOut.ContainsKey(IdxD))
+            if (_mainWindow.InUseOut.ContainsKey(IdxD))
             {
-                MainWindow.InUseOut[IdxD] = IdxS;
+                _mainWindow.InUseOut[IdxD] = IdxS;
             }
             else
             {
-                MainWindow.InUseOut.Add(IdxD, IdxS); // отметим, что найденное имя занято
+                _mainWindow.InUseOut.Add(IdxD, IdxS); // отметим, что найденное имя занято
             }
 
             // запишем новое имя на место неизвестного, которое нашли
@@ -476,7 +477,8 @@ namespace NameFinder
             }
 
             // проверим, что имя не занято
-            if (MainWindow.InUseIn.TryGetValue(IdxS, out var value))
+            // Рефакторинг: используем ссылку на экземпляр MainWindow вместо статического доступа
+            if (_mainWindow.InUseIn.TryGetValue(IdxS, out var value))
             {
                 checkBoxInUse.IsChecked = true;
                 var idxs2 = value + 1;
@@ -488,7 +490,7 @@ namespace NameFinder
                 TextBoxPktInUse.Text = "0";
             }
 
-            if (MainWindow.InUseOut.TryGetValue(IdxD, out var value1))
+            if (_mainWindow.InUseOut.TryGetValue(IdxD, out var value1))
             {
                 checkBoxOutUse.IsChecked = true;
                 var idxd2 = value1 + 1;
@@ -708,24 +710,26 @@ namespace NameFinder
 
         private void BtnClearName_Click(object sender, RoutedEventArgs e)
         {
-            if (!MainWindow.InUseOut.ContainsKey(IdxD))
+            // Рефакторинг: используем ссылку на экземпляр MainWindow вместо статического доступа
+            if (!_mainWindow.InUseOut.ContainsKey(IdxD))
             {
                 return;
             }
 
-            var useIn = MainWindow.InUseOut[IdxD];
+            var useIn = _mainWindow.InUseOut[IdxD];
             TextBoxNameOut.Text = ListNameDestination[IdxD];
             TextBoxTotalOut.Text = ListNameDestination.Count.ToString();
 
             ListNameCompare[IdxD] = ListNameDestination[IdxD];
-            MainWindow.InUseOut.Remove(IdxD);
-            MainWindow.InUseIn.Remove(useIn);
+            _mainWindow.InUseOut.Remove(IdxD);
+            _mainWindow.InUseIn.Remove(useIn);
 
             // проверим что на панели нужное имя
             if (useIn == IdxS)
             {
                 // проверим, что имя не занято
-                if (MainWindow.InUseIn.TryGetValue(IdxS, out var value))
+                // Рефакторинг: используем ссылку на экземпляр MainWindow вместо статического доступа
+                if (_mainWindow.InUseIn.TryGetValue(IdxS, out var value))
                 {
                     checkBoxInUse.IsChecked = true;
                     var idxs2 = value + 1;
@@ -738,7 +742,8 @@ namespace NameFinder
                 }
             }
 
-            if (MainWindow.InUseOut.TryGetValue(IdxD, out var value1))
+            // Рефакторинг: используем ссылку на экземпляр MainWindow вместо статического доступа
+            if (_mainWindow.InUseOut.TryGetValue(IdxD, out var value1))
             {
                 checkBoxOutUse.IsChecked = true;
                 var idxd2 = value1 + 1;
@@ -753,19 +758,20 @@ namespace NameFinder
 
         private void button_Click(object sender, RoutedEventArgs e)
         {
-            if (!MainWindow.InUseIn.ContainsKey(IdxS))
+            // Рефакторинг: используем ссылку на экземпляр MainWindow вместо статического доступа
+            if (!_mainWindow.InUseIn.ContainsKey(IdxS))
             {
                 return;
             }
 
-            var useOut = MainWindow.InUseIn[IdxS];
+            var useOut = _mainWindow.InUseIn[IdxS];
             ListNameCompare[useOut] = ListNameDestination[useOut];
 
             // проверим что на панели нужное имя
             if (useOut == IdxD)
             {
                 // проверим, что имя не занято
-                if (MainWindow.InUseOut.ContainsKey(useOut))
+                if (_mainWindow.InUseOut.ContainsKey(useOut))
                 {
                     checkBoxOutUse.IsChecked = false;
                     TextBoxPktOutUse.Text = "0";
@@ -777,8 +783,8 @@ namespace NameFinder
             checkBoxInUse.IsChecked = false;
             TextBoxPktInUse.Text = "0";
 
-            MainWindow.InUseOut.Remove(useOut);
-            MainWindow.InUseIn.Remove(IdxS);
+            _mainWindow.InUseOut.Remove(useOut);
+            _mainWindow.InUseIn.Remove(IdxS);
         }
 
         private void button1_Click(object sender, RoutedEventArgs e)
