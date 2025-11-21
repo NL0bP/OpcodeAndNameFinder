@@ -5151,7 +5151,8 @@ namespace NameFinder
                     }
                 }
 
-                CheckBoxToTitleCase.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { CheckBoxToTitleCase.IsChecked = false; }));
+                // Рефакторинг: используем UIHelper для обновления UI
+                Helpers.UIHelper.InvokeUI(Dispatcher, () => CheckBoxToTitleCase.IsChecked = false);
 
                 // Remove CS & Packet & @@6B@ in ver.0.5.1
                 if (CheckBoxRemovePacket.IsChecked == true)
@@ -5204,7 +5205,8 @@ namespace NameFinder
                 ListView24.ItemsSource = ListOpcodeDestinationCS;
                 ListView31.ItemsSource = ListNameCompareCS;
                 ListView32.ItemsSource = ListNameCompareOutCS;
-                TextBox31.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox31.Text = ListView31.Items.Count.ToString(); }));
+                // Рефакторинг: используем UIHelper для обновления UI
+                Helpers.UIHelper.InvokeUI(Dispatcher, () => TextBox31.Text = ListView31.Items.Count.ToString());
             }
 
             if (CheckBoxCompareManual.IsChecked == true)
@@ -5335,7 +5337,8 @@ namespace NameFinder
                     }
                 }
 
-                CheckBoxToTitleCase.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { CheckBoxToTitleCase.IsChecked = false; }));
+                // Рефакторинг: используем UIHelper для обновления UI
+                Helpers.UIHelper.InvokeUI(Dispatcher, () => CheckBoxToTitleCase.IsChecked = false);
 
                 // Remove SC & Packet & @@6B@ in ver.0.5.1
                 if (CheckBoxRemovePacket.IsChecked == true)
@@ -5388,7 +5391,8 @@ namespace NameFinder
                 ListView24.ItemsSource = ListOpcodeDestinationSC;
                 ListView31.ItemsSource = ListNameCompareSC;
                 ListView32.ItemsSource = ListNameCompareOutSC;
-                TextBox31.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox31.Text = ListView31.Items.Count.ToString(); }));
+                // Рефакторинг: используем UIHelper для обновления UI
+                Helpers.UIHelper.InvokeUI(Dispatcher, () => TextBox31.Text = ListView31.Items.Count.ToString());
             }
 
             if (CheckBoxCompareManual.IsChecked == true)
@@ -6697,7 +6701,8 @@ namespace NameFinder
             FilePath = null;
             if (ListView12.SelectedItem != null)
             {
-                Label_Semafor1.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { Label_Semafor1.Background = Brushes.Yellow; }));
+                // Рефакторинг: используем UIHelper для обновления UI
+                Helpers.UIHelper.InvokeUI(Dispatcher, () => Label_Semafor1.Background = Brushes.Yellow);
                 var name = ListView12.SelectedItem.ToString();
                 //GotoNameIn(name);
                 if (ButtonSaveIn1.IsEnabled)
@@ -6971,7 +6976,8 @@ namespace NameFinder
                         }
                     }
                 }
-                Label_Semafor1.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { Label_Semafor1.Background = Brushes.GreenYellow; }));
+                // Рефакторинг: используем UIHelper для обновления UI
+                Helpers.UIHelper.InvokeUI(Dispatcher, () => Label_Semafor1.Background = Brushes.GreenYellow);
             }
             else
             {
@@ -6985,7 +6991,8 @@ namespace NameFinder
             FilePath = null;
             if (ListView22.SelectedItem != null)
             {
-                Label_Semafor2.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { Label_Semafor2.Background = Brushes.Yellow; }));
+                // Рефакторинг: используем UIHelper для обновления UI
+                Helpers.UIHelper.InvokeUI(Dispatcher, () => Label_Semafor2.Background = Brushes.Yellow);
                 var name = ListView22.SelectedItem.ToString();
                 //GotoNameIn(name);
                 if (ButtonSaveOut1.IsEnabled)
@@ -7273,7 +7280,8 @@ namespace NameFinder
                         }
                     }
                 }
-                Label_Semafor2.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { Label_Semafor2.Background = Brushes.GreenYellow; }));
+                // Рефакторинг: используем UIHelper для обновления UI
+                Helpers.UIHelper.InvokeUI(Dispatcher, () => Label_Semafor2.Background = Brushes.GreenYellow);
             }
             else
             {
@@ -7292,14 +7300,16 @@ namespace NameFinder
                 return;
 
             var regexXREF = new Regex(@"^\s+;[a-zA-Z:\s]*\s(sub_\w+)|(X2\w+)|(w+)", RegexOptions.Compiled);
-            Label_Semafor1.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { Label_Semafor1.Background = Brushes.Yellow; }));
+            // Рефакторинг: используем UIHelper для обновления UI
+            Helpers.UIHelper.InvokeUI(Dispatcher, () => Label_Semafor1.Background = Brushes.Yellow);
             var name = ListView12.SelectedItem.ToString();
             var idx = GotoNameIn(name);
             if (loopIn == 0)
             {
                 loopIn = 1;
                 prevIn = idx;
-                Label_Semafor1.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { Label_Semafor1.Background = Brushes.GreenYellow; }));
+                // Рефакторинг: используем UIHelper для обновления UI
+                Helpers.UIHelper.InvokeUI(Dispatcher, () => Label_Semafor1.Background = Brushes.GreenYellow);
                 return;
             }
 
@@ -7307,7 +7317,8 @@ namespace NameFinder
             {
                 loopIn = 1;
                 prevIn = idx;
-                Label_Semafor1.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { Label_Semafor1.Background = Brushes.GreenYellow; }));
+                // Рефакторинг: используем UIHelper для обновления UI
+                Helpers.UIHelper.InvokeUI(Dispatcher, () => Label_Semafor1.Background = Brushes.GreenYellow);
                 return;
             }
             if (idx > 0)
@@ -7388,7 +7399,8 @@ namespace NameFinder
                         }
                 }
             }
-            Label_Semafor1.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { Label_Semafor1.Background = Brushes.GreenYellow; }));
+            // Рефакторинг: используем UIHelper для обновления UI
+            Helpers.UIHelper.InvokeUI(Dispatcher, () => Label_Semafor1.Background = Brushes.GreenYellow);
         }
 
         private int GotoNameIn(string name)
@@ -7427,10 +7439,12 @@ namespace NameFinder
         {
             if (ListView22.SelectedItem != null)
             {
-                Label_Semafor2.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { Label_Semafor2.Background = Brushes.Yellow; }));
+                // Рефакторинг: используем UIHelper для обновления UI
+                Helpers.UIHelper.InvokeUI(Dispatcher, () => Label_Semafor2.Background = Brushes.Yellow);
                 var name = ListView22.SelectedItem.ToString();
                 GotoNameOut(name);
-                Label_Semafor2.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { Label_Semafor2.Background = Brushes.GreenYellow; }));
+                // Рефакторинг: используем UIHelper для обновления UI
+                Helpers.UIHelper.InvokeUI(Dispatcher, () => Label_Semafor2.Background = Brushes.GreenYellow);
             }
         }
 
@@ -7443,21 +7457,24 @@ namespace NameFinder
                 return;
 
             var regexXREF = new Regex(@"^\s+;[a-zA-Z:\s]*\s(sub_\w+)|(X2\w+)|(w+)", RegexOptions.Compiled);
-            Label_Semafor2.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { Label_Semafor2.Background = Brushes.Yellow; }));
+            // Рефакторинг: используем UIHelper для обновления UI
+            Helpers.UIHelper.InvokeUI(Dispatcher, () => Label_Semafor2.Background = Brushes.Yellow);
             var name = ListView22.SelectedItem.ToString();
             var idx = GotoNameOut(name);
             if (loopOut == 0)
             {
                 loopOut = 1;
                 prevOut = idx;
-                Label_Semafor2.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { Label_Semafor2.Background = Brushes.GreenYellow; }));
+                // Рефакторинг: используем UIHelper для обновления UI
+                Helpers.UIHelper.InvokeUI(Dispatcher, () => Label_Semafor2.Background = Brushes.GreenYellow);
                 return;
             }
             else if (prevOut != idx)
             {
                 loopOut = 1;
                 prevOut = idx;
-                Label_Semafor2.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { Label_Semafor2.Background = Brushes.GreenYellow; }));
+                // Рефакторинг: используем UIHelper для обновления UI
+                Helpers.UIHelper.InvokeUI(Dispatcher, () => Label_Semafor2.Background = Brushes.GreenYellow);
                 return;
             }
             if (idx > 0)
@@ -7538,7 +7555,8 @@ namespace NameFinder
                         }
                 }
             }
-            Label_Semafor2.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { Label_Semafor2.Background = Brushes.GreenYellow; }));
+            // Рефакторинг: используем UIHelper для обновления UI
+            Helpers.UIHelper.InvokeUI(Dispatcher, () => Label_Semafor2.Background = Brushes.GreenYellow);
         }
         private int GotoNameOut(string name)
         {
