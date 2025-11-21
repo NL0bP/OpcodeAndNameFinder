@@ -3097,14 +3097,18 @@ namespace NameFinder
             ListSubSourceCS = new List<string>();
             XrefsIn = new Dictionary<int, List<string>>();
 
-            TextBox13.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox13.Text = "0"; }));
-            TextBox14.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox14.Text = "0"; }));
-            TextBox18.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox18.Text = "0"; }));
-            ProgressBar11.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar11.Value = InListSource.Count; }));
-            ProgressBar12.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar12.Value = 0; }));
-            Label_Semafor1.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { Label_Semafor1.Background = Brushes.Yellow; }));
-            ButtonSaveIn1.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ButtonSaveIn1.IsEnabled = false; }));
-            ButtonSaveIn2.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ButtonSaveIn2.IsEnabled = false; }));
+            // Рефакторинг: группируем UI обновления для оптимизации
+            Dispatcher.Invoke(DispatcherPriority.Background, new Action(() =>
+            {
+                TextBox13.Text = "0";
+                TextBox14.Text = "0";
+                TextBox18.Text = "0";
+                ProgressBar11.Value = InListSource.Count;
+                ProgressBar12.Value = 0;
+                Label_Semafor1.Background = Brushes.Yellow;
+                ButtonSaveIn1.IsEnabled = false;
+                ButtonSaveIn2.IsEnabled = false;
+            }));
 
             //
             // начали предварительную работу по поиску имен и ссылок на подпрограммы со структурами
@@ -3199,13 +3203,17 @@ namespace NameFinder
 
                 // закончили предварительную работу по поиску имен и ссылок на подпрограммы со структурами
                 var lnCount = ListNameSourceCS.Count;
-                TextBox13.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox13.Text = lnCount.ToString(); }));
                 var lsCount = ListSubSourceCS.Count;
-                TextBox14.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox14.Text = lsCount.ToString(); }));
-                ListView12.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ListView12.ItemsSource = ListNameSourceCS; }));
-                ListView13.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ListView13.ItemsSource = ListSubSourceCS; }));
-
-                ProgressBar12.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar12.Maximum = ListNameSourceCS.Count; }));
+                
+                // Рефакторинг: группируем UI обновления
+                Dispatcher.Invoke(DispatcherPriority.Background, new Action(() =>
+                {
+                    TextBox13.Text = lnCount.ToString();
+                    TextBox14.Text = lsCount.ToString();
+                    ListView12.ItemsSource = ListNameSourceCS;
+                    ListView13.ItemsSource = ListSubSourceCS;
+                    ProgressBar12.Maximum = ListNameSourceCS.Count;
+                }));
                 if (FindStructIn)
                 {
                     //
@@ -3326,29 +3334,26 @@ namespace NameFinder
                 }
             }
 
-            BtnLoadIn.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnLoadIn.IsEnabled = true; }));
-            BtnLoadIn_Copy.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnLoadIn_Copy.IsEnabled = true; }));
-
-            _isInCs = true;
-            if (_isInCs && _isOutCs)
-            {
-                ButtonCsCompare.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ButtonCsCompare.IsEnabled = true; }));
-                ButtonScCompare.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ButtonScCompare.IsEnabled = false; }));
-            }
-            else
-            {
-                ButtonCsCompare.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ButtonCsCompare.IsEnabled = false; }));
-                ButtonScCompare.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ButtonScCompare.IsEnabled = false; }));
-            }
-
-            ButtonSaveIn1.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ButtonSaveIn1.IsEnabled = true; }));
             stopWatch.Stop();
-            TextBox18.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox18.Text = stopWatch.Elapsed.ToString(); }));
-            Label_Semafor1.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { Label_Semafor1.Background = Brushes.GreenYellow; }));
-            BtnMakePktIn.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnMakePktIn.IsEnabled = true; }));
-            BtnGotoOpcodeIn.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnGotoOpcodeIn.IsEnabled = true; }));
-            BtnCsLoadNameIn.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnCsLoadNameIn.IsEnabled = true; }));
-            BtnScLoadNameIn.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnScLoadNameIn.IsEnabled = true; }));
+            var elapsed = stopWatch.Elapsed.ToString();
+            _isInCs = true;
+            var canCompareCS = _isInCs && _isOutCs;
+            
+            // Рефакторинг: группируем UI обновления
+            Dispatcher.Invoke(DispatcherPriority.Background, new Action(() =>
+            {
+                BtnLoadIn.IsEnabled = true;
+                BtnLoadIn_Copy.IsEnabled = true;
+                ButtonCsCompare.IsEnabled = canCompareCS;
+                ButtonScCompare.IsEnabled = false;
+                ButtonSaveIn1.IsEnabled = true;
+                TextBox18.Text = elapsed;
+                Label_Semafor1.Background = Brushes.GreenYellow;
+                BtnMakePktIn.IsEnabled = true;
+                BtnGotoOpcodeIn.IsEnabled = true;
+                BtnCsLoadNameIn.IsEnabled = true;
+                BtnScLoadNameIn.IsEnabled = true;
+            }));
         }
 
         private void FindSourceStructuresSC(string str)
@@ -3361,19 +3366,23 @@ namespace NameFinder
             ListSubSourceSC = new List<string>();
             XrefsIn = new Dictionary<int, List<string>>();
 
-            TextBox16.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox16.Text = "0"; }));
-            TextBox17.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox17.Text = "0"; }));
-            TextBox19.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox19.Text = "0"; }));
-            ProgressBar12.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar12.Value = 0; }));
-            Label_Semafor1.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { Label_Semafor1.Background = Brushes.Yellow; }));
-            ButtonSaveIn1.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ButtonSaveIn1.IsEnabled = false; }));
-            ButtonSaveIn2.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ButtonSaveIn2.IsEnabled = false; }));
-            BtnLoadIn.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnLoadIn.IsEnabled = false; }));
-            BtnLoadIn_Copy.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnLoadIn_Copy.IsEnabled = false; }));
-            BtnCsLoadNameIn.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnCsLoadNameIn.IsEnabled = false; }));
-            BtnScLoadNameIn.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnScLoadNameIn.IsEnabled = false; }));
-            BtnMakePktIn.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnMakePktIn.IsEnabled = false; }));
-            BtnGotoOpcodeIn.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnGotoOpcodeIn.IsEnabled = false; }));
+            // Рефакторинг: группируем UI обновления для оптимизации
+            Dispatcher.Invoke(DispatcherPriority.Background, new Action(() =>
+            {
+                TextBox16.Text = "0";
+                TextBox17.Text = "0";
+                TextBox19.Text = "0";
+                ProgressBar12.Value = 0;
+                Label_Semafor1.Background = Brushes.Yellow;
+                ButtonSaveIn1.IsEnabled = false;
+                ButtonSaveIn2.IsEnabled = false;
+                BtnLoadIn.IsEnabled = false;
+                BtnLoadIn_Copy.IsEnabled = false;
+                BtnCsLoadNameIn.IsEnabled = false;
+                BtnScLoadNameIn.IsEnabled = false;
+                BtnMakePktIn.IsEnabled = false;
+                BtnGotoOpcodeIn.IsEnabled = false;
+            }));
 
             //
             // начали предварительную работу по поиску имен и ссылок на подпрограммы со структурами
