@@ -376,10 +376,10 @@ namespace NameFinder
             }
             catch (Exception ex)
             {
-                await Dispatcher.InvokeAsync(() =>
+                // Рефакторинг: используем UIHelper для обработки ошибок
+                Helpers.UIHelper.ShowError(Dispatcher, $"Ошибка при поиске опкодов CS: {ex.Message}", "Ошибка");
+                await Helpers.UIHelper.InvokeUIAsync(Dispatcher, () =>
                 {
-                    MessageBox.Show($"Ошибка при поиске опкодов CS: {ex.Message}", "Ошибка",
-                        MessageBoxButton.OK, MessageBoxImage.Error);
                     Label_Semafor1.Background = Brushes.Red;
                 });
             }
@@ -762,10 +762,10 @@ namespace NameFinder
             }
             catch (Exception ex)
             {
-                await Dispatcher.InvokeAsync(() =>
+                // Рефакторинг: используем UIHelper для обработки ошибок
+                Helpers.UIHelper.ShowError(Dispatcher, $"Ошибка при поиске опкодов SC: {ex.Message}", "Ошибка");
+                await Helpers.UIHelper.InvokeUIAsync(Dispatcher, () =>
                 {
-                    MessageBox.Show($"Ошибка при поиске опкодов SC: {ex.Message}", "Ошибка",
-                        MessageBoxButton.OK, MessageBoxImage.Error);
                     Label_Semafor1.Background = Brushes.Red;
                 });
             }
@@ -1144,15 +1144,15 @@ namespace NameFinder
                     }
                 });
             }
-            catch (Exception ex)
-            {
-                await Dispatcher.InvokeAsync(() =>
+                catch (Exception ex)
                 {
-                    MessageBox.Show($"Ошибка при поиске опкодов CS (Destination): {ex.Message}", "Ошибка",
-                        MessageBoxButton.OK, MessageBoxImage.Error);
-                    Label_Semafor2.Background = Brushes.Red;
-                });
-            }
+                    // Рефакторинг: используем UIHelper для обработки ошибок
+                    Helpers.UIHelper.ShowError(Dispatcher, $"Ошибка при поиске опкодов CS (Destination): {ex.Message}", "Ошибка");
+                    await Helpers.UIHelper.InvokeUIAsync(Dispatcher, () =>
+                    {
+                        Label_Semafor2.Background = Brushes.Red;
+                    });
+                }
         }
 
         private void FindOpcodeDestinationCS()
@@ -1513,10 +1513,10 @@ namespace NameFinder
             }
             catch (Exception ex)
             {
-                await Dispatcher.InvokeAsync(() =>
+                // Рефакторинг: используем UIHelper для обработки ошибок
+                Helpers.UIHelper.ShowError(Dispatcher, $"Ошибка при поиске опкодов SC (Destination): {ex.Message}", "Ошибка");
+                await Helpers.UIHelper.InvokeUIAsync(Dispatcher, () =>
                 {
-                    MessageBox.Show($"Ошибка при поиске опкодов SC (Destination): {ex.Message}", "Ошибка",
-                        MessageBoxButton.OK, MessageBoxImage.Error);
                     Label_Semafor2.Background = Brushes.Red;
                 });
             }
