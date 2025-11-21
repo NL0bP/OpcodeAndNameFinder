@@ -835,21 +835,19 @@ namespace NameFinder
                 ListOpcodeSourceCS = opcodes;
                 _packetDataService.SourceOpcodes[Models.PacketType.CS] = opcodes;
 
-                // Обновляем UI
-                await Dispatcher.InvokeAsync(() =>
-                {
-                    ListView14.ItemsSource = ListOpcodeSourceCS;
-                    TextBox16Copy.Text = ListOpcodeSourceCS.Count.ToString();
-                    var notFound = ListOpcodeSourceCS.Count(o => o == "0xfff");
-                    TextBox17Copy.Text = notFound.ToString();
-                    
-                    _isInCs = true;
-                    if (_isInCs && _isOutCs)
-                    {
-                        ButtonCsCompare.IsEnabled = true;
-                        ButtonScCompare.IsEnabled = false;
-                    }
-                });
+                // Рефакторинг: используем UIHelper для группировки UI обновлений
+                var opcodeCount = ListOpcodeSourceCS.Count;
+                var notFoundCount = ListOpcodeSourceCS.Count(o => o == "0xfff");
+                _isInCs = true;
+                var canCompareCS = _isInCs && _isOutCs;
+
+                await Helpers.UIHelper.InvokeUIBatchAsync(Dispatcher,
+                    () => ListView14.ItemsSource = ListOpcodeSourceCS,
+                    () => TextBox16Copy.Text = opcodeCount.ToString(),
+                    () => TextBox17Copy.Text = notFoundCount.ToString(),
+                    () => ButtonCsCompare.IsEnabled = canCompareCS,
+                    () => ButtonScCompare.IsEnabled = !canCompareCS
+                );
             }
             catch (Exception ex)
             {
@@ -1228,21 +1226,19 @@ namespace NameFinder
                 ListOpcodeSourceSC = opcodes;
                 _packetDataService.SourceOpcodes[Models.PacketType.SC] = opcodes;
 
-                // Обновляем UI
-                await Dispatcher.InvokeAsync(() =>
-                {
-                    ListView14.ItemsSource = ListOpcodeSourceSC;
-                    TextBox16Copy.Text = ListOpcodeSourceSC.Count.ToString();
-                    var notFound = ListOpcodeSourceSC.Count(o => o == "0xfff");
-                    TextBox17Copy.Text = notFound.ToString();
-                    
-                    _isInSc = true;
-                    if (_isInSc && _isOutSc)
-                    {
-                        ButtonScCompare.IsEnabled = true;
-                        ButtonCsCompare.IsEnabled = false;
-                    }
-                });
+                // Рефакторинг: используем UIHelper для группировки UI обновлений
+                var opcodeCount = ListOpcodeSourceSC.Count;
+                var notFoundCount = ListOpcodeSourceSC.Count(o => o == "0xfff");
+                _isInSc = true;
+                var canCompareSC = _isInSc && _isOutSc;
+
+                await Helpers.UIHelper.InvokeUIBatchAsync(Dispatcher,
+                    () => ListView14.ItemsSource = ListOpcodeSourceSC,
+                    () => TextBox16Copy.Text = opcodeCount.ToString(),
+                    () => TextBox17Copy.Text = notFoundCount.ToString(),
+                    () => ButtonScCompare.IsEnabled = canCompareSC,
+                    () => ButtonCsCompare.IsEnabled = !canCompareSC
+                );
             }
             catch (Exception ex)
             {
@@ -1619,21 +1615,19 @@ namespace NameFinder
                 ListOpcodeDestinationCS = opcodes;
                 _packetDataService.DestinationOpcodes[Models.PacketType.CS] = opcodes;
 
-                // Обновляем UI
-                await Dispatcher.InvokeAsync(() =>
-                {
-                    ListView24.ItemsSource = ListOpcodeDestinationCS;
-                    TextBox16Copy1.Text = ListOpcodeDestinationCS.Count.ToString();
-                    var notFound = ListOpcodeDestinationCS.Count(o => o == "0xfff");
-                    TextBox17Copy1.Text = notFound.ToString();
-                    
-                    _isOutCs = true;
-                    if (_isInCs && _isOutCs)
-                    {
-                        ButtonCsCompare.IsEnabled = true;
-                        ButtonScCompare.IsEnabled = false;
-                    }
-                });
+                // Рефакторинг: используем UIHelper для группировки UI обновлений
+                var opcodeCount = ListOpcodeDestinationCS.Count;
+                var notFoundCount = ListOpcodeDestinationCS.Count(o => o == "0xfff");
+                _isOutCs = true;
+                var canCompareCS = _isInCs && _isOutCs;
+
+                await Helpers.UIHelper.InvokeUIBatchAsync(Dispatcher,
+                    () => ListView24.ItemsSource = ListOpcodeDestinationCS,
+                    () => TextBox16Copy1.Text = opcodeCount.ToString(),
+                    () => TextBox17Copy1.Text = notFoundCount.ToString(),
+                    () => ButtonCsCompare.IsEnabled = canCompareCS,
+                    () => ButtonScCompare.IsEnabled = !canCompareCS
+                );
             }
                 catch (Exception ex)
                 {
@@ -1986,21 +1980,19 @@ namespace NameFinder
                 ListOpcodeDestinationSC = opcodes;
                 _packetDataService.DestinationOpcodes[Models.PacketType.SC] = opcodes;
 
-                // Обновляем UI
-                await Dispatcher.InvokeAsync(() =>
-                {
-                    ListView24.ItemsSource = ListOpcodeDestinationSC;
-                    TextBox16Copy1.Text = ListOpcodeDestinationSC.Count.ToString();
-                    var notFound = ListOpcodeDestinationSC.Count(o => o == "0xfff");
-                    TextBox17Copy1.Text = notFound.ToString();
-                    
-                    _isOutSc = true;
-                    if (_isInSc && _isOutSc)
-                    {
-                        ButtonScCompare.IsEnabled = true;
-                        ButtonCsCompare.IsEnabled = false;
-                    }
-                });
+                // Рефакторинг: используем UIHelper для группировки UI обновлений
+                var opcodeCount = ListOpcodeDestinationSC.Count;
+                var notFoundCount = ListOpcodeDestinationSC.Count(o => o == "0xfff");
+                _isOutSc = true;
+                var canCompareSC = _isInSc && _isOutSc;
+
+                await Helpers.UIHelper.InvokeUIBatchAsync(Dispatcher,
+                    () => ListView24.ItemsSource = ListOpcodeDestinationSC,
+                    () => TextBox16Copy1.Text = opcodeCount.ToString(),
+                    () => TextBox17Copy1.Text = notFoundCount.ToString(),
+                    () => ButtonScCompare.IsEnabled = canCompareSC,
+                    () => ButtonCsCompare.IsEnabled = !canCompareSC
+                );
             }
             catch (Exception ex)
             {
@@ -3660,18 +3652,17 @@ namespace NameFinder
             ListSubSourceCS = new List<string>();
             XrefsIn = new Dictionary<int, List<string>>();
 
-            // Рефакторинг: группируем UI обновления для оптимизации
-            Dispatcher.Invoke(DispatcherPriority.Background, new Action(() =>
-            {
-                TextBox13.Text = "0";
-                TextBox14.Text = "0";
-                TextBox18.Text = "0";
-                ProgressBar11.Value = InListSource.Count;
-                ProgressBar12.Value = 0;
-                Label_Semafor1.Background = Brushes.Yellow;
-                ButtonSaveIn1.IsEnabled = false;
-                ButtonSaveIn2.IsEnabled = false;
-            }));
+            // Рефакторинг: используем UIHelper для группировки UI обновлений
+            Helpers.UIHelper.InvokeUIBatch(Dispatcher,
+                () => TextBox13.Text = "0",
+                () => TextBox14.Text = "0",
+                () => TextBox18.Text = "0",
+                () => ProgressBar11.Value = InListSource.Count,
+                () => ProgressBar12.Value = 0,
+                () => Label_Semafor1.Background = Brushes.Yellow,
+                () => ButtonSaveIn1.IsEnabled = false,
+                () => ButtonSaveIn2.IsEnabled = false
+            );
 
             //
             // начали предварительную работу по поиску имен и ссылок на подпрограммы со структурами
@@ -3903,21 +3894,20 @@ namespace NameFinder
             _isInCs = true;
             var canCompareCS = _isInCs && _isOutCs;
             
-            // Рефакторинг: группируем UI обновления
-            Dispatcher.Invoke(DispatcherPriority.Background, new Action(() =>
-            {
-                BtnLoadIn.IsEnabled = true;
-                BtnLoadIn_Copy.IsEnabled = true;
-                ButtonCsCompare.IsEnabled = canCompareCS;
-                ButtonScCompare.IsEnabled = false;
-                ButtonSaveIn1.IsEnabled = true;
-                TextBox18.Text = elapsed;
-                Label_Semafor1.Background = Brushes.GreenYellow;
-                BtnMakePktIn.IsEnabled = true;
-                BtnGotoOpcodeIn.IsEnabled = true;
-                BtnCsLoadNameIn.IsEnabled = true;
-                BtnScLoadNameIn.IsEnabled = true;
-            }));
+            // Рефакторинг: используем UIHelper для группировки UI обновлений
+            Helpers.UIHelper.InvokeUIBatch(Dispatcher,
+                () => BtnLoadIn.IsEnabled = true,
+                () => BtnLoadIn_Copy.IsEnabled = true,
+                () => ButtonCsCompare.IsEnabled = canCompareCS,
+                () => ButtonScCompare.IsEnabled = false,
+                () => ButtonSaveIn1.IsEnabled = true,
+                () => TextBox18.Text = elapsed,
+                () => Label_Semafor1.Background = Brushes.GreenYellow,
+                () => BtnMakePktIn.IsEnabled = true,
+                () => BtnGotoOpcodeIn.IsEnabled = true,
+                () => BtnCsLoadNameIn.IsEnabled = true,
+                () => BtnScLoadNameIn.IsEnabled = true
+            );
         }
 
         private void FindSourceStructuresSC(string str)
@@ -4496,10 +4486,7 @@ namespace NameFinder
                 () => ButtonSaveOut2.IsEnabled = false,
                 () => BtnLoadOut.IsEnabled = false,
                 () => BtnCsLoadNameOut.IsEnabled = false,
-                () => BtnScLoadNameOut.IsEnabled = false
-            );
-            // Рефакторинг: используем UIHelper для группировки UI обновлений
-            Helpers.UIHelper.InvokeUIBatch(Dispatcher,
+                () => BtnScLoadNameOut.IsEnabled = false,
                 () => BtnUpdStruct.IsEnabled = false,
                 () => ButtonEditOutOpcode.IsEnabled = false,
                 () => BtnMakePktOut.IsEnabled = false,
@@ -4803,8 +4790,8 @@ namespace NameFinder
                     _packetDataService.SourceFileLines.Clear();
                     _packetDataService.SourceFileLines.AddRange(fileLines);
                     
-                    // Устанавливаем ItemsSource в UI потоке
-                    await Dispatcher.InvokeAsync(() =>
+                    // Рефакторинг: используем UIHelper для обновления UI
+                    await Helpers.UIHelper.InvokeUIAsync(Dispatcher, () =>
                     {
                         ListView11.ItemsSource = _packetDataService.SourceFileLines;
                     });
@@ -5052,8 +5039,8 @@ namespace NameFinder
                     _packetDataService.DestinationFileLines.Clear();
                     _packetDataService.DestinationFileLines.AddRange(fileLines);
                     
-                    // Устанавливаем ItemsSource в UI потоке
-                    await Dispatcher.InvokeAsync(() =>
+                    // Рефакторинг: используем UIHelper для обновления UI
+                    await Helpers.UIHelper.InvokeUIAsync(Dispatcher, () =>
                     {
                         ListView21.ItemsSource = _packetDataService.DestinationFileLines;
                     });
