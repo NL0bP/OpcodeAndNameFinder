@@ -1989,7 +1989,8 @@ namespace NameFinder
             {
                 if (index % progress == 0)
                 {
-                    ProgressBar11.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar11.Value = index; }));
+                    // Рефакторинг: используем UIHelper для обновления прогрессбара
+                    Helpers.UIHelper.InvokeUI(Dispatcher, () => ProgressBar11.Value = index);
                 }
 
                 var matchesProcNear = regexProcNear.Matches(InListSource[index]);
@@ -2007,7 +2008,8 @@ namespace NameFinder
                 {
                     if (index % progress == 0)
                     {
-                        ProgressBar11.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar11.Value = index; }));
+                        // Рефакторинг: используем UIHelper для обновления прогрессбара
+                    Helpers.UIHelper.InvokeUI(Dispatcher, () => ProgressBar11.Value = index);
                     }
 
                     index++;
@@ -2273,7 +2275,8 @@ namespace NameFinder
             {
                 if (index % progress == 0)
                 {
-                    ProgressBar11.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar11.Value = index; }));
+                    // Рефакторинг: используем UIHelper для обновления прогрессбара
+                    Helpers.UIHelper.InvokeUI(Dispatcher, () => ProgressBar11.Value = index);
                 }
 
                 var matches = regex.Matches(InListSource[index]);
@@ -2420,7 +2423,8 @@ namespace NameFinder
             {
                 if (index % progress == 0)
                 {
-                    ProgressBar11.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar11.Value = index; }));
+                    // Рефакторинг: используем UIHelper для обновления прогрессбара
+                    Helpers.UIHelper.InvokeUI(Dispatcher, () => ProgressBar11.Value = index);
                 }
 
                 var matchesProcNear = regexProcNear.Matches(InListSource[index]);
@@ -2440,7 +2444,8 @@ namespace NameFinder
                 {
                     if (index % progress == 0)
                     {
-                        ProgressBar11.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar11.Value = index; }));
+                        // Рефакторинг: используем UIHelper для обновления прогрессбара
+                    Helpers.UIHelper.InvokeUI(Dispatcher, () => ProgressBar11.Value = index);
                     }
 
                     var matchesSub = regexSub.Matches(InListSource[index]);
@@ -2806,7 +2811,8 @@ namespace NameFinder
                 {
                     if (index % progress == 0)
                     {
-                        ProgressBar11.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar11.Value = index; }));
+                        // Рефакторинг: используем UIHelper для обновления прогрессбара
+                    Helpers.UIHelper.InvokeUI(Dispatcher, () => ProgressBar11.Value = index);
                     }
 
                     index++;
@@ -3551,13 +3557,16 @@ namespace NameFinder
 
                 // закончили предварительную работу по поиску имен и ссылок на подпрограммы со структурами
                 var lnCount = ListNameSourceSC.Count;
-                TextBox16.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox16.Text = lnCount.ToString(); }));
                 var lsCount = ListSubSourceSC.Count;
-                TextBox17.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { TextBox17.Text = lsCount.ToString(); }));
-                ListView12.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ListView12.ItemsSource = ListNameSourceSC; }));
-                ListView13.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ListView13.ItemsSource = ListSubSourceSC; }));
-
-                ProgressBar12.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar12.Maximum = ListNameSourceSC.Count; }));
+                
+                // Рефакторинг: используем UIHelper для группировки UI обновлений
+                Helpers.UIHelper.InvokeUIBatch(Dispatcher,
+                    () => TextBox16.Text = lnCount.ToString(),
+                    () => TextBox17.Text = lsCount.ToString(),
+                    () => ListView12.ItemsSource = ListNameSourceSC,
+                    () => ListView13.ItemsSource = ListSubSourceSC,
+                    () => ProgressBar12.Maximum = ListNameSourceSC.Count
+                );
                 if (FindStructIn)
                 {
                     //
@@ -4004,15 +4013,18 @@ namespace NameFinder
                 () => BtnCsLoadNameOut.IsEnabled = false,
                 () => BtnScLoadNameOut.IsEnabled = false
             );
-            BtnUpdStruct.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnUpdStruct.IsEnabled = false; }));
-            ButtonEditOutOpcode.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ButtonEditOutOpcode.IsEnabled = false; }));
-            BtnMakePktOut.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnMakePktOut.IsEnabled = false; }));
-            BtnGotoOpcodeOut.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnGotoOpcodeOut.IsEnabled = false; }));
-            ButtonCsCompare.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ButtonCsCompare.IsEnabled = false; }));
-            ButtonScCompare.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ButtonScCompare.IsEnabled = false; }));
-            BtnSaveSnapshot.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnSaveSnapshot.IsEnabled = false; }));
-            BtnLoadSnapshotCS.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnLoadSnapshotCS.IsEnabled = false; }));
-            BtnLoadSnapshotSC.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnLoadSnapshotSC.IsEnabled = false; }));
+            // Рефакторинг: используем UIHelper для группировки UI обновлений
+            Helpers.UIHelper.InvokeUIBatch(Dispatcher,
+                () => BtnUpdStruct.IsEnabled = false,
+                () => ButtonEditOutOpcode.IsEnabled = false,
+                () => BtnMakePktOut.IsEnabled = false,
+                () => BtnGotoOpcodeOut.IsEnabled = false,
+                () => ButtonCsCompare.IsEnabled = false,
+                () => ButtonScCompare.IsEnabled = false,
+                () => BtnSaveSnapshot.IsEnabled = false,
+                () => BtnLoadSnapshotCS.IsEnabled = false,
+                () => BtnLoadSnapshotSC.IsEnabled = false
+            );
 
             //
             // начали предварительную работу по поиску имен и ссылок на подпрограммы со структурами
@@ -4353,7 +4365,8 @@ namespace NameFinder
             }
             else
             {
-                MessageBox.Show("Для работы программы необходимо выбрать .asm файл!", "Error", MessageBoxButton.OK, MessageBoxImage.Information);
+                // Рефакторинг: используем UIHelper для показа сообщения
+                Helpers.UIHelper.ShowInfo(Dispatcher, "Для работы программы необходимо выбрать .asm файл!", "Error");
                 BtnLoadIn_Copy.IsEnabled = true;
                 BtnLoadIn.IsEnabled = true;
             }
@@ -4486,7 +4499,8 @@ namespace NameFinder
             }
             else
             {
-                MessageBox.Show("Для работы программы необходимо выбрать .asm файл!", "Error", MessageBoxButton.OK, MessageBoxImage.Information);
+                // Рефакторинг: используем UIHelper для показа сообщения
+                Helpers.UIHelper.ShowInfo(Dispatcher, "Для работы программы необходимо выбрать .asm файл!", "Error");
                 BtnLoadIn_Copy.IsEnabled = true;
                 BtnLoadIn.IsEnabled = true;
             }
@@ -4598,7 +4612,8 @@ namespace NameFinder
             }
             else
             {
-                MessageBox.Show("Для работы программы необходимо выбрать .asm файл!", "Error", MessageBoxButton.OK, MessageBoxImage.Information);
+                // Рефакторинг: используем UIHelper для показа сообщения
+                Helpers.UIHelper.ShowInfo(Dispatcher, "Для работы программы необходимо выбрать .asm файл!", "Error");
                 //BtnLoadIn_Copy.IsEnabled = true;
                 BtnLoadOut.IsEnabled = true;
             }
@@ -4884,7 +4899,8 @@ namespace NameFinder
                 }
                 catch (Exception)
                 {
-                    MessageBox.Show("Opcodes not found!", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    // Рефакторинг: используем UIHelper для показа ошибки
+                    Helpers.UIHelper.ShowError(Dispatcher, "Opcodes not found!", "Error");
 
                 }
             }
@@ -6049,7 +6065,8 @@ namespace NameFinder
                     }
                     catch (Exception exception)
                     {
-                        MessageBox.Show(exception.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                        // Рефакторинг: используем UIHelper для показа ошибки
+                        Helpers.UIHelper.ShowError(Dispatcher, exception.Message, "Error");
                     }
                 }
 
@@ -6128,7 +6145,8 @@ namespace NameFinder
                     }
                     catch (Exception exception)
                     {
-                        MessageBox.Show(exception.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                        // Рефакторинг: используем UIHelper для показа ошибки
+                        Helpers.UIHelper.ShowError(Dispatcher, exception.Message, "Error");
                     }
                 }
             }
@@ -6290,7 +6308,8 @@ namespace NameFinder
                 }
                 catch (Exception exception)
                 {
-                    MessageBox.Show(exception.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    // Рефакторинг: используем UIHelper для показа ошибки
+                    Helpers.UIHelper.ShowError(Dispatcher, exception.Message, "Error");
                 }
             }
 
@@ -6450,7 +6469,8 @@ namespace NameFinder
                 }
                 catch (Exception exception)
                 {
-                    MessageBox.Show(exception.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    // Рефакторинг: используем UIHelper для показа ошибки
+                    Helpers.UIHelper.ShowError(Dispatcher, exception.Message, "Error");
                 }
             }
 
@@ -6922,7 +6942,8 @@ namespace NameFinder
             }
             else
             {
-                MessageBox.Show("Выберите любое имя пакета!", "Information", MessageBoxButton.OK, MessageBoxImage.Information);
+                // Рефакторинг: используем UIHelper для показа информации
+                Helpers.UIHelper.ShowInfo(Dispatcher, "Выберите любое имя пакета!", "Information");
             }
         }
 
@@ -7223,7 +7244,8 @@ namespace NameFinder
             }
             else
             {
-                MessageBox.Show("Выберите любое имя пакета!", "Information", MessageBoxButton.OK, MessageBoxImage.Information);
+                // Рефакторинг: используем UIHelper для показа информации
+                Helpers.UIHelper.ShowInfo(Dispatcher, "Выберите любое имя пакета!", "Information");
             }
         }
 
