@@ -238,17 +238,66 @@ namespace NameFinder
         }
 
         /// <summary>
+        /// Рефакторинг: синхронизирует XrefsIn с PacketDataService
+        /// </summary>
+        private void SyncXrefsInToService()
+        {
+            // Синхронизируем CS
+            if (XrefsIn != null && XrefsIn.Count > 0)
+            {
+                _packetDataService.SourceXrefs[Models.PacketType.CS].Clear();
+                foreach (var kvp in XrefsIn)
+                {
+                    _packetDataService.SourceXrefs[Models.PacketType.CS][kvp.Key] = new List<string>(kvp.Value);
+                }
+            }
+            
+            // Синхронизируем SC (используем те же данные, но можно разделить если нужно)
+            _packetDataService.SourceXrefs[Models.PacketType.SC].Clear();
+            foreach (var kvp in XrefsIn ?? new Dictionary<int, List<string>>())
+            {
+                _packetDataService.SourceXrefs[Models.PacketType.SC][kvp.Key] = new List<string>(kvp.Value);
+            }
+        }
+
+        /// <summary>
+        /// Рефакторинг: синхронизирует XrefsOut с PacketDataService
+        /// </summary>
+        private void SyncXrefsOutToService()
+        {
+            // Синхронизируем CS
+            if (XrefsOut != null && XrefsOut.Count > 0)
+            {
+                _packetDataService.DestinationXrefs[Models.PacketType.CS].Clear();
+                foreach (var kvp in XrefsOut)
+                {
+                    _packetDataService.DestinationXrefs[Models.PacketType.CS][kvp.Key] = new List<string>(kvp.Value);
+                }
+            }
+            
+            // Синхронизируем SC
+            _packetDataService.DestinationXrefs[Models.PacketType.SC].Clear();
+            foreach (var kvp in XrefsOut ?? new Dictionary<int, List<string>>())
+            {
+                _packetDataService.DestinationXrefs[Models.PacketType.SC][kvp.Key] = new List<string>(kvp.Value);
+            }
+        }
+
+        /// <summary>
         /// Рефакторинг: новый async метод для поиска опкодов CS (Source) с использованием сервиса
         /// </summary>
         private async Task FindOpcodeSourceCSAsync()
         {
             try
             {
+                // Рефакторинг: синхронизируем XrefsIn с PacketDataService
+                SyncXrefsInToService();
+                
                 var opcodes = await _opcodeFinderWrapper.FindOpcodesWithUIAsync(
                     Models.PacketType.CS,
                     Models.PacketSource.In,
                     InListSource,
-                    XrefsIn,
+                    _packetDataService.SourceXrefs[Models.PacketType.CS],
                     percent => ProgressBar13.Value = percent,
                     max => ProgressBar13.Maximum = max,
                     count => TextBox16Copy.Text = count,
@@ -627,11 +676,14 @@ namespace NameFinder
         {
             try
             {
+                // Рефакторинг: синхронизируем XrefsIn с PacketDataService
+                SyncXrefsInToService();
+                
                 var opcodes = await _opcodeFinderWrapper.FindOpcodesWithUIAsync(
                     Models.PacketType.SC,
                     Models.PacketSource.In,
                     InListSource,
-                    XrefsIn,
+                    _packetDataService.SourceXrefs[Models.PacketType.SC],
                     percent => ProgressBar13.Value = percent,
                     max => ProgressBar13.Maximum = max,
                     count => TextBox16Copy.Text = count,
@@ -1006,6 +1058,67 @@ namespace NameFinder
             }
         }
 
+        /// <summary>
+        /// Рефакторинг: новый async метод для поиска опкодов CS (Destination) с использованием сервиса
+        /// </summary>
+        private async Task FindOpcodeDestinationCSAsync()
+        {
+            try
+            {
+                // Рефакторинг: синхронизируем XrefsOut с PacketDataService
+                SyncXrefsOutToService();
+                
+                var opcodes = await _opcodeFinderWrapper.FindOpcodesWithUIAsync(
+                    Models.PacketType.CS,
+                    Models.PacketSource.Out,
+                    InListDestination,
+                    _packetDataService.DestinationXrefs[Models.PacketType.CS],
+                    percent => ProgressBar23.Value = percent,
+                    max => ProgressBar23.Maximum = max,
+                    count => TextBox16Copy1.Text = count,
+                    notFound => TextBox17Copy1.Text = notFound,
+                    time => TextBox19Copy1.Text = time,
+                    brush => Label_Semafor2.Background = brush,
+                    enabled =>
+                    {
+                        ButtonSaveOut1.IsEnabled = enabled;
+                        ButtonSaveOut2.IsEnabled = enabled;
+                        BtnLoadOut.IsEnabled = enabled;
+                        ButtonCsCompare.IsEnabled = enabled;
+                        ButtonScCompare.IsEnabled = enabled;
+                    });
+
+                // Сохраняем результаты
+                ListOpcodeDestinationCS = opcodes;
+                _packetDataService.DestinationOpcodes[Models.PacketType.CS] = opcodes;
+
+                // Обновляем UI
+                await Dispatcher.InvokeAsync(() =>
+                {
+                    ListView24.ItemsSource = ListOpcodeDestinationCS;
+                    TextBox16Copy1.Text = ListOpcodeDestinationCS.Count.ToString();
+                    var notFound = ListOpcodeDestinationCS.Count(o => o == "0xfff");
+                    TextBox17Copy1.Text = notFound.ToString();
+                    
+                    _isOutCs = true;
+                    if (_isInCs && _isOutCs)
+                    {
+                        ButtonCsCompare.IsEnabled = true;
+                        ButtonScCompare.IsEnabled = false;
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                await Dispatcher.InvokeAsync(() =>
+                {
+                    MessageBox.Show($"Ошибка при поиске опкодов CS (Destination): {ex.Message}", "Ошибка",
+                        MessageBoxButton.OK, MessageBoxImage.Error);
+                    Label_Semafor2.Background = Brushes.Red;
+                });
+            }
+        }
+
         private void FindOpcodeDestinationCS()
         {
             var stopWatch = new Stopwatch();
@@ -1309,6 +1422,67 @@ namespace NameFinder
             {
                 ButtonCsCompare.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ButtonCsCompare.IsEnabled = false; }));
                 ButtonScCompare.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ButtonScCompare.IsEnabled = false; }));
+            }
+        }
+
+        /// <summary>
+        /// Рефакторинг: новый async метод для поиска опкодов SC (Destination) с использованием сервиса
+        /// </summary>
+        private async Task FindOpcodeDestinationSCAsync()
+        {
+            try
+            {
+                // Рефакторинг: синхронизируем XrefsOut с PacketDataService
+                SyncXrefsOutToService();
+                
+                var opcodes = await _opcodeFinderWrapper.FindOpcodesWithUIAsync(
+                    Models.PacketType.SC,
+                    Models.PacketSource.Out,
+                    InListDestination,
+                    _packetDataService.DestinationXrefs[Models.PacketType.SC],
+                    percent => ProgressBar23.Value = percent,
+                    max => ProgressBar23.Maximum = max,
+                    count => TextBox16Copy1.Text = count,
+                    notFound => TextBox17Copy1.Text = notFound,
+                    time => TextBox19Copy1.Text = time,
+                    brush => Label_Semafor2.Background = brush,
+                    enabled =>
+                    {
+                        ButtonSaveOut1.IsEnabled = enabled;
+                        ButtonSaveOut2.IsEnabled = enabled;
+                        BtnLoadOut.IsEnabled = enabled;
+                        ButtonCsCompare.IsEnabled = enabled;
+                        ButtonScCompare.IsEnabled = enabled;
+                    });
+
+                // Сохраняем результаты
+                ListOpcodeDestinationSC = opcodes;
+                _packetDataService.DestinationOpcodes[Models.PacketType.SC] = opcodes;
+
+                // Обновляем UI
+                await Dispatcher.InvokeAsync(() =>
+                {
+                    ListView24.ItemsSource = ListOpcodeDestinationSC;
+                    TextBox16Copy1.Text = ListOpcodeDestinationSC.Count.ToString();
+                    var notFound = ListOpcodeDestinationSC.Count(o => o == "0xfff");
+                    TextBox17Copy1.Text = notFound.ToString();
+                    
+                    _isOutSc = true;
+                    if (_isInSc && _isOutSc)
+                    {
+                        ButtonScCompare.IsEnabled = true;
+                        ButtonCsCompare.IsEnabled = false;
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                await Dispatcher.InvokeAsync(() =>
+                {
+                    MessageBox.Show($"Ошибка при поиске опкодов SC (Destination): {ex.Message}", "Ошибка",
+                        MessageBoxButton.OK, MessageBoxImage.Error);
+                    Label_Semafor2.Background = Brushes.Red;
+                });
             }
         }
 
@@ -4406,15 +4580,17 @@ namespace NameFinder
             isCompareCS = false;
             isCompareSC = false;
 
-            new Thread(() =>
+            // Рефакторинг: используем async/await вместо Thread
+            _ = Task.Run(async () =>
             {
                 FindDestinationStructuresSC(outText);
 
                 if (FindOpcodeOut)
                 {
-                    FindOpcodeDestinationSC();
+                    // Рефакторинг: используем новый сервис для поиска опкодов
+                    await FindOpcodeDestinationSCAsync();
                 }
-            }).Start();
+            });
         }
 
         private void btn_CS_Load_Name2_Click(object sender, RoutedEventArgs e)
@@ -4441,15 +4617,17 @@ namespace NameFinder
             isCompareCS = false;
             isCompareSC = false;
 
-            new Thread(() =>
+            // Рефакторинг: используем async/await вместо Thread
+            _ = Task.Run(async () =>
             {
                 FindDestinationStructuresCS(inText);
 
                 if (FindOpcodeOut)
                 {
-                    FindOpcodeDestinationCS();
+                    // Рефакторинг: используем новый сервис для поиска опкодов
+                    await FindOpcodeDestinationCSAsync();
                 }
-            }).Start();
+            });
         }
 
         private void CompareSourceStructuresCS(ref List<string> listNameSource, ref List<string> listNameDestination, ref List<string> listSubDestination, ref Dictionary<int, List<Struc>> dictSource, ref Dictionary<int, List<Struc>> dictDestination, List<string> listOpcodes)
