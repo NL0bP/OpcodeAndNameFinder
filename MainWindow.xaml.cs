@@ -797,67 +797,118 @@ namespace NameFinder
         }
 
         /// <summary>
-        /// Рефакторинг: новый async метод для поиска опкодов CS (Source) с использованием сервиса
+        /// Рефакторинг: универсальный метод для поиска опкодов
+        /// Объединяет общую логику всех четырех async методов поиска опкодов
         /// </summary>
-        private async Task FindOpcodeSourceCSAsync()
+        private async Task FindOpcodesAsyncInternal(
+            Models.PacketType packetType,
+            Models.PacketSource packetSource,
+            List<string> fileLines,
+            Dictionary<int, List<string>> xrefs,
+            List<string> opcodeList,
+            Action syncXrefsAction,
+            Action<int> progressUpdate,
+            Action<int> maxUpdate,
+            Action<string> countUpdate,
+            Action<string> notFoundUpdate,
+            Action<string> timeUpdate,
+            Action<Brush> brushUpdate,
+            Action<bool> enabledUpdate,
+            Action<List<string>> listViewUpdate,
+            Func<(bool canCompareCS, bool canCompareSC)> compareFlagsGetter,
+            Action<bool, bool> compareButtonsUpdate,
+            string errorPrefix)
         {
             try
             {
-                // Рефакторинг: синхронизируем XrefsIn с PacketDataService
-                SyncXrefsInToService();
+                // Синхронизируем XREFs с PacketDataService
+                syncXrefsAction?.Invoke();
                 
                 var opcodes = await _opcodeFinderWrapper.FindOpcodesWithUIAsync(
-                    Models.PacketType.CS,
-                    Models.PacketSource.In,
-                    InListSource,
-                    _packetDataService.SourceXrefs[Models.PacketType.CS],
-                    percent => ProgressBar13.Value = percent,
-                    max => ProgressBar13.Maximum = max,
-                    count => TextBox16Copy.Text = count,
-                    notFound => TextBox17Copy.Text = notFound,
-                    time => TextBox19Copy.Text = time,
-                    brush => Label_Semafor1.Background = brush,
-                    enabled =>
-                    {
-                        ButtonSaveIn1.IsEnabled = enabled;
-                        ButtonSaveIn2.IsEnabled = enabled;
-                        BtnLoadIn.IsEnabled = enabled;
-                        BtnLoadIn_Copy.IsEnabled = enabled;
-                        BtnCsLoadNameIn.IsEnabled = enabled;
-                        BtnScLoadNameIn.IsEnabled = enabled;
-                        BtnMakePktIn.IsEnabled = enabled;
-                        BtnGotoOpcodeIn.IsEnabled = enabled;
-                        ButtonCsCompare.IsEnabled = enabled;
-                        ButtonScCompare.IsEnabled = enabled;
-                    });
+                    packetType,
+                    packetSource,
+                    fileLines,
+                    xrefs,
+                    progressUpdate,
+                    maxUpdate,
+                    countUpdate,
+                    notFoundUpdate,
+                    timeUpdate,
+                    brushUpdate,
+                    enabledUpdate);
 
                 // Сохраняем результаты
-                ListOpcodeSourceCS = opcodes;
-                _packetDataService.SourceOpcodes[Models.PacketType.CS] = opcodes;
+                opcodeList.Clear();
+                opcodeList.AddRange(opcodes);
 
                 // Рефакторинг: используем UIHelper для группировки UI обновлений
-                var opcodeCount = ListOpcodeSourceCS.Count;
-                var notFoundCount = ListOpcodeSourceCS.Count(o => o == "0xfff");
-                _isInCs = true;
-                var canCompareCS = _isInCs && _isOutCs;
+                var opcodeCount = opcodes.Count;
+                var notFoundCount = opcodes.Count(o => o == "0xfff");
+                var (canCompareCS, canCompareSC) = compareFlagsGetter();
 
                 await Helpers.UIHelper.InvokeUIBatchAsync(Dispatcher,
-                    () => ListView14.ItemsSource = ListOpcodeSourceCS,
-                    () => TextBox16Copy.Text = opcodeCount.ToString(),
-                    () => TextBox17Copy.Text = notFoundCount.ToString(),
-                    () => ButtonCsCompare.IsEnabled = canCompareCS,
-                    () => ButtonScCompare.IsEnabled = !canCompareCS
+                    () => listViewUpdate(opcodes),
+                    () => countUpdate(opcodeCount.ToString()),
+                    () => notFoundUpdate(notFoundCount.ToString()),
+                    () => compareButtonsUpdate(canCompareCS, canCompareSC)
                 );
             }
             catch (Exception ex)
             {
                 // Рефакторинг: используем UIHelper для обработки ошибок
-                Helpers.UIHelper.ShowError(Dispatcher, $"Ошибка при поиске опкодов CS: {ex.Message}", "Ошибка");
+                Helpers.UIHelper.ShowError(Dispatcher, $"Ошибка при поиске опкодов {errorPrefix}: {ex.Message}", "Ошибка");
                 await Helpers.UIHelper.InvokeUIAsync(Dispatcher, () =>
                 {
-                    Label_Semafor1.Background = Brushes.Red;
+                    brushUpdate(Brushes.Red);
                 });
             }
+        }
+
+        /// <summary>
+        /// Рефакторинг: новый async метод для поиска опкодов CS (Source) с использованием сервиса
+        /// </summary>
+        private async Task FindOpcodeSourceCSAsync()
+        {
+            await FindOpcodesAsyncInternal(
+                Models.PacketType.CS,
+                Models.PacketSource.In,
+                InListSource,
+                _packetDataService.SourceXrefs[Models.PacketType.CS],
+                _packetDataService.SourceOpcodes[Models.PacketType.CS],
+                () => SyncXrefsInToService(),
+                percent => ProgressBar13.Value = percent,
+                max => ProgressBar13.Maximum = max,
+                count => TextBox16Copy.Text = count,
+                notFound => TextBox17Copy.Text = notFound,
+                time => TextBox19Copy.Text = time,
+                brush => Label_Semafor1.Background = brush,
+                enabled =>
+                {
+                    ButtonSaveIn1.IsEnabled = enabled;
+                    ButtonSaveIn2.IsEnabled = enabled;
+                    BtnLoadIn.IsEnabled = enabled;
+                    BtnLoadIn_Copy.IsEnabled = enabled;
+                    BtnCsLoadNameIn.IsEnabled = enabled;
+                    BtnScLoadNameIn.IsEnabled = enabled;
+                    BtnMakePktIn.IsEnabled = enabled;
+                    BtnGotoOpcodeIn.IsEnabled = enabled;
+                    ButtonCsCompare.IsEnabled = enabled;
+                    ButtonScCompare.IsEnabled = enabled;
+                },
+                opcodes => ListView14.ItemsSource = opcodes,
+                () =>
+                {
+                    _isInCs = true;
+                    var canCompareCS = _isInCs && _isOutCs;
+                    return (canCompareCS, !canCompareCS);
+                },
+                (canCompareCS, canCompareSC) =>
+                {
+                    ButtonCsCompare.IsEnabled = canCompareCS;
+                    ButtonScCompare.IsEnabled = canCompareSC;
+                },
+                "CS"
+            );
         }
 
         private void FindOpcodeSourceCS()
@@ -1192,63 +1243,46 @@ namespace NameFinder
         /// </summary>
         private async Task FindOpcodeSourceSCAsync()
         {
-            try
-            {
-                // Рефакторинг: синхронизируем XrefsIn с PacketDataService
-                SyncXrefsInToService();
-                
-                var opcodes = await _opcodeFinderWrapper.FindOpcodesWithUIAsync(
-                    Models.PacketType.SC,
-                    Models.PacketSource.In,
-                    InListSource,
-                    _packetDataService.SourceXrefs[Models.PacketType.SC],
-                    percent => ProgressBar13.Value = percent,
-                    max => ProgressBar13.Maximum = max,
-                    count => TextBox16Copy.Text = count,
-                    notFound => TextBox17Copy.Text = notFound,
-                    time => TextBox19Copy.Text = time,
-                    brush => Label_Semafor1.Background = brush,
-                    enabled =>
-                    {
-                        ButtonSaveIn1.IsEnabled = enabled;
-                        ButtonSaveIn2.IsEnabled = enabled;
-                        BtnLoadIn.IsEnabled = enabled;
-                        BtnLoadIn_Copy.IsEnabled = enabled;
-                        BtnCsLoadNameIn.IsEnabled = enabled;
-                        BtnScLoadNameIn.IsEnabled = enabled;
-                        BtnMakePktIn.IsEnabled = enabled;
-                        BtnGotoOpcodeIn.IsEnabled = enabled;
-                        ButtonCsCompare.IsEnabled = enabled;
-                        ButtonScCompare.IsEnabled = enabled;
-                    });
-
-                // Сохраняем результаты
-                ListOpcodeSourceSC = opcodes;
-                _packetDataService.SourceOpcodes[Models.PacketType.SC] = opcodes;
-
-                // Рефакторинг: используем UIHelper для группировки UI обновлений
-                var opcodeCount = ListOpcodeSourceSC.Count;
-                var notFoundCount = ListOpcodeSourceSC.Count(o => o == "0xfff");
-                _isInSc = true;
-                var canCompareSC = _isInSc && _isOutSc;
-
-                await Helpers.UIHelper.InvokeUIBatchAsync(Dispatcher,
-                    () => ListView14.ItemsSource = ListOpcodeSourceSC,
-                    () => TextBox16Copy.Text = opcodeCount.ToString(),
-                    () => TextBox17Copy.Text = notFoundCount.ToString(),
-                    () => ButtonScCompare.IsEnabled = canCompareSC,
-                    () => ButtonCsCompare.IsEnabled = !canCompareSC
-                );
-            }
-            catch (Exception ex)
-            {
-                // Рефакторинг: используем UIHelper для обработки ошибок
-                Helpers.UIHelper.ShowError(Dispatcher, $"Ошибка при поиске опкодов SC: {ex.Message}", "Ошибка");
-                await Helpers.UIHelper.InvokeUIAsync(Dispatcher, () =>
+            await FindOpcodesAsyncInternal(
+                Models.PacketType.SC,
+                Models.PacketSource.In,
+                InListSource,
+                _packetDataService.SourceXrefs[Models.PacketType.SC],
+                _packetDataService.SourceOpcodes[Models.PacketType.SC],
+                () => SyncXrefsInToService(),
+                percent => ProgressBar13.Value = percent,
+                max => ProgressBar13.Maximum = max,
+                count => TextBox16Copy.Text = count,
+                notFound => TextBox17Copy.Text = notFound,
+                time => TextBox19Copy.Text = time,
+                brush => Label_Semafor1.Background = brush,
+                enabled =>
                 {
-                    Label_Semafor1.Background = Brushes.Red;
-                });
-            }
+                    ButtonSaveIn1.IsEnabled = enabled;
+                    ButtonSaveIn2.IsEnabled = enabled;
+                    BtnLoadIn.IsEnabled = enabled;
+                    BtnLoadIn_Copy.IsEnabled = enabled;
+                    BtnCsLoadNameIn.IsEnabled = enabled;
+                    BtnScLoadNameIn.IsEnabled = enabled;
+                    BtnMakePktIn.IsEnabled = enabled;
+                    BtnGotoOpcodeIn.IsEnabled = enabled;
+                    ButtonCsCompare.IsEnabled = enabled;
+                    ButtonScCompare.IsEnabled = enabled;
+                },
+                opcodes => ListView14.ItemsSource = opcodes,
+                () =>
+                {
+                    _isInSc = true;
+                    var canCompareSC = _isInSc && _isOutSc;
+                    return (!canCompareSC, canCompareSC);
+                },
+                (canCompareCS, canCompareSC) =>
+                {
+                    ButtonCsCompare.IsEnabled = canCompareCS;
+                    ButtonScCompare.IsEnabled = canCompareSC;
+                },
+                "SC"
+            );
         }
 
         private void FindOpcodeSourceSC()
@@ -1586,58 +1620,41 @@ namespace NameFinder
         /// </summary>
         private async Task FindOpcodeDestinationCSAsync()
         {
-            try
-            {
-                // Рефакторинг: синхронизируем XrefsOut с PacketDataService
-                SyncXrefsOutToService();
-                
-                var opcodes = await _opcodeFinderWrapper.FindOpcodesWithUIAsync(
-                    Models.PacketType.CS,
-                    Models.PacketSource.Out,
-                    InListDestination,
-                    _packetDataService.DestinationXrefs[Models.PacketType.CS],
-                    percent => ProgressBar23.Value = percent,
-                    max => ProgressBar23.Maximum = max,
-                    count => TextBox16Copy1.Text = count,
-                    notFound => TextBox17Copy1.Text = notFound,
-                    time => TextBox19Copy1.Text = time,
-                    brush => Label_Semafor2.Background = brush,
-                    enabled =>
-                    {
-                        ButtonSaveOut1.IsEnabled = enabled;
-                        ButtonSaveOut2.IsEnabled = enabled;
-                        BtnLoadOut.IsEnabled = enabled;
-                        ButtonCsCompare.IsEnabled = enabled;
-                        ButtonScCompare.IsEnabled = enabled;
-                    });
-
-                // Сохраняем результаты
-                ListOpcodeDestinationCS = opcodes;
-                _packetDataService.DestinationOpcodes[Models.PacketType.CS] = opcodes;
-
-                // Рефакторинг: используем UIHelper для группировки UI обновлений
-                var opcodeCount = ListOpcodeDestinationCS.Count;
-                var notFoundCount = ListOpcodeDestinationCS.Count(o => o == "0xfff");
-                _isOutCs = true;
-                var canCompareCS = _isInCs && _isOutCs;
-
-                await Helpers.UIHelper.InvokeUIBatchAsync(Dispatcher,
-                    () => ListView24.ItemsSource = ListOpcodeDestinationCS,
-                    () => TextBox16Copy1.Text = opcodeCount.ToString(),
-                    () => TextBox17Copy1.Text = notFoundCount.ToString(),
-                    () => ButtonCsCompare.IsEnabled = canCompareCS,
-                    () => ButtonScCompare.IsEnabled = !canCompareCS
-                );
-            }
-                catch (Exception ex)
+            await FindOpcodesAsyncInternal(
+                Models.PacketType.CS,
+                Models.PacketSource.Out,
+                InListDestination,
+                _packetDataService.DestinationXrefs[Models.PacketType.CS],
+                _packetDataService.DestinationOpcodes[Models.PacketType.CS],
+                () => SyncXrefsOutToService(),
+                percent => ProgressBar23.Value = percent,
+                max => ProgressBar23.Maximum = max,
+                count => TextBox16Copy1.Text = count,
+                notFound => TextBox17Copy1.Text = notFound,
+                time => TextBox19Copy1.Text = time,
+                brush => Label_Semafor2.Background = brush,
+                enabled =>
                 {
-                    // Рефакторинг: используем UIHelper для обработки ошибок
-                    Helpers.UIHelper.ShowError(Dispatcher, $"Ошибка при поиске опкодов CS (Destination): {ex.Message}", "Ошибка");
-                    await Helpers.UIHelper.InvokeUIAsync(Dispatcher, () =>
-                    {
-                        Label_Semafor2.Background = Brushes.Red;
-                    });
-                }
+                    ButtonSaveOut1.IsEnabled = enabled;
+                    ButtonSaveOut2.IsEnabled = enabled;
+                    BtnLoadOut.IsEnabled = enabled;
+                    ButtonCsCompare.IsEnabled = enabled;
+                    ButtonScCompare.IsEnabled = enabled;
+                },
+                opcodes => ListView24.ItemsSource = opcodes,
+                () =>
+                {
+                    _isOutCs = true;
+                    var canCompareCS = _isInCs && _isOutCs;
+                    return (canCompareCS, !canCompareCS);
+                },
+                (canCompareCS, canCompareSC) =>
+                {
+                    ButtonCsCompare.IsEnabled = canCompareCS;
+                    ButtonScCompare.IsEnabled = canCompareSC;
+                },
+                "CS (Destination)"
+            );
         }
 
         private void FindOpcodeDestinationCS()
@@ -1951,58 +1968,41 @@ namespace NameFinder
         /// </summary>
         private async Task FindOpcodeDestinationSCAsync()
         {
-            try
-            {
-                // Рефакторинг: синхронизируем XrefsOut с PacketDataService
-                SyncXrefsOutToService();
-                
-                var opcodes = await _opcodeFinderWrapper.FindOpcodesWithUIAsync(
-                    Models.PacketType.SC,
-                    Models.PacketSource.Out,
-                    InListDestination,
-                    _packetDataService.DestinationXrefs[Models.PacketType.SC],
-                    percent => ProgressBar23.Value = percent,
-                    max => ProgressBar23.Maximum = max,
-                    count => TextBox16Copy1.Text = count,
-                    notFound => TextBox17Copy1.Text = notFound,
-                    time => TextBox19Copy1.Text = time,
-                    brush => Label_Semafor2.Background = brush,
-                    enabled =>
-                    {
-                        ButtonSaveOut1.IsEnabled = enabled;
-                        ButtonSaveOut2.IsEnabled = enabled;
-                        BtnLoadOut.IsEnabled = enabled;
-                        ButtonCsCompare.IsEnabled = enabled;
-                        ButtonScCompare.IsEnabled = enabled;
-                    });
-
-                // Сохраняем результаты
-                ListOpcodeDestinationSC = opcodes;
-                _packetDataService.DestinationOpcodes[Models.PacketType.SC] = opcodes;
-
-                // Рефакторинг: используем UIHelper для группировки UI обновлений
-                var opcodeCount = ListOpcodeDestinationSC.Count;
-                var notFoundCount = ListOpcodeDestinationSC.Count(o => o == "0xfff");
-                _isOutSc = true;
-                var canCompareSC = _isInSc && _isOutSc;
-
-                await Helpers.UIHelper.InvokeUIBatchAsync(Dispatcher,
-                    () => ListView24.ItemsSource = ListOpcodeDestinationSC,
-                    () => TextBox16Copy1.Text = opcodeCount.ToString(),
-                    () => TextBox17Copy1.Text = notFoundCount.ToString(),
-                    () => ButtonScCompare.IsEnabled = canCompareSC,
-                    () => ButtonCsCompare.IsEnabled = !canCompareSC
-                );
-            }
-            catch (Exception ex)
-            {
-                // Рефакторинг: используем UIHelper для обработки ошибок
-                Helpers.UIHelper.ShowError(Dispatcher, $"Ошибка при поиске опкодов SC (Destination): {ex.Message}", "Ошибка");
-                await Helpers.UIHelper.InvokeUIAsync(Dispatcher, () =>
+            await FindOpcodesAsyncInternal(
+                Models.PacketType.SC,
+                Models.PacketSource.Out,
+                InListDestination,
+                _packetDataService.DestinationXrefs[Models.PacketType.SC],
+                _packetDataService.DestinationOpcodes[Models.PacketType.SC],
+                () => SyncXrefsOutToService(),
+                percent => ProgressBar23.Value = percent,
+                max => ProgressBar23.Maximum = max,
+                count => TextBox16Copy1.Text = count,
+                notFound => TextBox17Copy1.Text = notFound,
+                time => TextBox19Copy1.Text = time,
+                brush => Label_Semafor2.Background = brush,
+                enabled =>
                 {
-                    Label_Semafor2.Background = Brushes.Red;
-                });
-            }
+                    ButtonSaveOut1.IsEnabled = enabled;
+                    ButtonSaveOut2.IsEnabled = enabled;
+                    BtnLoadOut.IsEnabled = enabled;
+                    ButtonCsCompare.IsEnabled = enabled;
+                    ButtonScCompare.IsEnabled = enabled;
+                },
+                opcodes => ListView24.ItemsSource = opcodes,
+                () =>
+                {
+                    _isOutSc = true;
+                    var canCompareSC = _isInSc && _isOutSc;
+                    return (!canCompareSC, canCompareSC);
+                },
+                (canCompareCS, canCompareSC) =>
+                {
+                    ButtonCsCompare.IsEnabled = canCompareCS;
+                    ButtonScCompare.IsEnabled = canCompareSC;
+                },
+                "SC (Destination)"
+            );
         }
 
         private void FindOpcodeDestinationSC()

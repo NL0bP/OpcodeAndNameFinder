@@ -214,93 +214,7 @@ namespace NameFinder.Services
         /// </summary>
         public List<NameFinder.Struc> FindStructureIn(string address, List<string> fileLines, int maxDepth = 10)
         {
-            var tmpLst = new List<NameFinder.Struc>();
-            if (_currentDepthIn >= maxDepth)
-            {
-                return tmpLst;
-            }
-
-            _currentDepthIn++;
-            var found = false;
-            var regexSub = new Regex(@"^" + address, RegexOptions.Compiled);
-            var regexCall = new Regex(@"(\x22[0-z._]+\x22)|(call\s{4}(sub_\w+)|(call\s{4}(\w+)))", RegexOptions.Compiled);
-
-            for (var index = 0; index < fileLines.Count; index++)
-            {
-                var matches4 = regexSub.Matches(fileLines[index]);
-                if (matches4.Count <= 0)
-                    continue;
-
-                var regexEndP = new Regex(@"\s+endp\s*", RegexOptions.IgnoreCase);
-                var foundEndp = false;
-                tmpLst = new List<Struc>();
-
-                do
-                {
-                    index++;
-                    if (index >= fileLines.Count)
-                        break;
-
-                    var matches5 = regexCall.Matches(fileLines[index]);
-                    foreach (var matchCall in matches5)
-                    {
-                        if (matchCall.ToString() == "call    eax" || matchCall.ToString() == "call    ebx" ||
-                            matchCall.ToString() == "call    edx" || matchCall.ToString() == "call    ecx")
-                        {
-                            continue;
-                        }
-
-                        if (matchCall.ToString().Length >= 4 && matchCall.ToString().Substring(0, 4) == "call")
-                        {
-                            var findList = FindStructureIn(matchCall.ToString().Substring(8), fileLines, maxDepth);
-                            if (findList.Count > 0)
-                            {
-                                tmpLst.AddRange(findList);
-                                found = true;
-                            }
-                        }
-                        else
-                        {
-                            var aa = new NameFinder.Struc();
-                            aa.Name = matchCall.ToString().Replace("\"", "");
-                            index--;
-                            var offset = fileLines[index].LastIndexOf("]", StringComparison.Ordinal) - 3;
-                            
-                            string num;
-                            try
-                            {
-                                num = offset < 0 ? "CC" : fileLines[index].Substring(offset, 2);
-                                aa.Type = Convert.ToInt32(num, 16);
-                            }
-                            catch (Exception)
-                            {
-                                num = "CC";
-                                aa.Type = Convert.ToInt32(num, 16);
-                            }
-                            index++;
-                            tmpLst.Add(aa);
-                            found = true;
-                        }
-                    }
-
-                    var matches6 = regexEndP.Matches(fileLines[index]);
-                    if (matches6.Count <= 0)
-                        continue;
-
-                    foundEndp = true;
-                } while (!foundEndp);
-
-                _currentDepthIn--;
-                return tmpLst;
-            }
-
-            if (!found)
-            {
-                _currentDepthIn--;
-                return new List<NameFinder.Struc>();
-            }
-
-            return tmpLst;
+            return FindStructureInternal(address, fileLines, maxDepth, ref _currentDepthIn, FindStructureIn);
         }
 
         /// <summary>
@@ -308,13 +222,27 @@ namespace NameFinder.Services
         /// </summary>
         public List<NameFinder.Struc> FindStructureOut(string address, List<string> fileLines, int maxDepth = 10)
         {
+            return FindStructureInternal(address, fileLines, maxDepth, ref _currentDepthOut, FindStructureOut);
+        }
+
+        /// <summary>
+        /// Рефакторинг: универсальный метод для поиска структуры по адресу
+        /// Объединяет общую логику FindStructureIn и FindStructureOut
+        /// </summary>
+        private List<NameFinder.Struc> FindStructureInternal(
+            string address,
+            List<string> fileLines,
+            int maxDepth,
+            ref int currentDepth,
+            Func<string, List<string>, int, List<NameFinder.Struc>> recursiveCall)
+        {
             var tmpLst = new List<NameFinder.Struc>();
-            if (_currentDepthOut >= maxDepth)
+            if (currentDepth >= maxDepth)
             {
                 return tmpLst;
             }
 
-            _currentDepthOut++;
+            currentDepth++;
             var found = false;
             var regexSub = new Regex(@"^" + address, RegexOptions.Compiled);
             var regexCall = new Regex(@"(\x22[0-z._]+\x22)|(call\s{4}(sub_\w+)|(call\s{4}(\w+)))", RegexOptions.Compiled);
@@ -346,11 +274,19 @@ namespace NameFinder.Services
 
                         if (matchCall.ToString().Length >= 4 && matchCall.ToString().Substring(0, 4) == "call")
                         {
-                            var findList = FindStructureOut(matchCall.ToString().Substring(8), fileLines, maxDepth);
-                            if (findList.Count > 0)
+                            var callStr = matchCall.ToString();
+                            if (callStr.Length >= 8)
                             {
-                                tmpLst.AddRange(findList);
-                                found = true;
+                                var callAddress = callStr.Substring(8).Trim();
+                                if (!string.IsNullOrEmpty(callAddress))
+                                {
+                                    var findList = recursiveCall(callAddress, fileLines, maxDepth);
+                                    if (findList.Count > 0)
+                                    {
+                                        tmpLst.AddRange(findList);
+                                        found = true;
+                                    }
+                                }
                             }
                         }
                         else
@@ -384,13 +320,13 @@ namespace NameFinder.Services
                     foundEndp = true;
                 } while (!foundEndp);
 
-                _currentDepthOut--;
+                currentDepth--;
                 return tmpLst;
             }
 
             if (!found)
             {
-                _currentDepthOut--;
+                currentDepth--;
                 return new List<NameFinder.Struc>();
             }
 
