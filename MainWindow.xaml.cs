@@ -207,11 +207,12 @@ namespace NameFinder
         // public static List<string> ListOpcodeDestinationCS = new List<string>();
         // public static List<string> ListOpcodeDestinationSC = new List<string>();
 
-        public static List<string> ListNameCompareCS = new List<string>();
-        public static List<string> ListNameCompareSC = new List<string>();
-        public static List<string> ListNameCompare = new List<string>();
-        public static List<string> ListNameCompareOutCS = new List<string>();
-        public static List<string> ListNameCompareOutSC = new List<string>();
+        // Рефакторинг: заменено на свойства-обертки, использующие PacketDataService
+        // public static List<string> ListNameCompareCS = new List<string>();
+        // public static List<string> ListNameCompareSC = new List<string>();
+        public static List<string> ListNameCompare = new List<string>(); // Используется в CompareWindow как временный список
+        public static List<string> ListNameCompareOutCS = new List<string>(); // TODO: мигрировать
+        public static List<string> ListNameCompareOutSC = new List<string>(); // TODO: мигрировать
 
         public bool isCleaningIn = false;
         public bool isCleaningOut = false;
@@ -455,6 +456,40 @@ namespace NameFinder
                 if (value != null)
                 {
                     _packetDataService.DestinationOpcodes[Models.PacketType.SC].AddRange(value);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Рефакторинг: свойство-обертка для обратной совместимости
+        /// Использует PacketDataService.CompareNames
+        /// </summary>
+        public List<string> ListNameCompareCS
+        {
+            get => _packetDataService.CompareNames[Models.PacketType.CS];
+            set
+            {
+                _packetDataService.CompareNames[Models.PacketType.CS].Clear();
+                if (value != null)
+                {
+                    _packetDataService.CompareNames[Models.PacketType.CS].AddRange(value);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Рефакторинг: свойство-обертка для обратной совместимости
+        /// Использует PacketDataService.CompareNames
+        /// </summary>
+        public List<string> ListNameCompareSC
+        {
+            get => _packetDataService.CompareNames[Models.PacketType.SC];
+            set
+            {
+                _packetDataService.CompareNames[Models.PacketType.SC].Clear();
+                if (value != null)
+                {
+                    _packetDataService.CompareNames[Models.PacketType.SC].AddRange(value);
                 }
             }
         }
@@ -5476,7 +5511,8 @@ namespace NameFinder
             Button2Copy2_Copy.IsEnabled = true;
         }
 
-        private static void AddCS(int i)
+        // Рефакторинг: убран static, так как метод использует нестатические свойства
+        private void AddCS(int i)
         {
             // добавим CS|SC в начале имени
             if (ListNameCompareCS[i][0].ToString() != "C" ||
@@ -5490,7 +5526,8 @@ namespace NameFinder
             }
         }
 
-        private static void RemoveCS(int i)
+        // Рефакторинг: убран static, так как метод использует нестатические свойства
+        private void RemoveCS(int i)
         {
             // удаляем ??_7 только в начале имени
             var offset = ListNameCompareCS[i].IndexOf("??_7", StringComparison.OrdinalIgnoreCase);
@@ -5675,7 +5712,8 @@ namespace NameFinder
             ButtonCopy2_Copy.IsEnabled = true;
         }
 
-        private static void AddSC(int i)
+        // Рефакторинг: убран static, так как метод использует нестатические свойства
+        private void AddSC(int i)
         {
             // добавим CS|SC в начале имени
             if (ListNameCompareSC[i][0].ToString() != "S" ||
@@ -5689,7 +5727,8 @@ namespace NameFinder
             }
         }
 
-        private static void RemoveSC(int i)
+        // Рефакторинг: убран static, так как метод использует нестатические свойства
+        private void RemoveSC(int i)
         {
             // удаляем ??_7 только в начале имени
             var offset = ListNameCompareSC[i].IndexOf("??_7", StringComparison.OrdinalIgnoreCase);
