@@ -44,6 +44,8 @@ namespace NameFinder.Services
             { PacketType.SC, new Dictionary<int, int>() }
         };
 
+        public Dictionary<int, bool> IsRenameDestination { get; } = new Dictionary<int, bool>();
+
         public Dictionary<PacketType, List<string>> SourceOpcodes { get; } = new Dictionary<PacketType, List<string>>
         {
             { PacketType.CS, new List<string>() },
@@ -146,6 +148,7 @@ namespace NameFinder.Services
             CompareNames[PacketType.SC].Clear();
             InUseMapping[PacketType.CS].Clear();
             InUseMapping[PacketType.SC].Clear();
+            IsRenameDestination.Clear();
             DestinationStructures[PacketType.CS].Clear();
             DestinationStructures[PacketType.SC].Clear();
             DestinationFileLines.Clear();
