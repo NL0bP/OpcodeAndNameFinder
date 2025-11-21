@@ -199,8 +199,9 @@ namespace NameFinder
         public static Dictionary<int, List<Struc>> StructureDestinationCS = new Dictionary<int, List<Struc>>();
         public static Dictionary<int, List<Struc>> StructureDestinationSC = new Dictionary<int, List<Struc>>();
 
-        public static Dictionary<int, List<string>> XrefsIn = new Dictionary<int, List<string>>();
-        public static Dictionary<int, List<string>> XrefsOut = new Dictionary<int, List<string>>();
+        // Рефакторинг: заменено на свойства-обертки, использующие PacketDataService
+        // public static Dictionary<int, List<string>> XrefsIn = new Dictionary<int, List<string>>();
+        // public static Dictionary<int, List<string>> XrefsOut = new Dictionary<int, List<string>>();
         // Рефакторинг: заменено на свойства-обертки, использующие PacketDataService
         // public static List<string> ListOpcodeSourceCS = new List<string>();
         // public static List<string> ListOpcodeSourceSC = new List<string>();
@@ -496,6 +497,60 @@ namespace NameFinder
 
         /// <summary>
         /// Рефакторинг: свойство-обертка для обратной совместимости
+        /// Использует PacketDataService.SourceXrefs[PacketType.CS]
+        /// Примечание: XrefsIn синхронизируется одинаково для CS и SC, поэтому используем CS данные
+        /// </summary>
+        public Dictionary<int, List<string>> XrefsIn
+        {
+            get => _packetDataService.SourceXrefs[Models.PacketType.CS];
+            set
+            {
+                _packetDataService.SourceXrefs[Models.PacketType.CS].Clear();
+                if (value != null)
+                {
+                    foreach (var kvp in value)
+                    {
+                        _packetDataService.SourceXrefs[Models.PacketType.CS][kvp.Key] = new List<string>(kvp.Value);
+                    }
+                    // Синхронизируем SC с теми же данными
+                    _packetDataService.SourceXrefs[Models.PacketType.SC].Clear();
+                    foreach (var kvp in value)
+                    {
+                        _packetDataService.SourceXrefs[Models.PacketType.SC][kvp.Key] = new List<string>(kvp.Value);
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Рефакторинг: свойство-обертка для обратной совместимости
+        /// Использует PacketDataService.DestinationXrefs[PacketType.CS]
+        /// Примечание: XrefsOut синхронизируется одинаково для CS и SC, поэтому используем CS данные
+        /// </summary>
+        public Dictionary<int, List<string>> XrefsOut
+        {
+            get => _packetDataService.DestinationXrefs[Models.PacketType.CS];
+            set
+            {
+                _packetDataService.DestinationXrefs[Models.PacketType.CS].Clear();
+                if (value != null)
+                {
+                    foreach (var kvp in value)
+                    {
+                        _packetDataService.DestinationXrefs[Models.PacketType.CS][kvp.Key] = new List<string>(kvp.Value);
+                    }
+                    // Синхронизируем SC с теми же данными
+                    _packetDataService.DestinationXrefs[Models.PacketType.SC].Clear();
+                    foreach (var kvp in value)
+                    {
+                        _packetDataService.DestinationXrefs[Models.PacketType.SC][kvp.Key] = new List<string>(kvp.Value);
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Рефакторинг: свойство-обертка для обратной совместимости
         /// Использует PacketDataService.DestinationFileLines
         /// </summary>
         private List<string> InListDestination
@@ -513,22 +568,15 @@ namespace NameFinder
 
         /// <summary>
         /// Рефакторинг: синхронизирует XrefsIn с PacketDataService
+        /// Теперь не нужен, так как свойство XrefsIn автоматически синхронизирует данные
+        /// Оставлен для обратной совместимости, но теперь просто синхронизирует SC с CS данными
         /// </summary>
         private void SyncXrefsInToService()
         {
-            // Синхронизируем CS
-            if (XrefsIn != null && XrefsIn.Count > 0)
-            {
-                _packetDataService.SourceXrefs[Models.PacketType.CS].Clear();
-                foreach (var kvp in XrefsIn)
-                {
-                    _packetDataService.SourceXrefs[Models.PacketType.CS][kvp.Key] = new List<string>(kvp.Value);
-                }
-            }
-            
-            // Синхронизируем SC (используем те же данные, но можно разделить если нужно)
+            // Синхронизируем SC с CS данными (CS уже обновлен через свойство XrefsIn)
+            var csXrefs = _packetDataService.SourceXrefs[Models.PacketType.CS];
             _packetDataService.SourceXrefs[Models.PacketType.SC].Clear();
-            foreach (var kvp in XrefsIn ?? new Dictionary<int, List<string>>())
+            foreach (var kvp in csXrefs)
             {
                 _packetDataService.SourceXrefs[Models.PacketType.SC][kvp.Key] = new List<string>(kvp.Value);
             }
@@ -536,22 +584,15 @@ namespace NameFinder
 
         /// <summary>
         /// Рефакторинг: синхронизирует XrefsOut с PacketDataService
+        /// Теперь не нужен, так как свойство XrefsOut автоматически синхронизирует данные
+        /// Оставлен для обратной совместимости, но теперь просто синхронизирует SC с CS данными
         /// </summary>
         private void SyncXrefsOutToService()
         {
-            // Синхронизируем CS
-            if (XrefsOut != null && XrefsOut.Count > 0)
-            {
-                _packetDataService.DestinationXrefs[Models.PacketType.CS].Clear();
-                foreach (var kvp in XrefsOut)
-                {
-                    _packetDataService.DestinationXrefs[Models.PacketType.CS][kvp.Key] = new List<string>(kvp.Value);
-                }
-            }
-            
-            // Синхронизируем SC
+            // Синхронизируем SC с CS данными (CS уже обновлен через свойство XrefsOut)
+            var csXrefs = _packetDataService.DestinationXrefs[Models.PacketType.CS];
             _packetDataService.DestinationXrefs[Models.PacketType.SC].Clear();
-            foreach (var kvp in XrefsOut ?? new Dictionary<int, List<string>>())
+            foreach (var kvp in csXrefs)
             {
                 _packetDataService.DestinationXrefs[Models.PacketType.SC][kvp.Key] = new List<string>(kvp.Value);
             }
