@@ -2067,8 +2067,9 @@ namespace NameFinder
 
             var found = false;
             var tmpLst = new List<string>();
+            // Рефакторинг: используем UIHelper для чтения значения из UI
             var txtCS = "";
-            TextBox11.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { txtCS = TextBox11.Text; }));
+            Helpers.UIHelper.InvokeUI(Dispatcher, () => txtCS = TextBox11.Text);
 
             // ищем:
             /*
@@ -2097,8 +2098,8 @@ namespace NameFinder
             {
                 if (index % progress == 0)
                 {
-                    ProgressBar11.Dispatcher.Invoke(DispatcherPriority.Background,
-                        new Action(() => { ProgressBar11.Value = index; }));
+                    // Рефакторинг: используем UIHelper для обновления прогрессбара
+                    Helpers.UIHelper.InvokeUI(Dispatcher, () => ProgressBar11.Value = index);
                 }
 
                 // ??_7X2ClientToWorldPacket@@6B@ dd offset CS_PACKETS_return_0
@@ -2167,8 +2168,9 @@ namespace NameFinder
 
             var found = false;
             var tmpLst = new List<string>();
+            // Рефакторинг: используем UIHelper для чтения значения из UI
             var txtSC = "";
-            TextBox12.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { txtSC = TextBox12.Text; }));
+            Helpers.UIHelper.InvokeUI(Dispatcher, () => txtSC = TextBox12.Text);
             //
             // ищем:
             //
@@ -2198,8 +2200,8 @@ namespace NameFinder
             {
                 if (index % progress == 0)
                 {
-                    ProgressBar11.Dispatcher.Invoke(DispatcherPriority.Background,
-                        new Action(() => { ProgressBar11.Value = index; }));
+                    // Рефакторинг: используем UIHelper для обновления прогрессбара
+                    Helpers.UIHelper.InvokeUI(Dispatcher, () => ProgressBar11.Value = index);
                 }
 
                 var matches = regex.Matches(InListSource[index]);
@@ -2268,8 +2270,9 @@ namespace NameFinder
             var found = false;
             var tmpLst = new List<string>();
             var tmpLst2 = new List<string>();
+            // Рефакторинг: используем UIHelper для чтения значения из UI
             var txtSC = "";
-            TextBox12.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { txtSC = TextBox12.Text; }));
+            Helpers.UIHelper.InvokeUI(Dispatcher, () => txtSC = TextBox12.Text);
             var regex = new Regex(@"(^(\s+\w+\s+\d+)|^\s*$)", RegexOptions.IgnoreCase); // ищем мусорные строки 
             for (var index = idx; index < InListSource.Count; index++)
             {
@@ -2571,8 +2574,9 @@ namespace NameFinder
 
             var found = false;
             var tmpLst = new List<string>();
+            // Рефакторинг: используем UIHelper для чтения значения из UI
             var txtCS = "";
-            TextBox21.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { txtCS = TextBox21.Text; }));
+            Helpers.UIHelper.InvokeUI(Dispatcher, () => txtCS = TextBox21.Text);
             //
             // ищем:
             //
@@ -2675,8 +2679,9 @@ namespace NameFinder
 
             var found = false;
             var tmpLst = new List<string>();
+            // Рефакторинг: используем UIHelper для чтения значения из UI
             var txtSC = "";
-            TextBox22.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { txtSC = TextBox22.Text; }));
+            Helpers.UIHelper.InvokeUI(Dispatcher, () => txtSC = TextBox22.Text);
             //
             // ищем:
             //
@@ -2799,8 +2804,11 @@ namespace NameFinder
             var maxCount = File.ReadLines(FilePathIn1).Count();
             var progress = CalcProgress(maxCount);
 
-            ProgressBar11.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar11.Value = 0; }));
-            ProgressBar11.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ProgressBar11.Maximum = maxCount; }));
+            // Рефакторинг: используем UIHelper для группировки UI обновлений
+            Helpers.UIHelper.InvokeUIBatch(Dispatcher,
+                () => ProgressBar11.Value = 0,
+                () => ProgressBar11.Maximum = maxCount
+            );
             //
             // считываем по одной строке, отбрасываем не нужные и сохраняем нужные в InListSource
             //
@@ -4260,22 +4268,17 @@ namespace NameFinder
                 }
             }
 
-            BtnCsLoadNameOut.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnCsLoadNameOut.IsEnabled = true; }));
-            BtnScLoadNameOut.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnScLoadNameOut.IsEnabled = true; }));
-            BtnLoadOut.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnLoadOut.IsEnabled = true; }));
-            //BtnLoadIn_Copy.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { BtnLoadIn_Copy.IsEnabled = true; }));
-
             _isOutSc = true;
-            if (_isInSc && _isOutSc)
-            {
-                ButtonCsCompare.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ButtonCsCompare.IsEnabled = false; }));
-                ButtonScCompare.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ButtonScCompare.IsEnabled = true; }));
-            }
-            else
-            {
-                ButtonCsCompare.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ButtonCsCompare.IsEnabled = false; }));
-                ButtonScCompare.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ButtonScCompare.IsEnabled = false; }));
-            }
+            var canCompareSC = _isInSc && _isOutSc;
+            
+            // Рефакторинг: используем UIHelper для группировки UI обновлений
+            Helpers.UIHelper.InvokeUIBatch(Dispatcher,
+                () => BtnCsLoadNameOut.IsEnabled = true,
+                () => BtnScLoadNameOut.IsEnabled = true,
+                () => BtnLoadOut.IsEnabled = true,
+                () => ButtonCsCompare.IsEnabled = false,
+                () => ButtonScCompare.IsEnabled = canCompareSC
+            );
 
             ButtonSaveOut2.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => { ButtonSaveOut2.IsEnabled = true; }));
             stopWatch.Stop();
@@ -4485,10 +4488,11 @@ namespace NameFinder
                 stopWatch.Start();
                 //lock (lockObj)
                 {
-                    new Thread(() =>
+                    // Рефакторинг: используем Task.Run вместо Thread
+                    _ = Task.Run(() =>
                     {
                         PreCleanSource();
-                    }).Start();
+                    });
                 }
 
                 stopWatch.Stop();
@@ -4643,18 +4647,20 @@ namespace NameFinder
             if (ButtonSaveOut1.IsEnabled)
             {
                 outText = TextBox21.Text;
-                new Thread(() =>
+                // Рефакторинг: используем Task.Run вместо Thread
+                _ = Task.Run(() =>
                 {
                     FindDestinationStructuresCS(outText);
-                }).Start();
+                });
             }
             else
             {
                 outText = TextBox22.Text;
-                new Thread(() =>
+                // Рефакторинг: используем Task.Run вместо Thread
+                _ = Task.Run(() =>
                 {
                     FindDestinationStructuresSC(outText);
-                }).Start();
+                });
             }
         }
 
@@ -5223,11 +5229,12 @@ namespace NameFinder
             {
                 // сохраняем новые имена в исходник
                 // InListDestination = ListNameDestinationCS <- ListNameCompareOutCS
-                new Thread(() =>
+                // Рефакторинг: используем Task.Run вместо Thread
+                _ = Task.Run(() =>
                 {
                     RenamePackets(ListNameDestinationCS, ListNameCompareOutCS);
                     ListNameDestinationCS = ListNameCompareOutCS;
-                }).Start();
+                });
             }
             Button2Copy2.IsEnabled = true;
             Button2Copy2_Copy.IsEnabled = true;
@@ -5403,11 +5410,12 @@ namespace NameFinder
             if (CheckBoxRename.IsChecked == true)
             {
                 // сохраняем новые имена в исходник
-                new Thread(() =>
+                // Рефакторинг: используем Task.Run вместо Thread
+                _ = Task.Run(() =>
                 {
                     RenamePackets(ListNameDestinationSC, ListNameCompareOutSC);
                     ListNameDestinationSC = ListNameCompareOutSC;
-                }).Start();
+                });
             }
             ButtonCopy2.IsEnabled = true;
             ButtonCopy2_Copy.IsEnabled = true;
