@@ -29,11 +29,11 @@ namespace NameFinder.Services
 
         // Списки имен пакетов (Source)
         Dictionary<PacketType, ObservableCollection<string>> SourcePacketNames { get; }
-        Dictionary<PacketType, List<string>> SourceSubNames { get; }
+        Dictionary<PacketType, ObservableCollection<string>> SourceSubNames { get; }
         
         // Списки имен пакетов (Destination)
         Dictionary<PacketType, ObservableCollection<string>> DestinationPacketNames { get; }
-        Dictionary<PacketType, List<string>> DestinationSubNames { get; }
+        Dictionary<PacketType, ObservableCollection<string>> DestinationSubNames { get; }
 
         // Файловые данные
         List<string> SourceFileLines { get; }

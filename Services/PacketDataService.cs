@@ -72,10 +72,10 @@ namespace NameFinder.Services
             { PacketType.SC, new ObservableCollection<string>() }
         };
 
-        public Dictionary<PacketType, List<string>> SourceSubNames { get; } = new Dictionary<PacketType, List<string>>
+        public Dictionary<PacketType, ObservableCollection<string>> SourceSubNames { get; } = new Dictionary<PacketType, ObservableCollection<string>>
         {
-            { PacketType.CS, new List<string>() },
-            { PacketType.SC, new List<string>() }
+            { PacketType.CS, new ObservableCollection<string>() },
+            { PacketType.SC, new ObservableCollection<string>() }
         };
 
         // Списки имен пакетов (Destination)
@@ -85,10 +85,10 @@ namespace NameFinder.Services
             { PacketType.SC, new ObservableCollection<string>() }
         };
 
-        public Dictionary<PacketType, List<string>> DestinationSubNames { get; } = new Dictionary<PacketType, List<string>>
+        public Dictionary<PacketType, ObservableCollection<string>> DestinationSubNames { get; } = new Dictionary<PacketType, ObservableCollection<string>>
         {
-            { PacketType.CS, new List<string>() },
-            { PacketType.SC, new List<string>() }
+            { PacketType.CS, new ObservableCollection<string>() },
+            { PacketType.SC, new ObservableCollection<string>() }
         };
 
         public List<string> SourceFileLines { get; } = new List<string>();
