@@ -325,22 +325,7 @@ namespace NameFinder
         public ObservableCollection<string> ListNameSourceCS
         {
             get => _packetDataService.SourcePacketNames[Models.PacketType.CS];
-            set
-            {
-                // Если присваивается та же коллекция, не нужно ничего делать
-                if (ReferenceEquals(value, _packetDataService.SourcePacketNames[Models.PacketType.CS]))
-                {
-                    return;
-                }
-                _packetDataService.SourcePacketNames[Models.PacketType.CS].Clear();
-                if (value != null)
-                {
-                    foreach (var item in value)
-                    {
-                        _packetDataService.SourcePacketNames[Models.PacketType.CS].Add(item);
-                    }
-                }
-            }
+            set => CopyCollection(_packetDataService.SourcePacketNames[Models.PacketType.CS], value);
         }
 
         /// <summary>
@@ -351,22 +336,7 @@ namespace NameFinder
         public ObservableCollection<string> ListNameSourceSC
         {
             get => _packetDataService.SourcePacketNames[Models.PacketType.SC];
-            set
-            {
-                // Если присваивается та же коллекция, не нужно ничего делать
-                if (ReferenceEquals(value, _packetDataService.SourcePacketNames[Models.PacketType.SC]))
-                {
-                    return;
-                }
-                _packetDataService.SourcePacketNames[Models.PacketType.SC].Clear();
-                if (value != null)
-                {
-                    foreach (var item in value)
-                    {
-                        _packetDataService.SourcePacketNames[Models.PacketType.SC].Add(item);
-                    }
-                }
-            }
+            set => CopyCollection(_packetDataService.SourcePacketNames[Models.PacketType.SC], value);
         }
 
         /// <summary>
@@ -381,22 +351,7 @@ namespace NameFinder
         public ObservableCollection<string> ListSubSourceCS
         {
             get => _packetDataService.SourceSubNames[Models.PacketType.CS];
-            set
-            {
-                // Если присваивается та же коллекция, не нужно ничего делать
-                if (ReferenceEquals(value, _packetDataService.SourceSubNames[Models.PacketType.CS]))
-                {
-                    return;
-                }
-                _packetDataService.SourceSubNames[Models.PacketType.CS].Clear();
-                if (value != null)
-                {
-                    foreach (var item in value)
-                    {
-                        _packetDataService.SourceSubNames[Models.PacketType.CS].Add(item);
-                    }
-                }
-            }
+            set => CopyCollection(_packetDataService.SourceSubNames[Models.PacketType.CS], value);
         }
 
         /// <summary>
@@ -407,22 +362,7 @@ namespace NameFinder
         public ObservableCollection<string> ListSubSourceSC
         {
             get => _packetDataService.SourceSubNames[Models.PacketType.SC];
-            set
-            {
-                // Если присваивается та же коллекция, не нужно ничего делать
-                if (ReferenceEquals(value, _packetDataService.SourceSubNames[Models.PacketType.SC]))
-                {
-                    return;
-                }
-                _packetDataService.SourceSubNames[Models.PacketType.SC].Clear();
-                if (value != null)
-                {
-                    foreach (var item in value)
-                    {
-                        _packetDataService.SourceSubNames[Models.PacketType.SC].Add(item);
-                    }
-                }
-            }
+            set => CopyCollection(_packetDataService.SourceSubNames[Models.PacketType.SC], value);
         }
 
         /// <summary>
@@ -433,22 +373,7 @@ namespace NameFinder
         public ObservableCollection<string> ListNameDestinationCS
         {
             get => _packetDataService.DestinationPacketNames[Models.PacketType.CS];
-            set
-            {
-                // Если присваивается та же коллекция, не нужно ничего делать
-                if (ReferenceEquals(value, _packetDataService.DestinationPacketNames[Models.PacketType.CS]))
-                {
-                    return;
-                }
-                _packetDataService.DestinationPacketNames[Models.PacketType.CS].Clear();
-                if (value != null)
-                {
-                    foreach (var item in value)
-                    {
-                        _packetDataService.DestinationPacketNames[Models.PacketType.CS].Add(item);
-                    }
-                }
-            }
+            set => CopyCollection(_packetDataService.DestinationPacketNames[Models.PacketType.CS], value);
         }
 
         /// <summary>
@@ -459,22 +384,7 @@ namespace NameFinder
         public ObservableCollection<string> ListNameDestinationSC
         {
             get => _packetDataService.DestinationPacketNames[Models.PacketType.SC];
-            set
-            {
-                // Если присваивается та же коллекция, не нужно ничего делать
-                if (ReferenceEquals(value, _packetDataService.DestinationPacketNames[Models.PacketType.SC]))
-                {
-                    return;
-                }
-                _packetDataService.DestinationPacketNames[Models.PacketType.SC].Clear();
-                if (value != null)
-                {
-                    foreach (var item in value)
-                    {
-                        _packetDataService.DestinationPacketNames[Models.PacketType.SC].Add(item);
-                    }
-                }
-            }
+            set => CopyCollection(_packetDataService.DestinationPacketNames[Models.PacketType.SC], value);
         }
 
         /// <summary>
@@ -485,22 +395,7 @@ namespace NameFinder
         public ObservableCollection<string> ListSubDestinationCS
         {
             get => _packetDataService.DestinationSubNames[Models.PacketType.CS];
-            set
-            {
-                // Если присваивается та же коллекция, не нужно ничего делать
-                if (ReferenceEquals(value, _packetDataService.DestinationSubNames[Models.PacketType.CS]))
-                {
-                    return;
-                }
-                _packetDataService.DestinationSubNames[Models.PacketType.CS].Clear();
-                if (value != null)
-                {
-                    foreach (var item in value)
-                    {
-                        _packetDataService.DestinationSubNames[Models.PacketType.CS].Add(item);
-                    }
-                }
-            }
+            set => CopyCollection(_packetDataService.DestinationSubNames[Models.PacketType.CS], value);
         }
 
         /// <summary>
@@ -511,22 +406,7 @@ namespace NameFinder
         public ObservableCollection<string> ListSubDestinationSC
         {
             get => _packetDataService.DestinationSubNames[Models.PacketType.SC];
-            set
-            {
-                // Если присваивается та же коллекция, не нужно ничего делать
-                if (ReferenceEquals(value, _packetDataService.DestinationSubNames[Models.PacketType.SC]))
-                {
-                    return;
-                }
-                _packetDataService.DestinationSubNames[Models.PacketType.SC].Clear();
-                if (value != null)
-                {
-                    foreach (var item in value)
-                    {
-                        _packetDataService.DestinationSubNames[Models.PacketType.SC].Add(item);
-                    }
-                }
-            }
+            set => CopyCollection(_packetDataService.DestinationSubNames[Models.PacketType.SC], value);
         }
 
         /// <summary>
@@ -537,17 +417,7 @@ namespace NameFinder
         public ObservableCollection<string> ListOpcodeSourceCS
         {
             get => _packetDataService.SourceOpcodes[Models.PacketType.CS];
-            set
-            {
-                _packetDataService.SourceOpcodes[Models.PacketType.CS].Clear();
-                if (value != null)
-                {
-                    foreach (var item in value)
-                    {
-                        _packetDataService.SourceOpcodes[Models.PacketType.CS].Add(item);
-                    }
-                }
-            }
+            set => CopyCollection(_packetDataService.SourceOpcodes[Models.PacketType.CS], value, checkReferenceEquals: false);
         }
 
         /// <summary>
@@ -558,17 +428,7 @@ namespace NameFinder
         public ObservableCollection<string> ListOpcodeSourceSC
         {
             get => _packetDataService.SourceOpcodes[Models.PacketType.SC];
-            set
-            {
-                _packetDataService.SourceOpcodes[Models.PacketType.SC].Clear();
-                if (value != null)
-                {
-                    foreach (var item in value)
-                    {
-                        _packetDataService.SourceOpcodes[Models.PacketType.SC].Add(item);
-                    }
-                }
-            }
+            set => CopyCollection(_packetDataService.SourceOpcodes[Models.PacketType.SC], value, checkReferenceEquals: false);
         }
 
         /// <summary>
@@ -579,17 +439,7 @@ namespace NameFinder
         public ObservableCollection<string> ListOpcodeDestinationCS
         {
             get => _packetDataService.DestinationOpcodes[Models.PacketType.CS];
-            set
-            {
-                _packetDataService.DestinationOpcodes[Models.PacketType.CS].Clear();
-                if (value != null)
-                {
-                    foreach (var item in value)
-                    {
-                        _packetDataService.DestinationOpcodes[Models.PacketType.CS].Add(item);
-                    }
-                }
-            }
+            set => CopyCollection(_packetDataService.DestinationOpcodes[Models.PacketType.CS], value, checkReferenceEquals: false);
         }
 
         /// <summary>
@@ -600,17 +450,7 @@ namespace NameFinder
         public ObservableCollection<string> ListOpcodeDestinationSC
         {
             get => _packetDataService.DestinationOpcodes[Models.PacketType.SC];
-            set
-            {
-                _packetDataService.DestinationOpcodes[Models.PacketType.SC].Clear();
-                if (value != null)
-                {
-                    foreach (var item in value)
-                    {
-                        _packetDataService.DestinationOpcodes[Models.PacketType.SC].Add(item);
-                    }
-                }
-            }
+            set => CopyCollection(_packetDataService.DestinationOpcodes[Models.PacketType.SC], value, checkReferenceEquals: false);
         }
 
         /// <summary>
@@ -621,17 +461,7 @@ namespace NameFinder
         public ObservableCollection<string> ListNameCompareCS
         {
             get => _packetDataService.CompareNames[Models.PacketType.CS];
-            set
-            {
-                _packetDataService.CompareNames[Models.PacketType.CS].Clear();
-                if (value != null)
-                {
-                    foreach (var item in value)
-                    {
-                        _packetDataService.CompareNames[Models.PacketType.CS].Add(item);
-                    }
-                }
-            }
+            set => CopyCollection(_packetDataService.CompareNames[Models.PacketType.CS], value, checkReferenceEquals: false);
         }
 
         /// <summary>
@@ -642,17 +472,7 @@ namespace NameFinder
         public ObservableCollection<string> ListNameCompareSC
         {
             get => _packetDataService.CompareNames[Models.PacketType.SC];
-            set
-            {
-                _packetDataService.CompareNames[Models.PacketType.SC].Clear();
-                if (value != null)
-                {
-                    foreach (var item in value)
-                    {
-                        _packetDataService.CompareNames[Models.PacketType.SC].Add(item);
-                    }
-                }
-            }
+            set => CopyCollection(_packetDataService.CompareNames[Models.PacketType.SC], value, checkReferenceEquals: false);
         }
 
         /// <summary>
@@ -722,6 +542,29 @@ namespace NameFinder
                 if (value != null)
                 {
                     _packetDataService.DestinationFileLines.AddRange(value);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Вспомогательный метод для копирования коллекций, устраняющий дублирование кода
+        /// </summary>
+        /// <typeparam name="T">Тип элементов коллекции</typeparam>
+        /// <param name="target">Целевая коллекция</param>
+        /// <param name="source">Исходная коллекция</param>
+        /// <param name="checkReferenceEquals">Проверять ли ReferenceEquals перед копированием</param>
+        private void CopyCollection<T>(ObservableCollection<T> target, IEnumerable<T> source, bool checkReferenceEquals = true)
+        {
+            if (checkReferenceEquals && ReferenceEquals(source, target))
+            {
+                return;
+            }
+            target.Clear();
+            if (source != null)
+            {
+                foreach (var item in source)
+                {
+                    target.Add(item);
                 }
             }
         }
@@ -947,17 +790,7 @@ namespace NameFinder
         public ObservableCollection<string> ListNameCompareOutCS
         {
             get => _packetDataService.CompareOutNames[Models.PacketType.CS];
-            set
-            {
-                _packetDataService.CompareOutNames[Models.PacketType.CS].Clear();
-                if (value != null)
-                {
-                    foreach (var item in value)
-                    {
-                        _packetDataService.CompareOutNames[Models.PacketType.CS].Add(item);
-                    }
-                }
-            }
+            set => CopyCollection(_packetDataService.CompareOutNames[Models.PacketType.CS], value, checkReferenceEquals: false);
         }
 
         /// <summary>
@@ -968,17 +801,7 @@ namespace NameFinder
         public ObservableCollection<string> ListNameCompareOutSC
         {
             get => _packetDataService.CompareOutNames[Models.PacketType.SC];
-            set
-            {
-                _packetDataService.CompareOutNames[Models.PacketType.SC].Clear();
-                if (value != null)
-                {
-                    foreach (var item in value)
-                    {
-                        _packetDataService.CompareOutNames[Models.PacketType.SC].Add(item);
-                    }
-                }
-            }
+            set => CopyCollection(_packetDataService.CompareOutNames[Models.PacketType.SC], value, checkReferenceEquals: false);
         }
 
         /// <summary>
