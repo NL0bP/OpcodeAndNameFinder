@@ -960,7 +960,7 @@ namespace NameFinder
             //
             // здесь ищем ссылку на подпрограмму, где есть опкоды
             //
-            var regexOffset = new Regex(@"mov\s+\[(\w+\+[0-9a-fA-F]+h?|\w+\+\w+)\],\soffset\s+off_|mov\s+dword\sptr\s\[(\w+)\],\soffset\s+off_|mov\s+dword\sptr\s\[(\w+\+[0-9a-fA-F]+h?|\w+\+\w+)\],\soffset\s+off_", RegexOptions.Compiled);
+            var regexOffset = new Regex(@"mov\s+\[(\w+\+[0-9a-fA-F]+h?|\w+\+\w+)\],\soffset\s+off_|mov\s+dword\s+ptr\s+\[(\w+)\],\soffset\s+off_|mov\s+dword\s+ptr\s+\[(\w+\+[0-9a-fA-F]+h?|\w+\+\w+)\],\soffset\s+off_|mov\s+dword\s+ptr\s+\[(ebp\+var_\w+)\],\soffset\s+off_|mov\s+dword\s+ptr\s+\[(ebp\+var_\w+\+[0-9a-fA-F]+)\],\soffset\s+off_", RegexOptions.Compiled);
             //var regexOpcode = new Regex(@"mov\s+\[\w+\+\w+\],\s+([0-9A-F]+)|mov\s+dword\sptr\s\[\w+\+\w+\],\s+([0-9A-F]+)|mov\s+dword\sptr\s\[\w+\+\w+\+\w+\],\s+([0-9A-F]+)|mov\s+dword\sptr\s\[\w+\-\w+\],\s+([0-9A-F]+)", RegexOptions.Compiled);
             var regexOpcode = new Regex(@"\[\w+\-(?![0-9a-f]+h+)[0-9a-fA-F]+\],\s([0-9a-fA-F]+)|\[\w+\+(?![0-9a-f]+h+)[0-9a-fA-F]+\],\s([0-9a-fA-F]+)|\[\w+\+(?![0-9a-f]+h+)\w+[0-9a-fA-F]+\],\s([0-9a-fA-F]+)|\[\w+\+(?![0-9a-f]+h)\w+[0-9a-fA-F]+\+[0-9a-fA-F]+\],\s([0-9a-fA-F]+)", RegexOptions.Compiled);
 
@@ -1028,9 +1028,19 @@ namespace NameFinder
                             mov     dword ptr [ebp+var_20+4], 1D4h
                             */
                             var matchesOffset = regexOffset.Match(InListSource[index]);
+                                Trace.WriteLine($"[OPCODE DEBUG] Checking offset line {index}: {InListSource[index].Trim()}");
+                                Trace.WriteLine($"[OPCODE DEBUG] Offset match success: {matchesOffset.Success}, Groups count: {matchesOffset.Groups.Count}");
                             if (matchesOffset.Groups.Count <= 1)
                             {
+                                Trace.WriteLine($"[OPCODE DEBUG] Skipping - Groups count <= 1");
                                 continue;
+                            }
+                            for (int g = 1; g < matchesOffset.Groups.Count; g++)
+                            {
+                                if (matchesOffset.Groups[g].Success)
+                                {
+                                    Trace.WriteLine($"[OPCODE DEBUG] Offset Group[{g}]: '{matchesOffset.Groups[g].Value}'");
+                                }
                             }
                             //group 1 = mov\s+\[(\w+\+\w+)\],\soffset\s|
                             if (matchesOffset.Groups[1].Length > 0)
@@ -1042,11 +1052,19 @@ namespace NameFinder
                                 regexOpcode = new Regex(@"" + find, RegexOptions.IgnoreCase);
                             }
                             //group 2 = mov\s+dword\sptr\s\[(\w+)\],\soffset\s|
+                            // Пример: mov dword ptr [ecx], offset off_39D1490C
+                            // Ищем опкод в: mov dword ptr [eax+4], 6Eh (любой регистр с +4)
                             else if (matchesOffset.Groups[2].Length > 0)
                             {
+                                // Для group 2 регистр может быть любым (ecx, eax и т.д.)
+                                // Ищем опкод в любом регистре с +4
+                                // Паттерн: mov dword ptr [eax+4], 6Eh
+                                // Groups[1] = "dword ptr " (если есть), Groups[2] = регистр, Groups[3] = опкод
                                 ss = matchesOffset.Groups[2].ToString();
-                                find = Increase4(ss, 4);
+                                Trace.WriteLine($"[OPCODE DEBUG] Group 2 found: offset='{ss}', line={index}: {InListSource[index]}");
+                                find = "mov\\s+(dword\\s+ptr\\s+)?\\[(\\w+)\\+4\\],\\s+([0-9a-fA-F]+h?|\\d+)(\\s|;|$)";
                                 regexOpcode = new Regex(@"" + find, RegexOptions.IgnoreCase);
+                                Trace.WriteLine($"[OPCODE DEBUG] Created pattern for group 2: {find}");
                             }
                             //group 3 = mov\s+dword\sptr\s\[(\w+\+\w+)\],\soffset\s
                             else if (matchesOffset.Groups[3].Length > 0)
@@ -1054,6 +1072,24 @@ namespace NameFinder
                                 // mov     dword ptr [esi+10C0h], offset SCUnitDeathPacket_0x1f5
                                 // mov     dword ptr [esi+10C4h], 1F5h
                                 ss = matchesOffset.Groups[3].ToString();
+                                find = Increase4(ss, 4);
+                                regexOpcode = new Regex(@"" + find, RegexOptions.IgnoreCase);
+                            }
+                            //group 4 = mov\s+dword\sptr\s\[(ebp\+var_\w+)\],\soffset\s+off_
+                            else if (matchesOffset.Groups[4].Length > 0)
+                            {
+                                // mov     dword ptr [ebp+var_34], offset off_39D11730
+                                // mov     dword ptr [ebp+var_34+4], 43h
+                                ss = matchesOffset.Groups[4].ToString();
+                                find = Increase4(ss, 4);
+                                regexOpcode = new Regex(@"" + find, RegexOptions.IgnoreCase);
+                            }
+                            //group 5 = mov\s+dword\sptr\s\[(ebp\+var_\w+\+[0-9a-fA-F]+)\],\soffset\s+off_
+                            else if (matchesOffset.Groups[5].Length > 0)
+                            {
+                                // mov     dword ptr [ebp+var_34+8], offset off_39D11730
+                                // mov     dword ptr [ebp+var_34+Ch], 43h
+                                ss = matchesOffset.Groups[5].ToString();
                                 find = Increase4(ss, 4);
                                 regexOpcode = new Regex(@"" + find, RegexOptions.IgnoreCase);
                             }
@@ -1065,55 +1101,100 @@ namespace NameFinder
                             do
                             {
                                 index++;
-                                matchesOpcode = regexOpcode.Match(InListSource[index]);
-                                if (matchesOpcode.Groups.Count >= 2)
+                                if (index >= InListSource.Count) break;
+                                var currentLine = InListSource[index];
+                                matchesOpcode = regexOpcode.Match(currentLine);
+                                
+                                Trace.WriteLine($"[OPCODE DEBUG] Checking line {index}: {currentLine.Trim()}");
+                                Trace.WriteLine($"[OPCODE DEBUG] Match success: {matchesOpcode.Success}, Groups count: {matchesOpcode.Groups.Count}");
+                                
+                                // Проверяем, что нашли совпадение и есть группа с опкодом
+                                // Для group 2 паттерна: mov dword ptr [eax+4], 6Eh
+                                // Groups[0] = вся строка, Groups[1] = "dword ptr " (если есть), Groups[2] = регистр, Groups[3] = опкод, Groups[4] = пробел/;/$ 
+                                if (matchesOpcode.Success)
                                 {
-                                    //
-                                    // нашли опкод
-                                    //
-                                    break;
+                                    for (int g = 0; g < matchesOpcode.Groups.Count; g++)
+                                    {
+                                        Trace.WriteLine($"[OPCODE DEBUG] Group[{g}]: Success={matchesOpcode.Groups[g].Success}, Length={matchesOpcode.Groups[g].Length}, Value='{matchesOpcode.Groups[g].Value}'");
+                                    }
+                                    
+                                    // Проверяем Groups[3] для group 2 паттерна (любой регистр с +4)
+                                    if (matchesOpcode.Groups.Count >= 4 && matchesOpcode.Groups[3].Success && matchesOpcode.Groups[3].Length > 0)
+                                    {
+                                        Trace.WriteLine($"[OPCODE DEBUG] Found opcode in Groups[3]: '{matchesOpcode.Groups[3].Value}'");
+                                        //
+                                        // нашли опкод
+                                        //
+                                        foundOpcode = true;
+                                        break;
+                                    }
+                                    // Проверяем Groups[2] для других паттернов
+                                    else if (matchesOpcode.Groups.Count >= 3 && matchesOpcode.Groups[2].Success && matchesOpcode.Groups[2].Length > 0)
+                                    {
+                                        Trace.WriteLine($"[OPCODE DEBUG] Found opcode in Groups[2]: '{matchesOpcode.Groups[2].Value}'");
+                                        //
+                                        // нашли опкод
+                                        //
+                                        foundOpcode = true;
+                                        break;
+                                    }
                                 }
 
-                                var matches2 = regexEndp.Matches(InListSource[index]);
+                                var matches2 = regexEndp.Matches(currentLine);
                                 //
                                 // нашли конец подпрограммы
                                 //
                                 if (matches2.Count > 0)
                                     foundEndp = true;
-                            } while (!foundEndp);
+                            } while (!foundEndp && !foundOpcode);
 
-                            if (matchesOpcode.Groups.Count >= 2)
+                            if (matchesOpcode.Success && foundOpcode)
                             {
-                                if (matchesOpcode.Groups[4].ToString() != "" && matchesOpcode.Groups[4].ToString() != "0")
+                                Trace.WriteLine($"[OPCODE DEBUG] Extracting opcode - Groups count: {matchesOpcode.Groups.Count}");
+                                // Для group 2 паттерна опкод в Groups[3]
+                                // Для других паттернов опкод может быть в Groups[4], Groups[3], Groups[2] или Groups[1]
+                                if (matchesOpcode.Groups.Count >= 4 && matchesOpcode.Groups[3].Length > 0 && matchesOpcode.Groups[3].ToString() != "0")
                                 {
-                                    var matchGroup = FormatOpcodeValue(matchesOpcode.Groups[4].ToString());
+                                    // Groups[3] содержит опкод для group 2 паттерна
+                                    var opcodeValue = matchesOpcode.Groups[3].ToString();
+                                    Trace.WriteLine($"[OPCODE DEBUG] Extracting from Groups[3]: '{opcodeValue}'");
+                                    var matchGroup = FormatOpcodeValue(opcodeValue);
+                                    Trace.WriteLine($"[OPCODE DEBUG] Formatted opcode: '{matchGroup}'");
                                     ListOpcodeSourceCS.Add(matchGroup);
                                     foundOpcode = true; // нашли Opcode
                                 }
-                                else if (matchesOpcode.Groups[3].ToString() != "" && matchesOpcode.Groups[3].ToString() != "0")
+                                else if (matchesOpcode.Groups.Count >= 5 && matchesOpcode.Groups[4].Length > 0 && matchesOpcode.Groups[4].ToString() != "0")
                                 {
-                                    var matchGroup = FormatOpcodeValue(matchesOpcode.Groups[3].ToString());
+                                    var opcodeValue = matchesOpcode.Groups[4].ToString();
+                                    Trace.WriteLine($"[OPCODE DEBUG] Extracting from Groups[4]: '{opcodeValue}'");
+                                    var matchGroup = FormatOpcodeValue(opcodeValue);
                                     ListOpcodeSourceCS.Add(matchGroup);
                                     foundOpcode = true; // нашли Opcode
                                 }
-                                else if (matchesOpcode.Groups[2].ToString() != "" && matchesOpcode.Groups[2].ToString() != "0")
+                                else if (matchesOpcode.Groups.Count >= 3 && matchesOpcode.Groups[2].Length > 0 && matchesOpcode.Groups[2].ToString() != "0")
                                 {
-                                    var matchGroup = FormatOpcodeValue(matchesOpcode.Groups[2].ToString());
+                                    var opcodeValue = matchesOpcode.Groups[2].ToString();
+                                    Trace.WriteLine($"[OPCODE DEBUG] Extracting from Groups[2]: '{opcodeValue}'");
+                                    var matchGroup = FormatOpcodeValue(opcodeValue);
                                     ListOpcodeSourceCS.Add(matchGroup);
                                     foundOpcode = true; // нашли Opcode
                                 }
-                                else if (matchesOpcode.Groups[1].ToString() != "" && matchesOpcode.Groups[1].ToString() != "0")
+                                else if (matchesOpcode.Groups.Count >= 2 && matchesOpcode.Groups[1].Length > 0 && matchesOpcode.Groups[1].ToString() != "0")
                                 {
-                                    var matchGroup = FormatOpcodeValue(matchesOpcode.Groups[1].ToString());
+                                    var opcodeValue = matchesOpcode.Groups[1].ToString();
+                                    Trace.WriteLine($"[OPCODE DEBUG] Extracting from Groups[1]: '{opcodeValue}'");
+                                    var matchGroup = FormatOpcodeValue(opcodeValue);
                                     ListOpcodeSourceCS.Add(matchGroup);
                                     foundOpcode = true; // нашли Opcode
                                 }
-                                else if (matchesOpcode.Groups[0].ToString() != "" && matchesOpcode.Groups[0].ToString() != "0")
+                                else
                                 {
-                                    var matchGroup = FormatOpcodeValue(matchesOpcode.Groups[0].ToString());
-                                    ListOpcodeSourceCS.Add(matchGroup);
-                                    foundOpcode = true; // нашли Opcode
+                                    Trace.WriteLine($"[OPCODE DEBUG] No valid opcode found in any group!");
                                 }
+                            }
+                            else
+                            {
+                                Trace.WriteLine($"[OPCODE DEBUG] No match found for opcode pattern");
                             }
                         } while (!foundEndp && !foundOpcode);
 
@@ -1131,8 +1212,13 @@ namespace NameFinder
 
                 if (!foundOpcode)
                 {
+                    Trace.WriteLine($"[OPCODE DEBUG] Opcode not found for xref index {i}, adding 0xfff");
                     notFoundCount++;
                     ListOpcodeSourceCS.Add("0xfff"); // не нашли опкод
+                }
+                else
+                {
+                    Trace.WriteLine($"[OPCODE DEBUG] Opcode found successfully for xref index {i}");
                 }
 
                 // Рефакторинг: используем UIHelper для обновления прогрессбара
@@ -1256,7 +1342,7 @@ namespace NameFinder
             //
             // здесь ищем ссылку на подпрограмму, где есть опкоды
             //
-            var regexOffset = new Regex(@"mov\s+\[(\w+\+[0-9a-fA-F]+h?|\w+\+\w+)\],\soffset\s+off_|mov\s+dword\sptr\s\[(\w+)\],\soffset\s+off_|mov\s+dword\sptr\s\[(\w+\+[0-9a-fA-F]+h?|\w+\+\w+)\],\soffset\s+off_", RegexOptions.Compiled);
+            var regexOffset = new Regex(@"mov\s+\[(\w+\+[0-9a-fA-F]+h?|\w+\+\w+)\],\soffset\s+off_|mov\s+dword\s+ptr\s+\[(\w+)\],\soffset\s+off_|mov\s+dword\s+ptr\s+\[(\w+\+[0-9a-fA-F]+h?|\w+\+\w+)\],\soffset\s+off_|mov\s+dword\s+ptr\s+\[(ebp\+var_\w+)\],\soffset\s+off_|mov\s+dword\s+ptr\s+\[(ebp\+var_\w+\+[0-9a-fA-F]+)\],\soffset\s+off_", RegexOptions.Compiled);
             //var regexOpcode = new Regex(@"mov\s+\[\w+\+\w+\],\s+([0-9A-F]+)|mov\s+dword\sptr\s\[\w+\+\w+\],\s+([0-9A-F]+)|mov\s+dword\sptr\s\[\w+\+\w+\+\w+\],\s+([0-9A-F]+)|mov\s+dword\sptr\s\[\w+\-\w+\],\s+([0-9A-F]+)", RegexOptions.Compiled);
             var regexOpcode = new Regex(@"\[\w+\-(?![0-9a-f]+h+)[0-9a-fA-F]+\],\s([0-9a-fA-F]+)|\[\w+\+(?![0-9a-f]+h+)[0-9a-fA-F]+\],\s([0-9a-fA-F]+)|\[\w+\+(?![0-9a-f]+h+)\w+[0-9a-fA-F]+\],\s([0-9a-fA-F]+)|\[\w+\+(?![0-9a-f]+h)\w+[0-9a-fA-F]+\+[0-9a-fA-F]+\],\s([0-9a-fA-F]+)", RegexOptions.Compiled);
 
@@ -1339,11 +1425,19 @@ namespace NameFinder
                                 regexOpcode = new Regex(@"" + find, RegexOptions.IgnoreCase);
                             }
                             //group 2 = mov\s+dword\sptr\s\[(\w+)\],\soffset\s|
+                            // Пример: mov dword ptr [ecx], offset off_39D1490C
+                            // Ищем опкод в: mov dword ptr [eax+4], 6Eh (любой регистр с +4)
                             else if (matchesOffset.Groups[2].Length > 0)
                             {
+                                // Для group 2 регистр может быть любым (ecx, eax и т.д.)
+                                // Ищем опкод в любом регистре с +4
+                                // Паттерн: mov dword ptr [eax+4], 6Eh
+                                // Groups[1] = "dword ptr " (если есть), Groups[2] = регистр, Groups[3] = опкод
                                 ss = matchesOffset.Groups[2].ToString();
-                                find = Increase4(ss, 4);
+                                Trace.WriteLine($"[OPCODE DEBUG] Group 2 found: offset='{ss}', line={index}: {InListSource[index]}");
+                                find = "mov\\s+(dword\\s+ptr\\s+)?\\[(\\w+)\\+4\\],\\s+([0-9a-fA-F]+h?|\\d+)(\\s|;|$)";
                                 regexOpcode = new Regex(@"" + find, RegexOptions.IgnoreCase);
+                                Trace.WriteLine($"[OPCODE DEBUG] Created pattern for group 2: {find}");
                             }
                             //group 3 = mov\s+dword\sptr\s\[(\w+\+\w+)\],\soffset\s
                             else if (matchesOffset.Groups[3].Length > 0)
@@ -1351,6 +1445,24 @@ namespace NameFinder
                                 // mov     dword ptr [esi+10C0h], offset SCUnitDeathPacket_0x1f5
                                 // mov     dword ptr [esi+10C4h], 1F5h
                                 ss = matchesOffset.Groups[3].ToString();
+                                find = Increase4(ss, 4);
+                                regexOpcode = new Regex(@"" + find, RegexOptions.IgnoreCase);
+                            }
+                            //group 4 = mov\s+dword\sptr\s\[(ebp\+var_\w+)\],\soffset\s+off_
+                            else if (matchesOffset.Groups[4].Length > 0)
+                            {
+                                // mov     dword ptr [ebp+var_34], offset off_39D11730
+                                // mov     dword ptr [ebp+var_34+4], 43h
+                                ss = matchesOffset.Groups[4].ToString();
+                                find = Increase4(ss, 4);
+                                regexOpcode = new Regex(@"" + find, RegexOptions.IgnoreCase);
+                            }
+                            //group 5 = mov\s+dword\sptr\s\[(ebp\+var_\w+\+[0-9a-fA-F]+)\],\soffset\s+off_
+                            else if (matchesOffset.Groups[5].Length > 0)
+                            {
+                                // mov     dword ptr [ebp+var_34+8], offset off_39D11730
+                                // mov     dword ptr [ebp+var_34+Ch], 43h
+                                ss = matchesOffset.Groups[5].ToString();
                                 find = Increase4(ss, 4);
                                 regexOpcode = new Regex(@"" + find, RegexOptions.IgnoreCase);
                             }
@@ -1539,7 +1651,7 @@ namespace NameFinder
             // здесь ищем ссылку на подпрограмму, где есть опкоды
             var found = false;
             var regexEndp = new Regex(@"\s+endp\s*", RegexOptions.Compiled); // ищем конец подпрограммы
-            var regexOffset = new Regex(@"mov\s+\[(\w+\+[0-9a-fA-F]+h?|\w+\+\w+)\],\soffset\s+off_|mov\s+dword\sptr\s\[(\w+)\],\soffset\s+off_|mov\s+dword\sptr\s\[(\w+\+[0-9a-fA-F]+h?|\w+\+\w+)\],\soffset\s+off_", RegexOptions.Compiled);
+            var regexOffset = new Regex(@"mov\s+\[(\w+\+[0-9a-fA-F]+h?|\w+\+\w+)\],\soffset\s+off_|mov\s+dword\s+ptr\s+\[(\w+)\],\soffset\s+off_|mov\s+dword\s+ptr\s+\[(\w+\+[0-9a-fA-F]+h?|\w+\+\w+)\],\soffset\s+off_|mov\s+dword\s+ptr\s+\[(ebp\+var_\w+)\],\soffset\s+off_|mov\s+dword\s+ptr\s+\[(ebp\+var_\w+\+[0-9a-fA-F]+)\],\soffset\s+off_", RegexOptions.Compiled);
             //var regexOpcode = new Regex(@"mov\s+\[\w+\+\w+\],\s+([0-9A-F]+)|mov\s+dword\sptr\s\[\w+\+\w+\],\s+([0-9A-F]+)|mov\s+dword\sptr\s\[\w+\+\w+\+\w+\],\s+([0-9A-F]+)|mov\s+dword\sptr\s\[\w+\-\w+\],\s+([0-9A-F]+)", RegexOptions.Compiled);
             var regexOpcode = new Regex(@"\[\w+\-(?![0-9a-f]+h+)[0-9a-fA-F]+\],\s([0-9a-fA-F]+)|\[\w+\+(?![0-9a-f]+h+)[0-9a-fA-F]+\],\s([0-9a-fA-F]+)|\[\w+\+(?![0-9a-f]+h+)\w+[0-9a-fA-F]+\],\s([0-9a-fA-F]+)|\[\w+\+(?![0-9a-f]+h)\w+[0-9a-fA-F]+\+[0-9a-fA-F]+\],\s([0-9a-fA-F]+)", RegexOptions.Compiled);
 
@@ -1616,11 +1728,19 @@ namespace NameFinder
                                 regexOpcode = new Regex(@"" + find, RegexOptions.IgnoreCase);
                             }
                             //group 2 = mov\s+dword\sptr\s\[(\w+)\],\soffset\s|
+                            // Пример: mov dword ptr [ecx], offset off_39D1490C
+                            // Ищем опкод в: mov dword ptr [eax+4], 6Eh (любой регистр с +4)
                             else if (matchesOffset.Groups[2].Length > 0)
                             {
+                                // Для group 2 регистр может быть любым (ecx, eax и т.д.)
+                                // Ищем опкод в любом регистре с +4
+                                // Паттерн: mov dword ptr [eax+4], 6Eh
+                                // Groups[1] = "dword ptr " (если есть), Groups[2] = регистр, Groups[3] = опкод
                                 ss = matchesOffset.Groups[2].ToString();
-                                find = Increase4(ss, 4);
+                                Trace.WriteLine($"[OPCODE DEBUG] Group 2 found: offset='{ss}', line={index}: {InListSource[index]}");
+                                find = "mov\\s+(dword\\s+ptr\\s+)?\\[(\\w+)\\+4\\],\\s+([0-9a-fA-F]+h?|\\d+)(\\s|;|$)";
                                 regexOpcode = new Regex(@"" + find, RegexOptions.IgnoreCase);
+                                Trace.WriteLine($"[OPCODE DEBUG] Created pattern for group 2: {find}");
                             }
                             //group 3 = mov\s+dword\sptr\s\[(\w+\+\w+)\],\soffset\s
                             else if (matchesOffset.Groups[3].Length > 0)
@@ -1628,6 +1748,24 @@ namespace NameFinder
                                 // mov     dword ptr [esi+10C0h], offset SCUnitDeathPacket_0x1f5
                                 // mov     dword ptr [esi+10C4h], 1F5h
                                 ss = matchesOffset.Groups[3].ToString();
+                                find = Increase4(ss, 4);
+                                regexOpcode = new Regex(@"" + find, RegexOptions.IgnoreCase);
+                            }
+                            //group 4 = mov\s+dword\sptr\s\[(ebp\+var_\w+)\],\soffset\s+off_
+                            else if (matchesOffset.Groups[4].Length > 0)
+                            {
+                                // mov     dword ptr [ebp+var_34], offset off_39D11730
+                                // mov     dword ptr [ebp+var_34+4], 43h
+                                ss = matchesOffset.Groups[4].ToString();
+                                find = Increase4(ss, 4);
+                                regexOpcode = new Regex(@"" + find, RegexOptions.IgnoreCase);
+                            }
+                            //group 5 = mov\s+dword\sptr\s\[(ebp\+var_\w+\+[0-9a-fA-F]+)\],\soffset\s+off_
+                            else if (matchesOffset.Groups[5].Length > 0)
+                            {
+                                // mov     dword ptr [ebp+var_34+8], offset off_39D11730
+                                // mov     dword ptr [ebp+var_34+Ch], 43h
+                                ss = matchesOffset.Groups[5].ToString();
                                 find = Increase4(ss, 4);
                                 regexOpcode = new Regex(@"" + find, RegexOptions.IgnoreCase);
                             }
@@ -1811,7 +1949,7 @@ namespace NameFinder
             // здесь ищем ссылку на подпрограмму, где есть опкоды
             var found = false;
             var regexEndp = new Regex(@"\s+endp\s*", RegexOptions.Compiled); // ищем конец подпрограммы
-            var regexOffset = new Regex(@"mov\s+\[(\w+\+[0-9a-fA-F]+h?|\w+\+\w+)\],\soffset\s+off_|mov\s+dword\sptr\s\[(\w+)\],\soffset\s+off_|mov\s+dword\sptr\s\[(\w+\+[0-9a-fA-F]+h?|\w+\+\w+)\],\soffset\s+off_", RegexOptions.Compiled);
+            var regexOffset = new Regex(@"mov\s+\[(\w+\+[0-9a-fA-F]+h?|\w+\+\w+)\],\soffset\s+off_|mov\s+dword\s+ptr\s+\[(\w+)\],\soffset\s+off_|mov\s+dword\s+ptr\s+\[(\w+\+[0-9a-fA-F]+h?|\w+\+\w+)\],\soffset\s+off_|mov\s+dword\s+ptr\s+\[(ebp\+var_\w+)\],\soffset\s+off_|mov\s+dword\s+ptr\s+\[(ebp\+var_\w+\+[0-9a-fA-F]+)\],\soffset\s+off_", RegexOptions.Compiled);
             //var regexOpcode = new Regex(@"mov\s+\[\w+\+\w+\],\s+([0-9A-F]+)|mov\s+dword\sptr\s\[\w+\+\w+\],\s+([0-9A-F]+)|mov\s+dword\sptr\s\[\w+\+\w+\+\w+\],\s+([0-9A-F]+)|mov\s+dword\sptr\s\[\w+\-\w+\],\s+([0-9A-F]+)", RegexOptions.Compiled);
             var regexOpcode = new Regex(@"\[\w+\-(?![0-9a-f]+h+)[0-9a-fA-F]+\],\s([0-9a-fA-F]+)|\[\w+\+(?![0-9a-f]+h+)[0-9a-fA-F]+\],\s([0-9a-fA-F]+)|\[\w+\+(?![0-9a-f]+h+)\w+[0-9a-fA-F]+\],\s([0-9a-fA-F]+)|\[\w+\+(?![0-9a-f]+h)\w+[0-9a-fA-F]+\+[0-9a-fA-F]+\],\s([0-9a-fA-F]+)", RegexOptions.Compiled);
 
@@ -1888,11 +2026,19 @@ namespace NameFinder
                                 regexOpcode = new Regex(@"" + find, RegexOptions.IgnoreCase);
                             }
                             //group 2 = mov\s+dword\sptr\s\[(\w+)\],\soffset\s|
+                            // Пример: mov dword ptr [ecx], offset off_39D1490C
+                            // Ищем опкод в: mov dword ptr [eax+4], 6Eh (любой регистр с +4)
                             else if (matchesOffset.Groups[2].Length > 0)
                             {
+                                // Для group 2 регистр может быть любым (ecx, eax и т.д.)
+                                // Ищем опкод в любом регистре с +4
+                                // Паттерн: mov dword ptr [eax+4], 6Eh
+                                // Groups[1] = "dword ptr " (если есть), Groups[2] = регистр, Groups[3] = опкод
                                 ss = matchesOffset.Groups[2].ToString();
-                                find = Increase4(ss, 4);
+                                Trace.WriteLine($"[OPCODE DEBUG] Group 2 found: offset='{ss}', line={index}: {InListSource[index]}");
+                                find = "mov\\s+(dword\\s+ptr\\s+)?\\[(\\w+)\\+4\\],\\s+([0-9a-fA-F]+h?|\\d+)(\\s|;|$)";
                                 regexOpcode = new Regex(@"" + find, RegexOptions.IgnoreCase);
+                                Trace.WriteLine($"[OPCODE DEBUG] Created pattern for group 2: {find}");
                             }
                             //group 3 = mov\s+dword\sptr\s\[(\w+\+\w+)\],\soffset\s
                             else if (matchesOffset.Groups[3].Length > 0)
@@ -1900,6 +2046,24 @@ namespace NameFinder
                                 // mov     dword ptr [esi+10C0h], offset SCUnitDeathPacket_0x1f5
                                 // mov     dword ptr [esi+10C4h], 1F5h
                                 ss = matchesOffset.Groups[3].ToString();
+                                find = Increase4(ss, 4);
+                                regexOpcode = new Regex(@"" + find, RegexOptions.IgnoreCase);
+                            }
+                            //group 4 = mov\s+dword\sptr\s\[(ebp\+var_\w+)\],\soffset\s+off_
+                            else if (matchesOffset.Groups[4].Length > 0)
+                            {
+                                // mov     dword ptr [ebp+var_34], offset off_39D11730
+                                // mov     dword ptr [ebp+var_34+4], 43h
+                                ss = matchesOffset.Groups[4].ToString();
+                                find = Increase4(ss, 4);
+                                regexOpcode = new Regex(@"" + find, RegexOptions.IgnoreCase);
+                            }
+                            //group 5 = mov\s+dword\sptr\s\[(ebp\+var_\w+\+[0-9a-fA-F]+)\],\soffset\s+off_
+                            else if (matchesOffset.Groups[5].Length > 0)
+                            {
+                                // mov     dword ptr [ebp+var_34+8], offset off_39D11730
+                                // mov     dword ptr [ebp+var_34+Ch], 43h
+                                ss = matchesOffset.Groups[5].ToString();
                                 find = Increase4(ss, 4);
                                 regexOpcode = new Regex(@"" + find, RegexOptions.IgnoreCase);
                             }
@@ -2012,6 +2176,8 @@ namespace NameFinder
             {
                 // mov     dword ptr [esi+10C0h], offset SCUnitDeathPacket_0x1f5
                 // mov     dword ptr [esi+10C4h], 1F5h
+                // mov     dword ptr [ebp+var_34], offset off_39D11730
+                // mov     dword ptr [ebp+var_34+4], 43h
                 int offset;
                 string prefix;
                 string numb;
@@ -2031,7 +2197,36 @@ namespace NameFinder
                     postfix = "";
                 }
 
-                if (str.LastIndexOf("_", StringComparison.Ordinal) > 0)
+                // Специальная обработка для ebp+var_XXX - нужно добавить +4, а не изменять число
+                if (str.Contains("ebp+var_"))
+                {
+                    // ebp+var_34 -> ebp+var_34+4
+                    // ebp+var_34+8 -> ebp+var_34+Ch
+                    if (str.LastIndexOf("+", StringComparison.Ordinal) > str.IndexOf("var_"))
+                    {
+                        // Уже есть + после var_, например: ebp+var_34+8
+                        offset = str.LastIndexOf("+", StringComparison.Ordinal) + 1;
+                        prefix = str.Substring(0, offset);
+                        numb = str.Substring(offset);
+                        num = Convert.ToInt32(numb, 16) + inc;
+                        numb = num.ToString("X");
+                        fstr = prefix + numb + postfix;
+                    }
+                    else
+                    {
+                        // Нет + после var_, например: ebp+var_34
+                        fstr = str + "+" + inc.ToString("X");
+                    }
+                    fstr = fstr.Replace("+", "\\+");
+                    // Учитываем возможное наличие "dword ptr" перед "[ebp+var_XXX+число]"
+                    // Также учитываем возможные комментарии после опкода
+                    // Паттерн должен найти строку вида: "mov     dword ptr [ebp+var_34+4], 43h ; 'C'"
+                    // Groups[1] = "dword ptr " (если есть), Groups[2] = опкод (43h)
+                    // Паттерн для поиска опкода: mov [ebp+var_34+4], 43h
+                    // Groups[1] = "dword ptr " (если есть), Groups[2] = опкод (43h)
+                    find = "mov\\s+(dword\\s+ptr\\s+)?\\[" + fstr + "\\],\\s*([0-9a-fA-F]+h?)(\\s|;|$)";
+                }
+                else if (str.LastIndexOf("_", StringComparison.Ordinal) > 0)
                 {
                     // esi+var_10C
                     offset = str.LastIndexOf("_", StringComparison.Ordinal) + 1;
@@ -2053,13 +2248,19 @@ namespace NameFinder
                     numb = num.ToString("X");
                     fstr = prefix + numb + postfix;
                     fstr = fstr.Replace("+", "\\+");
-                    find = "\\[" + fstr + "\\],\\s([0-9a-fA-F]+h?)";
+                    // Учитываем возможное наличие "dword ptr" перед "[register+offset]"
+                    // Также учитываем возможные комментарии после опкода
+                    // Паттерн должен найти строку вида: "mov     dword ptr [esi+10C4h], 1F5h"
+                    // Groups[1] = "dword ptr " (если есть), Groups[2] = опкод (1F5h)
+                    // Паттерн для поиска опкода: mov [ebp+var_34+4], 43h
+                    // Groups[1] = "dword ptr " (если есть), Groups[2] = опкод (43h)
+                    find = "mov\\s+(dword\\s+ptr\\s+)?\\[" + fstr + "\\],\\s*([0-9a-fA-F]+h?)(\\s|;|$)";
                 }
                 else
                 {
                     // eax
                     fstr = str + "\\+" + inc;
-                    find = "\\[" + fstr + "\\],\\s([0-9a-fA-F]+h?)";
+                    find = "\\[" + fstr + "\\],\\s+([0-9a-fA-F]+h?)(\\s|;|$)";
                 }
 
                 return find;
@@ -2619,10 +2820,12 @@ namespace NameFinder
             // - push offset
             // - mov [ebp+var_XXX], offset
             // - mov [ebp+var_XXX], hex_value или число
+            // - mov dword ptr [ebp+var_XXX], offset
+            // - mov dword ptr [ebp+var_XXX+число], hex_value или число
             // - mov dword ptr [register], offset
             // - mov dword ptr [register+offset], hex_value или число
             // - call sub_XXX или call MySubbroutine (но не call eax, call ebx и т.д.)
-            var regexSub = new Regex(@"push\s+offset\s|mov\s+\[ebp\+var_\w+\],\s+offset|mov\s+\[ebp\+var_\w+\],\s+([0-9A-Fa-f]+h|\d+)(\s|;|$)|mov\s+dword\s+ptr\s+\[e(ax|bx|cx|dx|si|di|sp|bp)\],\s+offset|mov\s+dword\s+ptr\s+\[e(ax|bx|cx|dx|si|di|sp|bp)\+[0-9A-Fa-f]+\],\s+([0-9A-Fa-f]+h|\d+)(\s|;|$)|call\s+(sub_\w+|[A-Z_][A-Za-z0-9_]*)", RegexOptions.Compiled);
+            var regexSub = new Regex(@"push\s+offset\s|mov\s+\[ebp\+var_\w+\],\s+offset|mov\s+\[ebp\+var_\w+\],\s+([0-9A-Fa-f]+h|\d+)(\s|;|$)|mov\s+dword\s+ptr\s+\[ebp\+var_\w+\],\s+offset|mov\s+dword\s+ptr\s+\[ebp\+var_\w+\+[0-9A-Fa-f]+\],\s+([0-9A-Fa-f]+h|\d+)(\s|;|$)|mov\s+dword\s+ptr\s+\[e(ax|bx|cx|dx|si|di|sp|bp)\],\s+offset|mov\s+dword\s+ptr\s+\[e(ax|bx|cx|dx|si|di|sp|bp)\+[0-9A-Fa-f]+\],\s+([0-9A-Fa-f]+h|\d+)(\s|;|$)|call\s+(sub_\w+|[A-Z_][A-Za-z0-9_]*)", RegexOptions.Compiled);
 
             for (var index = idx; index < maxCount; index++)
             {
@@ -2700,10 +2903,12 @@ namespace NameFinder
             // - push offset
             // - mov [ebp+var_XXX], offset
             // - mov [ebp+var_XXX], hex_value или число
+            // - mov dword ptr [ebp+var_XXX], offset
+            // - mov dword ptr [ebp+var_XXX+число], hex_value или число
             // - mov dword ptr [register], offset
             // - mov dword ptr [register+offset], hex_value или число
             // - call sub_XXX или call MySubbroutine (но не call eax, call ebx и т.д.)
-            var regexSub = new Regex(@"push\s+offset\s|mov\s+\[ebp\+var_\w+\],\s+offset|mov\s+\[ebp\+var_\w+\],\s+([0-9A-Fa-f]+h|\d+)(\s|;|$)|mov\s+dword\s+ptr\s+\[e(ax|bx|cx|dx|si|di|sp|bp)\],\s+offset|mov\s+dword\s+ptr\s+\[e(ax|bx|cx|dx|si|di|sp|bp)\+[0-9A-Fa-f]+\],\s+([0-9A-Fa-f]+h|\d+)(\s|;|$)|call\s+(sub_\w+|[A-Z_][A-Za-z0-9_]*)", RegexOptions.Compiled);
+            var regexSub = new Regex(@"push\s+offset\s|mov\s+\[ebp\+var_\w+\],\s+offset|mov\s+\[ebp\+var_\w+\],\s+([0-9A-Fa-f]+h|\d+)(\s|;|$)|mov\s+dword\s+ptr\s+\[ebp\+var_\w+\],\s+offset|mov\s+dword\s+ptr\s+\[ebp\+var_\w+\+[0-9A-Fa-f]+\],\s+([0-9A-Fa-f]+h|\d+)(\s|;|$)|mov\s+dword\s+ptr\s+\[e(ax|bx|cx|dx|si|di|sp|bp)\],\s+offset|mov\s+dword\s+ptr\s+\[e(ax|bx|cx|dx|si|di|sp|bp)\+[0-9A-Fa-f]+\],\s+([0-9A-Fa-f]+h|\d+)(\s|;|$)|call\s+(sub_\w+|[A-Z_][A-Za-z0-9_]*)", RegexOptions.Compiled);
 
             for (var index = idx; index < maxCount; index++)
             {

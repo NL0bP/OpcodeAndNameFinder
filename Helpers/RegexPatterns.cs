@@ -16,7 +16,7 @@ namespace NameFinder.Helpers
         /// Поиск offset в mov инструкциях (только с off_)
         /// </summary>
         public static readonly Regex OffsetPattern = new Regex(
-            @"mov\s+\[(\w+\+[0-9a-fA-F]+h?|\w+\+\w+)\],\soffset\s+off_|mov\s+dword\sptr\s\[(\w+)\],\soffset\s+off_|mov\s+dword\sptr\s\[(\w+\+[0-9a-fA-F]+h?|\w+\+\w+)\],\soffset\s+off_",
+            @"mov\s+\[(\w+\+[0-9a-fA-F]+h?|\w+\+\w+)\],\soffset\s+off_|mov\s+dword\s+ptr\s+\[(\w+)\],\soffset\s+off_|mov\s+dword\s+ptr\s+\[(\w+\+[0-9a-fA-F]+h?|\w+\+\w+)\],\soffset\s+off_|mov\s+dword\s+ptr\s+\[(ebp\+var_\w+)\],\soffset\s+off_|mov\s+dword\s+ptr\s+\[(ebp\+var_\w+\+[0-9a-fA-F]+)\],\soffset\s+off_",
             RegexOptions.Compiled);
 
         /// <summary>
