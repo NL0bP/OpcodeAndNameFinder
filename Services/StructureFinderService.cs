@@ -40,7 +40,9 @@ namespace NameFinder.Services
 
             // Поиск имен пакетов и XREF
             var regex = new Regex(@"^[a-zA-Z0-9_?@]+\s+dd\soffset\s" + searchPattern, RegexOptions.Compiled);
-            var regexXREF = new Regex(@"(^\s+;[a-zA-Z:\s]*\s(sub_\w+|X2\w+|w+))", RegexOptions.Compiled);
+            var regexXREF = new Regex(@"(^\s+;[a-zA-Z:\s]*\s(sub_\w+|X2\w+|w+))|(;\s*DATA\s+XREF:)", RegexOptions.Compiled);
+            var regexXREFInLine = new Regex(@";\s*DATA\s+XREF:[^;]*", RegexOptions.Compiled);
+            var regexStopLine = new Regex(@"^\s+dd\s+offset", RegexOptions.Compiled);
             var indexRefs = 0;
 
             for (var index = 0; index < fileLines.Count; index++)
@@ -52,23 +54,63 @@ namespace NameFinder.Services
 
                 // Собираем XREF
                 var lst = new List<string>();
-                var tmpIdx = index;
-                var tmpIdxMax = tmpIdx + 2;
-                do
+                
+                // Проверяем, содержит ли текущая строка "DATA XREF"
+                if (fileLines[index].Contains("DATA XREF"))
                 {
-                    tmpIdx++;
-                    if (tmpIdx >= fileLines.Count)
-                        break;
-
-                    var matchesXREF = regexXREF.Matches(fileLines[tmpIdx]);
-                    if (matchesXREF.Count <= 0)
-                        continue;
-
-                    foreach (var match in matchesXREF)
+                    // Извлекаем XREF из текущей строки
+                    var xrefMatch = regexXREFInLine.Match(fileLines[index]);
+                    if (xrefMatch.Success)
                     {
-                        lst.Add(match.ToString());
+                        lst.Add(xrefMatch.ToString());
                     }
-                } while (tmpIdx < tmpIdxMax);
+                    
+                    // Продолжаем собирать XREF из последующих строк до строки вида "                dd offset CS_PACKETS"
+                    var tmpIdx = index;
+                    do
+                    {
+                        tmpIdx++;
+                        if (tmpIdx >= fileLines.Count)
+                            break;
+                        
+                        // Останавливаемся, если нашли строку с ведущими пробелами и "dd offset"
+                        if (regexStopLine.IsMatch(fileLines[tmpIdx]))
+                        {
+                            break;
+                        }
+                        
+                        // Ищем "; DATA XREF: sub_3922E1C0+79↑o" или "; sub_3922E1C0:loc_3922E37F↑o"
+                        var matchesXREF = regexXREF.Matches(fileLines[tmpIdx]);
+                        if (matchesXREF.Count > 0)
+                        {
+                            foreach (var match in matchesXREF)
+                            {
+                                lst.Add(match.ToString());
+                            }
+                        }
+                    } while (true);
+                }
+                else
+                {
+                    // Старая логика для обратной совместимости
+                    var tmpIdx = index;
+                    var tmpIdxMax = tmpIdx + 2;
+                    do
+                    {
+                        tmpIdx++;
+                        if (tmpIdx >= fileLines.Count)
+                            break;
+
+                        var matchesXREF = regexXREF.Matches(fileLines[tmpIdx]);
+                        if (matchesXREF.Count <= 0)
+                            continue;
+
+                        foreach (var match in matchesXREF)
+                        {
+                            lst.Add(match.ToString());
+                        }
+                    } while (tmpIdx < tmpIdxMax);
+                }
 
                 xrefs.Add(indexRefs, lst);
                 indexRefs++;
