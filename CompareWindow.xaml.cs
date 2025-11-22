@@ -35,7 +35,7 @@ namespace NameFinder
         public static ObservableCollection<string> ListNameCompare = new ObservableCollection<string>();
         public static ObservableCollection<string> ListNameSource = new ObservableCollection<string>();
         public static ObservableCollection<string> ListNameDestination = new ObservableCollection<string>();
-        public static List<string> ListSubDestination = new List<string>();
+        public static ObservableCollection<string> ListSubDestination = new ObservableCollection<string>();
         public static Dictionary<int, ObservableCollection<Struc>> StructureSource = new Dictionary<int, ObservableCollection<Struc>>();
         public static Dictionary<int, ObservableCollection<Struc>> StructureDestination = new Dictionary<int, ObservableCollection<Struc>>();
         public static ObservableCollection<string> ListOpcodeDestination = new ObservableCollection<string>();
@@ -48,7 +48,7 @@ namespace NameFinder
             ObservableCollection<string> listNameSource,
             ObservableCollection<string> listNameDestination,
             ObservableCollection<string> listNameCompare,
-            List<string> listSubDestination,
+            ObservableCollection<string> listSubDestination,
             Dictionary<int, ObservableCollection<Struc>> structureSource,
             Dictionary<int, ObservableCollection<Struc>> structureDestination,
             ObservableCollection<string> listOpcodeDestination)
@@ -78,7 +78,7 @@ namespace NameFinder
             ListNameCompare = listNameCompare;
             ListNameSource = listNameSource;
             ListNameDestination = listNameDestination;
-            ListSubDestination = new List<string>(listSubDestination); // Оставляем копию для List, так как это не ObservableCollection
+            ListSubDestination = listSubDestination; // Передаем ссылку на ObservableCollection
             StructureSource = structureSource; // Передаем ссылку на Dictionary с ObservableCollection
             StructureDestination = structureDestination; // Передаем ссылку на Dictionary с ObservableCollection
             ListOpcodeDestination = listOpcodeDestination;
@@ -603,7 +603,7 @@ namespace NameFinder
             {
                 if (MainWindow.ListNameCompare.Count == 0)
                 {
-                    MainWindow.ListNameCompare = new List<string>(ListNameCompare);
+                    MainWindow.ListNameCompare = new ObservableCollection<string>(ListNameCompare);
                 }
                 MainWindow.ListNameCompare[IdxD] = TextBoxNameOut.Text;
                 ListNameCompare[IdxD] = TextBoxNameOut.Text;
@@ -783,7 +783,7 @@ namespace NameFinder
             }
 
             // Обновляем статический ListNameCompare для обратной совместимости
-            MainWindow.ListNameCompare = new List<string>(ListNameCompare);
+            MainWindow.ListNameCompare = new ObservableCollection<string>(ListNameCompare);
             System.Diagnostics.Debug.WriteLine($"[DEBUG] {System.DateTime.Now:HH:mm:ss.fff} CompareWindow.ButtonQuit_Click: Обновлен MainWindow.ListNameCompare. Count={MainWindow.ListNameCompare.Count}");
 
             Close();
