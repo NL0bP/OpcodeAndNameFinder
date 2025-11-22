@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
@@ -17,6 +18,15 @@ namespace NameFinder.Services
     /// </summary>
     public class OpcodeFinderService : IOpcodeFinderService
     {
+        // Кэш для индексов подпрограмм (адрес -> индекс строки)
+        private readonly ConcurrentDictionary<string, int> _subroutineIndexCache = new ConcurrentDictionary<string, int>();
+        
+        // Кэш для Regex паттернов опкодов
+        private readonly ConcurrentDictionary<string, Regex> _opcodePatternCache = new ConcurrentDictionary<string, Regex>();
+        
+        // Храним размер файла для проверки, нужно ли переиндексировать
+        private int _lastFileLinesCount = 0;
+
         /// <summary>
         /// Находит опкоды для пакетов
         /// </summary>
@@ -33,12 +43,23 @@ namespace NameFinder.Services
             if (xrefs == null || xrefs.Count == 0)
                 return new List<string>();
 
-            var opcodes = new List<string>();
-            var notFoundCount = 0;
+            // Предварительная индексация файла для быстрого поиска подпрограмм
+            // Индексируем только если кэш пуст или размер файла изменился
+            if (_subroutineIndexCache.Count == 0 || _lastFileLinesCount != fileLines.Count)
+            {
+                await Task.Run(() => BuildSubroutineIndex(fileLines));
+                _lastFileLinesCount = fileLines.Count;
+            }
 
+            var opcodes = new string[xrefs.Count];
+            var processedCount = 0;
+            var lockObj = new object();
+
+            // Последовательный поиск опкодов (временно отключен параллелизм для диагностики)
+            // Если проблема не в параллелизме, можно вернуть Parallel.For
             await Task.Run(() =>
             {
-                for (var i = 0; i < xrefs.Count; i++)
+                for (int i = 0; i < xrefs.Count; i++)
                 {
                     var foundOpcode = false;
                     var xrefList = xrefs[i]?.ToList() ?? new List<string>();
@@ -54,7 +75,7 @@ namespace NameFinder.Services
                         var opcode = FindOpcodeInSubroutine(fileLines, subAddress);
                         if (!string.IsNullOrEmpty(opcode))
                         {
-                            opcodes.Add(opcode);
+                            opcodes[i] = opcode;
                             foundOpcode = true;
                             break;
                         }
@@ -62,8 +83,7 @@ namespace NameFinder.Services
 
                     if (!foundOpcode)
                     {
-                        opcodes.Add("0xfff"); // Не найден
-                        notFoundCount++;
+                        opcodes[i] = "0xfff"; // Не найден
                     }
 
                     // Отчет о прогрессе
@@ -80,7 +100,39 @@ namespace NameFinder.Services
                 }
             });
 
-            return opcodes;
+            return opcodes.ToList();
+        }
+
+        /// <summary>
+        /// Строит индекс подпрограмм для быстрого поиска
+        /// </summary>
+        private void BuildSubroutineIndex(List<string> fileLines)
+        {
+            _subroutineIndexCache.Clear();
+            
+            // Последовательная индексация для гарантии правильности
+            // Параллелизация здесь не критична, так как это делается один раз
+            for (int i = 0; i < fileLines.Count; i++)
+            {
+                var line = fileLines[i];
+                // Ищем строки вида "sub_XXXXXXXX    proc near" или "sub_XXXXXXXX    proc far"
+                // Также проверяем строки, которые начинаются с адреса подпрограммы
+                var match = RegexPatterns.SubroutinePattern.Match(line);
+                if (match.Success)
+                {
+                    var subAddress = match.Value;
+                    // Проверяем, что это действительно начало подпрограммы
+                    // Подпрограмма начинается со строки вида "sub_XXXXXXXX    proc near" или просто "sub_XXXXXXXX"
+                    var trimmedLine = line.TrimStart();
+                    if (line.Contains("proc near") || line.Contains("proc far") || 
+                        trimmedLine.StartsWith(subAddress, StringComparison.OrdinalIgnoreCase))
+                    {
+                        // Используем индекс или обновляем, если нашли более раннее вхождение
+                        // Важно: используем первое вхождение (минимальный индекс)
+                        _subroutineIndexCache.AddOrUpdate(subAddress, i, (key, oldValue) => Math.Min(oldValue, i));
+                    }
+                }
+            }
         }
 
         /// <summary>
@@ -103,19 +155,24 @@ namespace NameFinder.Services
             if (string.IsNullOrEmpty(subAddress) || fileLines == null)
                 return null;
 
-            // Ищем начало подпрограммы
-            var subroutineStartIndex = -1;
-            var subroutineStartPattern = RegexPatterns.CreateSubroutineStartPattern(subAddress);
-
-            for (var i = 0; i < fileLines.Count; i++)
+            // Используем кэш для быстрого поиска начала подпрограммы
+            int subroutineStartIndex = -1;
+            if (!_subroutineIndexCache.TryGetValue(subAddress, out subroutineStartIndex))
             {
-                if (subroutineStartPattern.IsMatch(fileLines[i]))
+                // Если не найдено в кэше, ищем линейно (fallback)
+                var subroutineStartPattern = RegexPatterns.CreateSubroutineStartPattern(subAddress);
+                for (var i = 0; i < fileLines.Count; i++)
                 {
-                    subroutineStartIndex = i;
-                    break;
+                    if (subroutineStartPattern.IsMatch(fileLines[i]))
+                    {
+                        subroutineStartIndex = i;
+                        // Добавляем в кэш для будущих поисков
+                        _subroutineIndexCache.TryAdd(subAddress, i);
+                        break;
+                    }
                 }
             }
-
+            
             if (subroutineStartIndex == -1)
                 return null;
 
@@ -135,10 +192,13 @@ namespace NameFinder.Services
                 if (!foundOffset)
                 {
                     var offsetMatch = RegexPatterns.OffsetPattern.Match(line);
+                    #if DEBUG
                     Trace.WriteLine($"[OPCODE DEBUG] Checking offset line {i}: {line.Trim()}");
                     Trace.WriteLine($"[OPCODE DEBUG] Offset match success: {offsetMatch.Success}, Groups count: {offsetMatch.Groups.Count}");
+                    #endif
                     if (offsetMatch.Success)
                     {
+                        #if DEBUG
                         for (int g = 1; g < offsetMatch.Groups.Count; g++)
                         {
                             if (offsetMatch.Groups[g].Success)
@@ -146,31 +206,40 @@ namespace NameFinder.Services
                                 Trace.WriteLine($"[OPCODE DEBUG] Offset Group[{g}]: '{offsetMatch.Groups[g].Value}'");
                             }
                         }
+                        #endif
                         // Определяем смещение для поиска опкода
                         offsetPattern = DetermineOffsetPattern(offsetMatch);
                         foundOffset = !string.IsNullOrEmpty(offsetPattern);
+                        #if DEBUG
                         if (foundOffset)
                         {
                             Trace.WriteLine($"[OPCODE DEBUG] Created opcode pattern: {offsetPattern}");
                         }
+                        #endif
                     }
                 }
 
                     // Если нашли offset, ищем опкод
                     if (foundOffset && !string.IsNullOrEmpty(offsetPattern))
                     {
-                        var opcodePattern = new Regex(offsetPattern, RegexOptions.IgnoreCase);
+                        // Используем кэш для Regex паттернов
+                        var opcodePattern = _opcodePatternCache.GetOrAdd(offsetPattern, 
+                            pattern => new Regex(pattern, RegexOptions.IgnoreCase | RegexOptions.Compiled));
                         var opcodeMatch = opcodePattern.Match(line);
                         
+                        #if DEBUG
                         Trace.WriteLine($"[OPCODE DEBUG] Checking opcode line {i}: {line.Trim()}");
                         Trace.WriteLine($"[OPCODE DEBUG] Opcode match success: {opcodeMatch.Success}, Groups count: {opcodeMatch.Groups.Count}");
+                        #endif
                         
                         if (opcodeMatch.Success)
                         {
+                            #if DEBUG
                             for (int g = 0; g < opcodeMatch.Groups.Count; g++)
                             {
                                 Trace.WriteLine($"[OPCODE DEBUG] Opcode Group[{g}]: Success={opcodeMatch.Groups[g].Success}, Length={opcodeMatch.Groups[g].Length}, Value='{opcodeMatch.Groups[g].Value}'");
                             }
+                            #endif
                             
                             // Для паттернов с ebp+var_XXX опкод находится в Groups[2]
                             // Для паттерна с любым регистром +4 (Group 2): Groups[1] = "dword ptr " (если есть), Groups[2] = регистр, Groups[3] = опкод
@@ -188,38 +257,50 @@ namespace NameFinder.Services
                                 {
                                     // Это паттерн с ebp+var_XXX+4: Groups[2] = опкод
                                     opcodeValue = group2Value;
+                                    #if DEBUG
                                     Trace.WriteLine($"[OPCODE DEBUG] Extracting opcode from Groups[2] (ebp+var_XXX+4 pattern): '{opcodeValue}'");
+                                    #endif
                                 }
                                 else if (opcodeMatch.Groups.Count >= 4 && opcodeMatch.Groups[3].Length > 0)
                                 {
                                     // Это паттерн с любым регистром +4: Groups[2] = регистр, Groups[3] = опкод
                                     opcodeValue = opcodeMatch.Groups[3].Value;
+                                    #if DEBUG
                                     Trace.WriteLine($"[OPCODE DEBUG] Extracting opcode from Groups[3] (any register +4 pattern): '{opcodeValue}'");
+                                    #endif
                                 }
                                 else
                                 {
                                     // Паттерн с dword ptr и ebp+var_XXX (без +4): Groups[2] = опкод
                                     opcodeValue = group2Value;
+                                    #if DEBUG
                                     Trace.WriteLine($"[OPCODE DEBUG] Extracting opcode from Groups[2] (ebp+var_XXX pattern): '{opcodeValue}'");
+                                    #endif
                                 }
                             }
                             else if (opcodeMatch.Groups.Count >= 2 && opcodeMatch.Groups[1].Length > 0)
                             {
                                 // Обычный паттерн: Groups[1] = опкод
                                 opcodeValue = opcodeMatch.Groups[1].Value;
+                                #if DEBUG
                                 Trace.WriteLine($"[OPCODE DEBUG] Extracting opcode from Groups[1] (simple pattern): '{opcodeValue}'");
+                                #endif
                             }
 
                             if (!string.IsNullOrEmpty(opcodeValue))
                             {
                                 var formatted = FormatOpcode(opcodeValue);
+                                #if DEBUG
                                 Trace.WriteLine($"[OPCODE DEBUG] Formatted opcode: '{formatted}'");
+                                #endif
                                 return formatted;
                             }
+                            #if DEBUG
                             else
                             {
                                 Trace.WriteLine($"[OPCODE DEBUG] No valid opcode value found in groups");
                             }
+                            #endif
                         }
                     }
             }
@@ -237,7 +318,9 @@ namespace NameFinder.Services
             if (offsetMatch.Groups[1].Success)
             {
                 var baseOffset = offsetMatch.Groups[1].Value;
+                #if DEBUG
                 Trace.WriteLine($"[OPCODE DEBUG] Group 1 matched: baseOffset='{baseOffset}', using DecreaseOffset");
+                #endif
                 return DecreaseOffset(baseOffset, 4);
             }
 
@@ -245,7 +328,9 @@ namespace NameFinder.Services
             if (offsetMatch.Groups[2].Success)
             {
                 var baseOffset = offsetMatch.Groups[2].Value;
+                #if DEBUG
                 Trace.WriteLine($"[OPCODE DEBUG] Group 2 matched: baseOffset='{baseOffset}', using IncreaseOffset");
+                #endif
                 return IncreaseOffset(baseOffset, 4);
             }
 
@@ -253,7 +338,9 @@ namespace NameFinder.Services
             if (offsetMatch.Groups[3].Success)
             {
                 var baseOffset = offsetMatch.Groups[3].Value;
+                #if DEBUG
                 Trace.WriteLine($"[OPCODE DEBUG] Group 3 matched: baseOffset='{baseOffset}', using IncreaseOffset");
+                #endif
                 return IncreaseOffset(baseOffset, 4);
             }
 
@@ -261,7 +348,9 @@ namespace NameFinder.Services
             if (offsetMatch.Groups[4].Success)
             {
                 var baseOffset = offsetMatch.Groups[4].Value;
+                #if DEBUG
                 Trace.WriteLine($"[OPCODE DEBUG] Group 4 matched: baseOffset='{baseOffset}', using IncreaseOffset");
+                #endif
                 return IncreaseOffset(baseOffset, 4);
             }
 
@@ -269,11 +358,15 @@ namespace NameFinder.Services
             if (offsetMatch.Groups[5].Success)
             {
                 var baseOffset = offsetMatch.Groups[5].Value;
+                #if DEBUG
                 Trace.WriteLine($"[OPCODE DEBUG] Group 5 matched: baseOffset='{baseOffset}', using IncreaseOffset");
+                #endif
                 return IncreaseOffset(baseOffset, 4);
             }
 
+            #if DEBUG
             Trace.WriteLine($"[OPCODE DEBUG] No offset group matched");
+            #endif
             return null;
         }
 
