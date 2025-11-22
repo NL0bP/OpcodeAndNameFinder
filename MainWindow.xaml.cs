@@ -2895,12 +2895,17 @@ namespace NameFinder
             var progress = CalcProgress(InListSource.Count);
 
             var maxCount = InListSource.Count;
-            var found = false;
             var tmpLst = new List<string>();
             var regexProcNear = new Regex(@"(proc\s+near)", RegexOptions.Compiled);
             var regexEndP = new Regex(@"\s+endp\s*", RegexOptions.Compiled);
-            var regexSub = new Regex(@"push\s+offset\s|call\s+\w+|call\s+sub_\w+|mov\s+\[\w+\+\w+\],\soffset\s|mov\s+dword\sptr\s\[\w+\+\w+\],\soffset\s|mov\s+\[\w+\+\w+\],\s([1-9]|[0-9A-F]{2,3}h)|mov\s+dword\sptr\s\[\w+\+\w+\],\s([1-9]|[0-9A-F]{2,3}h)|mov\s+dword\sptr\s\[\w+\+\w+\+\w+\],\s([1-9]|[0-9A-F]{2,3}h)|mov\s+dword\sptr\s\[\w+\],\soffset\s|mov\s+dword\sptr\s\[\w+\-\w+\],\soffset\s|mov\s+dword\sptr\s\[\w+\-\w+\],\s([1-9]|[0-9A-F]{2,3}h)|mov\s+e[abcd]x,\s\[e[abcd]x\+([0-9A-F]{2}h)\]", RegexOptions.Compiled);
-            var regexRetn = new Regex(@"retn", RegexOptions.Compiled);
+            // Оставляем только нужные инструкции:
+            // - push offset
+            // - mov [ebp+var_XXX], offset
+            // - mov [ebp+var_XXX], hex_value
+            // - mov dword ptr [register], offset
+            // - mov dword ptr [register+offset], hex_value
+            // - call sub_XXX или call MySubbroutine (но не call eax, call ebx и т.д.)
+            var regexSub = new Regex(@"push\s+offset\s|mov\s+\[ebp\+var_\w+\],\s+offset\s|mov\s+\[ebp\+var_\w+\],\s+[0-9A-Fa-f]+h|mov\s+dword\s+ptr\s+\[e(ax|bx|cx|dx|si|di|sp|bp)\],\s+offset\s|mov\s+dword\s+ptr\s+\[e(ax|bx|cx|dx|si|di|sp|bp)\+[0-9A-Fa-f]+\],\s+[0-9A-Fa-f]+h|call\s+(sub_\w+|[A-Z_][A-Za-z0-9_]*)", RegexOptions.Compiled);
 
             for (var index = idx; index < maxCount; index++)
             {
@@ -2914,12 +2919,10 @@ namespace NameFinder
                 if (matchesProcNear.Count <= 0)
                     continue;
 
-                tmpLst.Add(InListSource[index]); // сохраняем
+                tmpLst.Add(InListSource[index]); // сохраняем proc near
 
                 var foundEndp = false;
                 var foundEndpString = "";
-                var foundRetnString = "";
-                bool foundRetn = false;
 
                 index++;
 
@@ -2931,20 +2934,14 @@ namespace NameFinder
                     Helpers.UIHelper.InvokeUI(Dispatcher, () => ProgressBar11.Value = index);
                     }
 
+                    // Проверяем только нужные инструкции: push offset и mov с offset/hex
                     var matchesSub = regexSub.Matches(InListSource[index]);
                     if (matchesSub.Count > 0)
                     {
                         tmpLst.Add(InListSource[index]); // сохраняем полезные строки процедуры
                     }
 
-                    var matchesRetn = regexRetn.Match(InListSource[index]);
-                    if (matchesRetn.Success)
-                    {
-                        foundRetn = true;
-                        foundRetnString = InListSource[index];
-                    }
-
-                    // Если найден 'endp', продолжаем поиск до 'retn'
+                    // Если найден 'endp', завершаем обработку процедуры
                     var matchesEndp = regexEndP.Match(InListSource[index]);
                     if (matchesEndp.Success)
                     {
@@ -2954,11 +2951,16 @@ namespace NameFinder
 
                     // если вдруг найдем начало следующей процедуры, завершаем текущую процедуру
                     matchesProcNear = regexProcNear.Matches(InListSource[index]);
-                    if (matchesProcNear.Count > 0 || (foundRetn && foundEndp))
+                    if (matchesProcNear.Count > 0 || foundEndp)
                     {
-                        tmpLst.Add(foundRetnString); // сохраняем `retn`
-                        tmpLst.Add(foundEndpString); // сохраняем `endp`
-                        index--;
+                        if (foundEndp)
+                        {
+                            tmpLst.Add(foundEndpString); // сохраняем `endp`
+                        }
+                        if (matchesProcNear.Count > 0)
+                        {
+                            index--; // вернемся к началу следующей процедуры
+                        }
                         break;
                     }
 
@@ -2974,12 +2976,17 @@ namespace NameFinder
             var progress = CalcProgress(InListDestination.Count);
 
             var maxCount = InListDestination.Count;
-            var found = false;
             var tmpLst = new List<string>();
             var regexProcNear = new Regex(@"(proc\s+near)", RegexOptions.Compiled);
             var regexEndP = new Regex(@"\s+endp\s*", RegexOptions.Compiled);
-            var regexSub = new Regex(@"push\s+offset\s|call\s+\w+|call\s+sub_\w+|mov\s+\[\w+\+\w+\],\soffset\s|mov\s+dword\sptr\s\[\w+\+\w+\],\soffset\s|mov\s+\[\w+\+\w+\],\s([1-9]|[0-9A-F]{2,3}h)|mov\s+dword\sptr\s\[\w+\+\w+\],\s([1-9]|[0-9A-F]{2,3}h)|mov\s+dword\sptr\s\[\w+\+\w+\+\w+\],\s([1-9]|[0-9A-F]{2,3}h)|mov\s+dword\sptr\s\[\w+\],\soffset\s|mov\s+dword\sptr\s\[\w+\-\w+\],\soffset\s|mov\s+dword\sptr\s\[\w+\-\w+\],\s([1-9]|[0-9A-F]{2,3}h)|mov\s+e[abcd]x,\s\[e[abcd]x\+([0-9A-F]{2}h)\]", RegexOptions.Compiled);
-            var regexRetn = new Regex(@"retn", RegexOptions.Compiled);
+            // Оставляем только нужные инструкции:
+            // - push offset
+            // - mov [ebp+var_XXX], offset
+            // - mov [ebp+var_XXX], hex_value
+            // - mov dword ptr [register], offset
+            // - mov dword ptr [register+offset], hex_value
+            // - call sub_XXX или call MySubbroutine (но не call eax, call ebx и т.д.)
+            var regexSub = new Regex(@"push\s+offset\s|mov\s+\[ebp\+var_\w+\],\s+offset\s|mov\s+\[ebp\+var_\w+\],\s+[0-9A-Fa-f]+h|mov\s+dword\s+ptr\s+\[e(ax|bx|cx|dx|si|di|sp|bp)\],\s+offset\s|mov\s+dword\s+ptr\s+\[e(ax|bx|cx|dx|si|di|sp|bp)\+[0-9A-Fa-f]+\],\s+[0-9A-Fa-f]+h|call\s+(sub_\w+|[A-Z_][A-Za-z0-9_]*)", RegexOptions.Compiled);
 
             for (var index = idx; index < maxCount; index++)
             {
@@ -2993,12 +3000,10 @@ namespace NameFinder
                 if (matchesProcNear.Count <= 0)
                     continue;
 
-                tmpLst.Add(InListDestination[index]); // сохраняем
+                tmpLst.Add(InListDestination[index]); // сохраняем proc near
 
                 var foundEndp = false;
                 var foundEndpString = "";
-                var foundRetnString = "";
-                bool foundRetn = false;
 
                 index++;
 
@@ -3010,20 +3015,14 @@ namespace NameFinder
                     Helpers.UIHelper.InvokeUI(Dispatcher, () => ProgressBar21.Value = index);
                     }
 
+                    // Проверяем только нужные инструкции: push offset и mov с offset/hex
                     var matchesSub = regexSub.Matches(InListDestination[index]);
                     if (matchesSub.Count > 0)
                     {
                         tmpLst.Add(InListDestination[index]); // сохраняем полезные строки процедуры
                     }
 
-                    var matchesRetn = regexRetn.Match(InListDestination[index]);
-                    if (matchesRetn.Success)
-                    {
-                        foundRetn = true;
-                        foundRetnString = InListDestination[index];
-                    }
-
-                    // Если найден 'endp', продолжаем поиск до 'retn'
+                    // Если найден 'endp', завершаем обработку процедуры
                     var matchesEndp = regexEndP.Match(InListDestination[index]);
                     if (matchesEndp.Success)
                     {
@@ -3033,11 +3032,16 @@ namespace NameFinder
 
                     // если вдруг найдем начало следующей процедуры, завершаем текущую процедуру
                     matchesProcNear = regexProcNear.Matches(InListDestination[index]);
-                    if (matchesProcNear.Count > 0 || (foundRetn && foundEndp))
+                    if (matchesProcNear.Count > 0 || foundEndp)
                     {
-                        tmpLst.Add(foundRetnString); // сохраняем `retn`
-                        tmpLst.Add(foundEndpString); // сохраняем `endp`
-                        index--;
+                        if (foundEndp)
+                        {
+                            tmpLst.Add(foundEndpString); // сохраняем `endp`
+                        }
+                        if (matchesProcNear.Count > 0)
+                        {
+                            index--; // вернемся к началу следующей процедуры
+                        }
                         break;
                     }
 
