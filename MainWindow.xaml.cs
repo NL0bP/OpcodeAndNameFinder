@@ -5,6 +5,7 @@ using Newtonsoft.Json;
 
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -144,6 +145,14 @@ namespace NameFinder
     /// </summary>
     public partial class MainWindow : Window
     {
+        private static void LogDebug(string message) => System.Diagnostics.Debug.WriteLine($"[DEBUG] {DateTime.Now:HH:mm:ss.fff} {message}");
+        private static void LogWarn(string message) => System.Diagnostics.Debug.WriteLine($"[WARN] {DateTime.Now:HH:mm:ss.fff} {message}");
+        private static void LogError(string message, Exception ex = null)
+        {
+            System.Diagnostics.Debug.WriteLine($"[ERROR] {DateTime.Now:HH:mm:ss.fff} {message}");
+            if (ex != null) System.Diagnostics.Debug.WriteLine($"Exception: {ex}");
+        }
+
         public bool IsLittleEndian { get; } = true;
 
         public EndianBitConverter Converter => (IsLittleEndian ? EndianBitConverter.Little : (EndianBitConverter)EndianBitConverter.Big);
@@ -154,6 +163,20 @@ namespace NameFinder
         private readonly IOpcodeFinderService _opcodeFinderService;
         private readonly Services.OpcodeFinderWrapper _opcodeFinderWrapper;
         private readonly Services.IStructureFinderService _structureFinderService;
+        
+        // Временные сохраненные копии списков для ручного сравнения CS
+        private List<string> _savedListSubDestinationCS;
+        private List<string> _savedListNameDestinationCS;
+        private List<string> _savedListNameSourceCS;
+        private Dictionary<int, List<Struc>> _savedStructureSourceCS;
+        private Dictionary<int, List<Struc>> _savedStructureDestinationCS;
+        
+        // Временные сохраненные копии списков для ручного сравнения SC
+        private List<string> _savedListSubDestinationSC;
+        private List<string> _savedListNameDestinationSC;
+        private List<string> _savedListNameSourceSC;
+        private Dictionary<int, List<Struc>> _savedStructureSourceSC;
+        private Dictionary<int, List<Struc>> _savedStructureDestinationSC;
 
         private readonly string[] _inF;
         private readonly string[] _outF;
@@ -236,12 +259,42 @@ namespace NameFinder
         {
             InitializeComponent();
             
+            // Центрируем окно на экране
+            WindowStartupLocation = WindowStartupLocation.CenterScreen;
+            
+            // Создаем директорию для логов, если её нет, и обнуляем лог при старте
+            try
+            {
+                var logsDir = Path.Combine(Environment.CurrentDirectory, "logs");
+                if (!Directory.Exists(logsDir))
+                {
+                    Directory.CreateDirectory(logsDir);
+                }
+                
+                // Обнуляем лог при старте приложения
+                var logFile = Path.Combine(logsDir, "debug.log");
+                if (File.Exists(logFile))
+                {
+                    File.Delete(logFile);
+                }
+                
+                // Логируем начало новой сессии
+                LogDebug("MainWindow: Приложение запущено, лог обнулен");
+            }
+            catch (Exception ex)
+            {
+                // Используем System.Diagnostics.Debug напрямую, так как LogDebug может не работать до инициализации
+                System.Diagnostics.Debug.WriteLine($"[ERROR] {DateTime.Now:HH:mm:ss.fff} MainWindow: Не удалось инициализировать логирование: {ex}");
+            }
+            
             // Инициализация сервисов (рефакторинг)
             _packetDataService = new PacketDataService();
             _fileProcessor = new FileProcessor();
             _opcodeFinderService = new OpcodeFinderService();
             _opcodeFinderWrapper = new Services.OpcodeFinderWrapper(_opcodeFinderService, Dispatcher);
             _structureFinderService = new Services.StructureFinderService();
+            
+            LogDebug("MainWindow: Инициализация завершена");
             
             // Создаем объект для блокировки.
             //lockObj = new object();
@@ -267,16 +320,25 @@ namespace NameFinder
         /// <summary>
         /// Рефакторинг: свойство-обертка для обратной совместимости
         /// Использует PacketDataService.SourcePacketNames
+        /// Теперь возвращает ObservableCollection для автоматического обновления UI
         /// </summary>
-        public List<string> ListNameSourceCS
+        public ObservableCollection<string> ListNameSourceCS
         {
             get => _packetDataService.SourcePacketNames[Models.PacketType.CS];
             set
             {
+                // Если присваивается та же коллекция, не нужно ничего делать
+                if (ReferenceEquals(value, _packetDataService.SourcePacketNames[Models.PacketType.CS]))
+                {
+                    return;
+                }
                 _packetDataService.SourcePacketNames[Models.PacketType.CS].Clear();
                 if (value != null)
                 {
-                    _packetDataService.SourcePacketNames[Models.PacketType.CS].AddRange(value);
+                    foreach (var item in value)
+                    {
+                        _packetDataService.SourcePacketNames[Models.PacketType.CS].Add(item);
+                    }
                 }
             }
         }
@@ -284,16 +346,25 @@ namespace NameFinder
         /// <summary>
         /// Рефакторинг: свойство-обертка для обратной совместимости
         /// Использует PacketDataService.SourcePacketNames
+        /// Теперь возвращает ObservableCollection для автоматического обновления UI
         /// </summary>
-        public List<string> ListNameSourceSC
+        public ObservableCollection<string> ListNameSourceSC
         {
             get => _packetDataService.SourcePacketNames[Models.PacketType.SC];
             set
             {
+                // Если присваивается та же коллекция, не нужно ничего делать
+                if (ReferenceEquals(value, _packetDataService.SourcePacketNames[Models.PacketType.SC]))
+                {
+                    return;
+                }
                 _packetDataService.SourcePacketNames[Models.PacketType.SC].Clear();
                 if (value != null)
                 {
-                    _packetDataService.SourcePacketNames[Models.PacketType.SC].AddRange(value);
+                    foreach (var item in value)
+                    {
+                        _packetDataService.SourcePacketNames[Models.PacketType.SC].Add(item);
+                    }
                 }
             }
         }
@@ -335,16 +406,25 @@ namespace NameFinder
         /// <summary>
         /// Рефакторинг: свойство-обертка для обратной совместимости
         /// Использует PacketDataService.DestinationPacketNames
+        /// Теперь возвращает ObservableCollection для автоматического обновления UI
         /// </summary>
-        public List<string> ListNameDestinationCS
+        public ObservableCollection<string> ListNameDestinationCS
         {
             get => _packetDataService.DestinationPacketNames[Models.PacketType.CS];
             set
             {
+                // Если присваивается та же коллекция, не нужно ничего делать
+                if (ReferenceEquals(value, _packetDataService.DestinationPacketNames[Models.PacketType.CS]))
+                {
+                    return;
+                }
                 _packetDataService.DestinationPacketNames[Models.PacketType.CS].Clear();
                 if (value != null)
                 {
-                    _packetDataService.DestinationPacketNames[Models.PacketType.CS].AddRange(value);
+                    foreach (var item in value)
+                    {
+                        _packetDataService.DestinationPacketNames[Models.PacketType.CS].Add(item);
+                    }
                 }
             }
         }
@@ -352,16 +432,25 @@ namespace NameFinder
         /// <summary>
         /// Рефакторинг: свойство-обертка для обратной совместимости
         /// Использует PacketDataService.DestinationPacketNames
+        /// Теперь возвращает ObservableCollection для автоматического обновления UI
         /// </summary>
-        public List<string> ListNameDestinationSC
+        public ObservableCollection<string> ListNameDestinationSC
         {
             get => _packetDataService.DestinationPacketNames[Models.PacketType.SC];
             set
             {
+                // Если присваивается та же коллекция, не нужно ничего делать
+                if (ReferenceEquals(value, _packetDataService.DestinationPacketNames[Models.PacketType.SC]))
+                {
+                    return;
+                }
                 _packetDataService.DestinationPacketNames[Models.PacketType.SC].Clear();
                 if (value != null)
                 {
-                    _packetDataService.DestinationPacketNames[Models.PacketType.SC].AddRange(value);
+                    foreach (var item in value)
+                    {
+                        _packetDataService.DestinationPacketNames[Models.PacketType.SC].Add(item);
+                    }
                 }
             }
         }
@@ -403,8 +492,9 @@ namespace NameFinder
         /// <summary>
         /// Рефакторинг: свойство-обертка для обратной совместимости
         /// Использует PacketDataService.SourceOpcodes
+        /// Теперь возвращает ObservableCollection для автоматического обновления UI
         /// </summary>
-        public List<string> ListOpcodeSourceCS
+        public ObservableCollection<string> ListOpcodeSourceCS
         {
             get => _packetDataService.SourceOpcodes[Models.PacketType.CS];
             set
@@ -412,7 +502,10 @@ namespace NameFinder
                 _packetDataService.SourceOpcodes[Models.PacketType.CS].Clear();
                 if (value != null)
                 {
-                    _packetDataService.SourceOpcodes[Models.PacketType.CS].AddRange(value);
+                    foreach (var item in value)
+                    {
+                        _packetDataService.SourceOpcodes[Models.PacketType.CS].Add(item);
+                    }
                 }
             }
         }
@@ -420,8 +513,9 @@ namespace NameFinder
         /// <summary>
         /// Рефакторинг: свойство-обертка для обратной совместимости
         /// Использует PacketDataService.SourceOpcodes
+        /// Теперь возвращает ObservableCollection для автоматического обновления UI
         /// </summary>
-        public List<string> ListOpcodeSourceSC
+        public ObservableCollection<string> ListOpcodeSourceSC
         {
             get => _packetDataService.SourceOpcodes[Models.PacketType.SC];
             set
@@ -429,7 +523,10 @@ namespace NameFinder
                 _packetDataService.SourceOpcodes[Models.PacketType.SC].Clear();
                 if (value != null)
                 {
-                    _packetDataService.SourceOpcodes[Models.PacketType.SC].AddRange(value);
+                    foreach (var item in value)
+                    {
+                        _packetDataService.SourceOpcodes[Models.PacketType.SC].Add(item);
+                    }
                 }
             }
         }
@@ -437,8 +534,9 @@ namespace NameFinder
         /// <summary>
         /// Рефакторинг: свойство-обертка для обратной совместимости
         /// Использует PacketDataService.DestinationOpcodes
+        /// Теперь возвращает ObservableCollection для автоматического обновления UI
         /// </summary>
-        public List<string> ListOpcodeDestinationCS
+        public ObservableCollection<string> ListOpcodeDestinationCS
         {
             get => _packetDataService.DestinationOpcodes[Models.PacketType.CS];
             set
@@ -446,7 +544,10 @@ namespace NameFinder
                 _packetDataService.DestinationOpcodes[Models.PacketType.CS].Clear();
                 if (value != null)
                 {
-                    _packetDataService.DestinationOpcodes[Models.PacketType.CS].AddRange(value);
+                    foreach (var item in value)
+                    {
+                        _packetDataService.DestinationOpcodes[Models.PacketType.CS].Add(item);
+                    }
                 }
             }
         }
@@ -454,8 +555,9 @@ namespace NameFinder
         /// <summary>
         /// Рефакторинг: свойство-обертка для обратной совместимости
         /// Использует PacketDataService.DestinationOpcodes
+        /// Теперь возвращает ObservableCollection для автоматического обновления UI
         /// </summary>
-        public List<string> ListOpcodeDestinationSC
+        public ObservableCollection<string> ListOpcodeDestinationSC
         {
             get => _packetDataService.DestinationOpcodes[Models.PacketType.SC];
             set
@@ -463,7 +565,10 @@ namespace NameFinder
                 _packetDataService.DestinationOpcodes[Models.PacketType.SC].Clear();
                 if (value != null)
                 {
-                    _packetDataService.DestinationOpcodes[Models.PacketType.SC].AddRange(value);
+                    foreach (var item in value)
+                    {
+                        _packetDataService.DestinationOpcodes[Models.PacketType.SC].Add(item);
+                    }
                 }
             }
         }
@@ -471,8 +576,9 @@ namespace NameFinder
         /// <summary>
         /// Рефакторинг: свойство-обертка для обратной совместимости
         /// Использует PacketDataService.CompareNames
+        /// Теперь возвращает ObservableCollection для автоматического обновления UI
         /// </summary>
-        public List<string> ListNameCompareCS
+        public ObservableCollection<string> ListNameCompareCS
         {
             get => _packetDataService.CompareNames[Models.PacketType.CS];
             set
@@ -480,7 +586,10 @@ namespace NameFinder
                 _packetDataService.CompareNames[Models.PacketType.CS].Clear();
                 if (value != null)
                 {
-                    _packetDataService.CompareNames[Models.PacketType.CS].AddRange(value);
+                    foreach (var item in value)
+                    {
+                        _packetDataService.CompareNames[Models.PacketType.CS].Add(item);
+                    }
                 }
             }
         }
@@ -488,8 +597,9 @@ namespace NameFinder
         /// <summary>
         /// Рефакторинг: свойство-обертка для обратной совместимости
         /// Использует PacketDataService.CompareNames
+        /// Теперь возвращает ObservableCollection для автоматического обновления UI
         /// </summary>
-        public List<string> ListNameCompareSC
+        public ObservableCollection<string> ListNameCompareSC
         {
             get => _packetDataService.CompareNames[Models.PacketType.SC];
             set
@@ -497,7 +607,10 @@ namespace NameFinder
                 _packetDataService.CompareNames[Models.PacketType.SC].Clear();
                 if (value != null)
                 {
-                    _packetDataService.CompareNames[Models.PacketType.SC].AddRange(value);
+                    foreach (var item in value)
+                    {
+                        _packetDataService.CompareNames[Models.PacketType.SC].Add(item);
+                    }
                 }
             }
         }
@@ -665,18 +778,24 @@ namespace NameFinder
         /// <summary>
         /// Рефакторинг: свойство-обертка для обратной совместимости
         /// Использует PacketDataService.SourceStructures[PacketType.CS]
+        /// Теперь возвращает Dictionary с ObservableCollection для автоматического обновления UI
         /// </summary>
-        public Dictionary<int, List<Struc>> StructureSourceCS
+        public Dictionary<int, ObservableCollection<Struc>> StructureSourceCS
         {
             get => _packetDataService.SourceStructures[Models.PacketType.CS];
             set
             {
+                // Если присваивается тот же словарь, не нужно ничего делать
+                if (ReferenceEquals(value, _packetDataService.SourceStructures[Models.PacketType.CS]))
+                {
+                    return;
+                }
                 _packetDataService.SourceStructures[Models.PacketType.CS].Clear();
                 if (value != null)
                 {
                     foreach (var kvp in value)
                     {
-                        _packetDataService.SourceStructures[Models.PacketType.CS][kvp.Key] = new List<Struc>(kvp.Value);
+                        _packetDataService.SourceStructures[Models.PacketType.CS][kvp.Key] = new ObservableCollection<Struc>(kvp.Value);
                     }
                 }
             }
@@ -685,18 +804,24 @@ namespace NameFinder
         /// <summary>
         /// Рефакторинг: свойство-обертка для обратной совместимости
         /// Использует PacketDataService.SourceStructures[PacketType.SC]
+        /// Теперь возвращает Dictionary с ObservableCollection для автоматического обновления UI
         /// </summary>
-        public Dictionary<int, List<Struc>> StructureSourceSC
+        public Dictionary<int, ObservableCollection<Struc>> StructureSourceSC
         {
             get => _packetDataService.SourceStructures[Models.PacketType.SC];
             set
             {
+                // Если присваивается тот же словарь, не нужно ничего делать
+                if (ReferenceEquals(value, _packetDataService.SourceStructures[Models.PacketType.SC]))
+                {
+                    return;
+                }
                 _packetDataService.SourceStructures[Models.PacketType.SC].Clear();
                 if (value != null)
                 {
                     foreach (var kvp in value)
                     {
-                        _packetDataService.SourceStructures[Models.PacketType.SC][kvp.Key] = new List<Struc>(kvp.Value);
+                        _packetDataService.SourceStructures[Models.PacketType.SC][kvp.Key] = new ObservableCollection<Struc>(kvp.Value);
                     }
                 }
             }
@@ -705,18 +830,24 @@ namespace NameFinder
         /// <summary>
         /// Рефакторинг: свойство-обертка для обратной совместимости
         /// Использует PacketDataService.DestinationStructures[PacketType.CS]
+        /// Теперь возвращает Dictionary с ObservableCollection для автоматического обновления UI
         /// </summary>
-        public Dictionary<int, List<Struc>> StructureDestinationCS
+        public Dictionary<int, ObservableCollection<Struc>> StructureDestinationCS
         {
             get => _packetDataService.DestinationStructures[Models.PacketType.CS];
             set
             {
+                // Если присваивается тот же словарь, не нужно ничего делать
+                if (ReferenceEquals(value, _packetDataService.DestinationStructures[Models.PacketType.CS]))
+                {
+                    return;
+                }
                 _packetDataService.DestinationStructures[Models.PacketType.CS].Clear();
                 if (value != null)
                 {
                     foreach (var kvp in value)
                     {
-                        _packetDataService.DestinationStructures[Models.PacketType.CS][kvp.Key] = new List<Struc>(kvp.Value);
+                        _packetDataService.DestinationStructures[Models.PacketType.CS][kvp.Key] = new ObservableCollection<Struc>(kvp.Value);
                     }
                 }
             }
@@ -725,18 +856,24 @@ namespace NameFinder
         /// <summary>
         /// Рефакторинг: свойство-обертка для обратной совместимости
         /// Использует PacketDataService.DestinationStructures[PacketType.SC]
+        /// Теперь возвращает Dictionary с ObservableCollection для автоматического обновления UI
         /// </summary>
-        public Dictionary<int, List<Struc>> StructureDestinationSC
+        public Dictionary<int, ObservableCollection<Struc>> StructureDestinationSC
         {
             get => _packetDataService.DestinationStructures[Models.PacketType.SC];
             set
             {
+                // Если присваивается тот же словарь, не нужно ничего делать
+                if (ReferenceEquals(value, _packetDataService.DestinationStructures[Models.PacketType.SC]))
+                {
+                    return;
+                }
                 _packetDataService.DestinationStructures[Models.PacketType.SC].Clear();
                 if (value != null)
                 {
                     foreach (var kvp in value)
                     {
-                        _packetDataService.DestinationStructures[Models.PacketType.SC][kvp.Key] = new List<Struc>(kvp.Value);
+                        _packetDataService.DestinationStructures[Models.PacketType.SC][kvp.Key] = new ObservableCollection<Struc>(kvp.Value);
                     }
                 }
             }
@@ -765,8 +902,9 @@ namespace NameFinder
         /// <summary>
         /// Рефакторинг: свойство-обертка для обратной совместимости
         /// Использует PacketDataService.CompareOutNames[PacketType.CS]
+        /// Теперь возвращает ObservableCollection для автоматического обновления UI
         /// </summary>
-        public List<string> ListNameCompareOutCS
+        public ObservableCollection<string> ListNameCompareOutCS
         {
             get => _packetDataService.CompareOutNames[Models.PacketType.CS];
             set
@@ -774,7 +912,10 @@ namespace NameFinder
                 _packetDataService.CompareOutNames[Models.PacketType.CS].Clear();
                 if (value != null)
                 {
-                    _packetDataService.CompareOutNames[Models.PacketType.CS].AddRange(value);
+                    foreach (var item in value)
+                    {
+                        _packetDataService.CompareOutNames[Models.PacketType.CS].Add(item);
+                    }
                 }
             }
         }
@@ -782,8 +923,9 @@ namespace NameFinder
         /// <summary>
         /// Рефакторинг: свойство-обертка для обратной совместимости
         /// Использует PacketDataService.CompareOutNames[PacketType.SC]
+        /// Теперь возвращает ObservableCollection для автоматического обновления UI
         /// </summary>
-        public List<string> ListNameCompareOutSC
+        public ObservableCollection<string> ListNameCompareOutSC
         {
             get => _packetDataService.CompareOutNames[Models.PacketType.SC];
             set
@@ -791,7 +933,10 @@ namespace NameFinder
                 _packetDataService.CompareOutNames[Models.PacketType.SC].Clear();
                 if (value != null)
                 {
-                    _packetDataService.CompareOutNames[Models.PacketType.SC].AddRange(value);
+                    foreach (var item in value)
+                    {
+                        _packetDataService.CompareOutNames[Models.PacketType.SC].Add(item);
+                    }
                 }
             }
         }
@@ -805,7 +950,7 @@ namespace NameFinder
             Models.PacketSource packetSource,
             List<string> fileLines,
             Dictionary<int, List<string>> xrefs,
-            List<string> opcodeList,
+            ObservableCollection<string> opcodeList,
             Action syncXrefsAction,
             Action<int> progressUpdate,
             Action<int> maxUpdate,
@@ -814,7 +959,7 @@ namespace NameFinder
             Action<string> timeUpdate,
             Action<Brush> brushUpdate,
             Action<bool> enabledUpdate,
-            Action<List<string>> listViewUpdate,
+            Action<ObservableCollection<string>> listViewUpdate,
             Func<(bool canCompareCS, bool canCompareSC)> compareFlagsGetter,
             Action<bool, bool> compareButtonsUpdate,
             string errorPrefix)
@@ -839,7 +984,10 @@ namespace NameFinder
 
                 // Сохраняем результаты
                 opcodeList.Clear();
-                opcodeList.AddRange(opcodes);
+                foreach (var opcode in opcodes)
+                {
+                    opcodeList.Add(opcode);
+                }
 
                 // Рефакторинг: используем UIHelper для группировки UI обновлений
                 var opcodeCount = opcodes.Count;
@@ -847,7 +995,7 @@ namespace NameFinder
                 var (canCompareCS, canCompareSC) = compareFlagsGetter();
 
                 await Helpers.UIHelper.InvokeUIBatchAsync(Dispatcher,
-                    () => listViewUpdate(opcodes),
+                    () => listViewUpdate(new ObservableCollection<string>(opcodes)),
                     () => countUpdate(opcodeCount.ToString()),
                     () => notFoundUpdate(notFoundCount.ToString()),
                     () => compareButtonsUpdate(canCompareCS, canCompareSC)
@@ -940,7 +1088,7 @@ namespace NameFinder
 
             var notFoundCount = 0;
             var subAddress = "";
-            ListOpcodeSourceCS = new List<string>();
+            ListOpcodeSourceCS.Clear();
             var found = false;
             //
             // ищем конец подпрограммы
@@ -1314,7 +1462,7 @@ namespace NameFinder
 
             var notFoundCount = 0;
             var subAddress = "";
-            ListOpcodeSourceSC = new List<string>();
+            ListOpcodeSourceSC.Clear();
 
             // здесь ищем ссылку на подпрограмму, где есть опкоды
             var found = false;
@@ -1683,7 +1831,7 @@ namespace NameFinder
             //var baseAddress = 0;
             //var offsetAddres = 0;
             var subAddress = "";
-            ListOpcodeDestinationCS = new List<string>();
+            ListOpcodeDestinationCS.Clear();
 
             // здесь ищем ссылку на подпрограмму, где есть опкоды
             var found = false;
@@ -2035,7 +2183,7 @@ namespace NameFinder
 
             var notFoundCount = 0;
             var subAddress = "";
-            ListOpcodeDestinationSC = new List<string>();
+            ListOpcodeDestinationSC.Clear();
 
             // здесь ищем ссылку на подпрограмму, где есть опкоды
             var found = false;
@@ -3443,9 +3591,9 @@ namespace NameFinder
             File.WriteAllLines(FilePathIn2, InListDestination);
         }
 
-        private List<Struc> FindStructureIn(string address)
+        private ObservableCollection<Struc> FindStructureIn(string address)
         {
-            var tmpLst = new List<Struc>();
+            var tmpLst = new ObservableCollection<Struc>();
             if (DepthIn == DepthMax)
             {
                 return tmpLst;
@@ -3470,7 +3618,7 @@ namespace NameFinder
                 // нашли начало подпрограммы, ищем структуры, пока не "endp"
                 var regexEndP = new Regex(@"\s+endp\s*", RegexOptions.IgnoreCase); // ищем конец подпрограммы
                 var foundEndp = false;
-                tmpLst = new List<Struc>();
+                tmpLst = new ObservableCollection<Struc>();
                 do
                 {
                     index++;
@@ -3488,7 +3636,10 @@ namespace NameFinder
                             var findList = FindStructureIn(matchCall.ToString().Substring(8));
                             if (findList.Count > 0)
                             {
-                                tmpLst.AddRange(findList);
+                                foreach (var item in findList)
+                                {
+                                    tmpLst.Add(item);
+                                }
                                 found = true; // нашли структуру
                             }
                         }
@@ -3539,15 +3690,15 @@ namespace NameFinder
                 //lst = new List<string>();
                 //StructureSourceSC.Add(i, lst); // сохраним пустой список, так как не нашли ничего
                 DepthIn--;
-                return new List<Struc>();
+                return new ObservableCollection<Struc>();
             }
 
             return tmpLst;
         }
 
-        private List<Struc> FindStructureOut(string address)
+        private ObservableCollection<Struc> FindStructureOut(string address)
         {
-            var tmpLst = new List<Struc>();
+            var tmpLst = new ObservableCollection<Struc>();
             if (DepthOut == DepthMax)
             {
                 return tmpLst;
@@ -3572,7 +3723,7 @@ namespace NameFinder
                 // нашли начало подпрограммы, ищем структуры, пока не "endp"
                 var regexEndP = new Regex(@"\s+endp\s*", RegexOptions.IgnoreCase); // ищем конец подпрограммы
                 var foundEndp = false;
-                tmpLst = new List<Struc>();
+                tmpLst = new ObservableCollection<Struc>();
                 do
                 {
                     index++;
@@ -3589,7 +3740,10 @@ namespace NameFinder
                             var findList = FindStructureOut(matchCall.ToString().Substring(8));
                             if (findList.Count > 0)
                             {
-                                tmpLst.AddRange(findList);
+                                foreach (var item in findList)
+                                {
+                                    tmpLst.Add(item);
+                                }
                                 found = true; // нашли структуру
                             }
                         }
@@ -3636,7 +3790,7 @@ namespace NameFinder
                 //lst = new List<string>();
                 //StructureSourceSC.Add(i, lst); // сохраним пустой список, так как не нашли ничего
                 DepthOut--;
-                return new List<Struc>();
+                return new ObservableCollection<Struc>();
             }
 
             return tmpLst;
@@ -3649,12 +3803,12 @@ namespace NameFinder
         private void FindStructuresInternal(
             List<string> fileLines,
             string searchPattern,
-            Dictionary<int, List<Struc>> structures,
-            List<string> packetNames,
+            Dictionary<int, ObservableCollection<Struc>> structures,
+            ObservableCollection<string> packetNames,
             List<string> subAddresses,
             Dictionary<int, List<string>> xrefs,
             string unknownNamePrefix,
-            Func<string, List<string>, int, List<Struc>> findStructureFunc,
+            Func<string, List<string>, int, bool, ObservableCollection<Struc>> findStructureFunc,
             Action<int> progressUpdate,
             bool findStruct,
             bool useCallSpaces4,
@@ -3664,6 +3818,7 @@ namespace NameFinder
             Action<string, bool, bool> finalUIUpdate,
             Action<bool> setFlag)
         {
+            LogDebug($"FindStructuresInternal: Начало. searchPattern='{searchPattern}', fileLines.Count={fileLines?.Count ?? 0}, findStruct={findStruct}, useCallSpaces4={useCallSpaces4}, skipRegisterCalls={skipRegisterCalls}, unknownNamePrefix='{unknownNamePrefix}'");
             var stopWatch = new Stopwatch();
             stopWatch.Start();
 
@@ -3672,6 +3827,7 @@ namespace NameFinder
             packetNames.Clear();
             subAddresses.Clear();
             xrefs.Clear();
+            LogDebug($"FindStructuresInternal: Структуры данных очищены");
 
             // Начальное обновление UI
             initialUIUpdate?.Invoke();
@@ -3682,11 +3838,41 @@ namespace NameFinder
             // Обновление UI после извлечения информации
             var packetCount = packetNames.Count;
             var subCount = subAddresses.Count;
+            LogDebug($"FindStructuresInternal: После ExtractPacketInfo. packetCount={packetCount}, subCount={subCount}");
+            
+            // Дополнительная диагностика: проверяем, что subAddresses действительно заполнен
+            if (subAddresses == ListSubDestinationCS)
+            {
+                LogDebug($"FindStructuresInternal: subAddresses является ListSubDestinationCS. Count={ListSubDestinationCS.Count}");
+                if (ListSubDestinationCS.Count > 0)
+                {
+                    var firstAddresses = string.Join(", ", ListSubDestinationCS.Take(5));
+                    LogDebug($"FindStructuresInternal: Первые 5 адресов в ListSubDestinationCS: {firstAddresses}");
+                }
+            }
+            else if (subAddresses == ListSubDestinationSC)
+            {
+                LogDebug($"FindStructuresInternal: subAddresses является ListSubDestinationSC. Count={ListSubDestinationSC.Count}");
+            }
+            else if (subAddresses == ListSubSourceCS)
+            {
+                LogDebug($"FindStructuresInternal: subAddresses является ListSubSourceCS. Count={ListSubSourceCS.Count}");
+            }
+            else if (subAddresses == ListSubSourceSC)
+            {
+                LogDebug($"FindStructuresInternal: subAddresses является ListSubSourceSC. Count={ListSubSourceSC.Count}");
+            }
+            else
+            {
+                LogWarn($"FindStructuresInternal: subAddresses не является ни одним из известных списков. subAddresses.Count={subAddresses.Count}");
+            }
+            
             afterExtractionUIUpdate?.Invoke(packetCount, subCount);
 
             // Поиск структур, если нужно
             if (findStruct)
             {
+                LogDebug($"FindStructuresInternal: Начинаем поиск структур для {subCount} адресов");
                 FindStructuresForSubAddresses(
                     fileLines,
                     subAddresses,
@@ -3696,6 +3882,11 @@ namespace NameFinder
                     useCallSpaces4,
                     skipRegisterCalls
                 );
+                LogDebug($"FindStructuresInternal: Поиск структур завершен. Найдено структур: {structures.Count}");
+            }
+            else
+            {
+                LogDebug($"FindStructuresInternal: Поиск структур пропущен (findStruct=false)");
             }
 
             stopWatch.Stop();
@@ -3706,6 +3897,31 @@ namespace NameFinder
 
             // Финальное обновление UI
             finalUIUpdate?.Invoke(elapsed, canCompareCS, canCompareSC);
+            LogDebug($"FindStructuresInternal: Завершено. Время выполнения: {elapsed}, structures.Count={structures.Count}");
+            
+            // Дополнительная диагностика: проверяем, что структуры действительно в словаре
+            if (structures == StructureSourceCS)
+            {
+                LogDebug($"FindStructuresInternal: Проверка StructureSourceCS после завершения. Count={StructureSourceCS.Count}, ReferenceEquals={ReferenceEquals(structures, StructureSourceCS)}");
+                if (StructureSourceCS.Count > 0)
+                {
+                    var firstKeys = string.Join(", ", StructureSourceCS.Keys.Take(5));
+                    LogDebug($"FindStructuresInternal: Первые 5 ключей в StructureSourceCS: {firstKeys}");
+                }
+            }
+            else if (structures == StructureDestinationCS)
+            {
+                LogDebug($"FindStructuresInternal: Проверка StructureDestinationCS после завершения. Count={StructureDestinationCS.Count}, ReferenceEquals={ReferenceEquals(structures, StructureDestinationCS)}");
+                if (StructureDestinationCS.Count > 0)
+                {
+                    var firstKeys = string.Join(", ", StructureDestinationCS.Keys.Take(5));
+                    LogDebug($"FindStructuresInternal: Первые 5 ключей в StructureDestinationCS: {firstKeys}");
+                }
+            }
+            else
+            {
+                LogWarn($"FindStructuresInternal: structures не является ни StructureSourceCS, ни StructureDestinationCS. structures.Count={structures.Count}");
+            }
         }
 
         /// <summary>
@@ -3714,11 +3930,12 @@ namespace NameFinder
         private void ExtractPacketInfo(
             List<string> fileLines,
             string searchPattern,
-            List<string> packetNames,
+            ObservableCollection<string> packetNames,
             List<string> subAddresses,
             Dictionary<int, List<string>> xrefs,
             string unknownNamePrefix = "CS_Unknown")
         {
+            LogDebug($"ExtractPacketInfo: Начало извлечения информации. searchPattern={searchPattern}, fileLines.Count={fileLines?.Count ?? 0}");
             var regex = new Regex(@"^[a-zA-Z0-9_?@]+\s+dd\soffset\s" + searchPattern, RegexOptions.Compiled);
             var regexXREF = new Regex(@"(^\s+;[a-zA-Z:\s]*\s(sub_\w+|X2\w+|w+))", RegexOptions.Compiled);
             var indexRefs = 0;
@@ -3801,19 +4018,39 @@ namespace NameFinder
                 // dd offset CSGmCommandPacket
                 try
                 {
-                    var regexBody = new Regex(@"(dd\soffset\snullsub|dd\soffset\ssub_\w+|dd\soffset\s\w+)", RegexOptions.Compiled);
+                    // Используем regex с группами захвата для более надежного извлечения адреса
+                    // Паттерн ищет "dd offset " и захватывает адрес после него
+                    var regexBody = new Regex(@"dd\s+offset\s+(nullsub_\w+|sub_\w+|\w+)", RegexOptions.Compiled);
                     var matchesBodys = regexBody.Match(fileLines[index]);
-                    if (matchesBodys.Success)
+                    LogDebug($"ExtractPacketInfo: Строка {index}: '{fileLines[index]}', matchesBodys.Success={matchesBodys.Success}, Groups.Count={matchesBodys.Groups.Count}");
+                    if (matchesBodys.Success && matchesBodys.Groups.Count > 1)
                     {
-                        subAddresses.Add(matchesBodys.ToString().Substring(10)); // сохранили адрес подпрограммы
+                        // Используем первую группу захвата (индекс 1) для получения адреса
+                        var address = matchesBodys.Groups[1].Value;
+                        LogDebug($"ExtractPacketInfo: Извлечен адрес: '{address}' из строки {index}");
+                        if (!string.IsNullOrEmpty(address))
+                        {
+                            subAddresses.Add(address); // сохранили адрес подпрограммы
+                            LogDebug($"ExtractPacketInfo: Добавлен адрес подпрограммы: '{address}', всего адресов: {subAddresses.Count}");
+                        }
+                        else
+                        {
+                            LogWarn($"ExtractPacketInfo: Адрес пустой для строки {index}");
+                        }
+                    }
+                    else
+                    {
+                        LogDebug($"ExtractPacketInfo: Не удалось извлечь адрес из строки {index}: '{fileLines[index]}'");
                     }
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
+                    LogError($"ExtractPacketInfo: Ошибка при обработке строки {index}: '{fileLines[index]}'", ex);
                     // Рефакторинг: используем UIHelper для показа ошибки
                     Helpers.UIHelper.ShowError(Dispatcher, $"Проверьте исходные данные файла в IDA, где-то в строке: {index}!", "Error");
                 }
             }
+            LogDebug($"ExtractPacketInfo: Завершено. Найдено пакетов: {packetNames.Count}, адресов подпрограмм: {subAddresses.Count}");
         }
 
         /// <summary>
@@ -3822,14 +4059,18 @@ namespace NameFinder
         private void FindStructuresForSubAddresses(
             List<string> fileLines,
             List<string> subAddresses,
-            Dictionary<int, List<Struc>> structures,
-            Func<string, List<string>, int, List<Struc>> findStructureFunc,
+            Dictionary<int, ObservableCollection<Struc>> structures,
+            Func<string, List<string>, int, bool, ObservableCollection<Struc>> findStructureFunc,
             Action<int> progressUpdate,
             bool useCallSpaces4 = false,
             bool skipRegisterCalls = false)
         {
+            LogDebug($"FindStructuresForSubAddresses: Начало поиска структур. subAddresses.Count={subAddresses?.Count ?? 0}, fileLines.Count={fileLines?.Count ?? 0}, useCallSpaces4={useCallSpaces4}");
             if (subAddresses == null || subAddresses.Count == 0)
+            {
+                LogWarn("FindStructuresForSubAddresses: subAddresses пуст или null");
                 return;
+            }
 
             // Рефакторинг: создаем regex паттерны один раз
             var regexEndP = new Regex(@"\s+endp\s*", RegexOptions.Compiled);
@@ -3838,10 +4079,18 @@ namespace NameFinder
                 : @"(\x22[0-z._]+\x22)|(call\s+(sub_\w+)|(call\s+(\w+)))";
             var regexCall = new Regex(regexCallPattern, RegexOptions.Compiled);
 
+            // Рефакторинг: сбрасываем глубину рекурсии один раз в начале поиска всех структур
+            // Сбрасываем обе глубины, так как не знаем, какая функция используется
+            _structureFinderService.ResetDepthIn();
+            _structureFinderService.ResetDepthOut();
+
             for (var i = 0; i < subAddresses.Count; i++)
             {
+                LogDebug($"FindStructuresForSubAddresses: Обработка адреса [{i}]: '{subAddresses[i]}'");
                 var found = false;
+                // В старом коде адрес НЕ экранировался - используем как есть
                 var regexSub = new Regex(@"^" + subAddresses[i], RegexOptions.Compiled);
+                LogDebug($"FindStructuresForSubAddresses: Создан regex для адреса '{subAddresses[i]}': '^{subAddresses[i]}'");
                 
                 for (var index = 0; index < fileLines.Count; index++)
                 {
@@ -3851,9 +4100,10 @@ namespace NameFinder
                         continue;
                     }
 
+                    LogDebug($"FindStructuresForSubAddresses: Найдено начало подпрограммы '{subAddresses[i]}' в строке {index}: '{fileLines[index]}'");
                     // Нашли начало подпрограммы, ищем структуры, пока не "endp"
                     var foundEndp = false;
-                    var lst = new List<Struc>();
+                    var lst = new ObservableCollection<Struc>();
                     
                     do
                     {
@@ -3872,13 +4122,51 @@ namespace NameFinder
                             if (callStr.Length >= 4 && callStr.Substring(0, 4) == "call")
                             {
                                 // Рефакторинг: используем переданную функцию для поиска структуры
+                                // В старом коде использовался Substring(8) без Trim()
+                                var callAddress = "";
                                 if (callStr.Length >= 8)
                                 {
-                                    var findList = findStructureFunc(callStr.Substring(8), fileLines, DepthMax);
+                                    // Формат "call    sub_xxx" или "call    xxx"
+                                    callAddress = callStr.Substring(8);
+                                }
+                                else if (callStr.Length >= 5)
+                                {
+                                    // Формат "call sub_xxx" или "call xxx"
+                                    callAddress = callStr.Substring(5);
+                                }
+                                
+                                // В старом коде не было проверки на пустую строку
+                                if (callAddress.Length > 0)
+                                {
+                                    // Пропускаем регистры и другие не-адреса подпрограмм
+                                    var lowerAddress = callAddress.ToLower();
+                                    if (lowerAddress == "eax" || lowerAddress == "ebx" || lowerAddress == "ecx" || 
+                                        lowerAddress == "edx" || lowerAddress == "esi" || lowerAddress == "edi" || 
+                                        lowerAddress == "esp" || lowerAddress == "ebp" ||
+                                        lowerAddress == "ds" || lowerAddress == "cs" || lowerAddress == "es" || 
+                                        lowerAddress == "fs" || lowerAddress == "gs" || lowerAddress == "ss" ||
+                                        callAddress.StartsWith("__libm_") || callAddress == "floor" || 
+                                        callAddress == "ceil" || callAddress == "sqrt")
+                                    {
+                                        LogDebug($"FindStructuresForSubAddresses: Пропущен не-валидный адрес '{callAddress}' (регистр или библиотечная функция)");
+                                        continue;
+                                    }
+                                    
+                                    LogDebug($"FindStructuresForSubAddresses: Рекурсивный вызов для адреса '{callAddress}' из подпрограммы '{subAddresses[i]}'");
+                                    var findList = findStructureFunc(callAddress, fileLines, DepthMax, useCallSpaces4);
+                                    LogDebug($"FindStructuresForSubAddresses: Результат рекурсивного вызова для '{callAddress}': найдено {findList.Count} структур");
                                     if (findList.Count > 0)
                                     {
-                                        lst.AddRange(findList);
+                                        foreach (var item in findList)
+                                        {
+                                            lst.Add(item);
+                                        }
+                                        found = true; // нашли структуру
                                     }
+                                }
+                                else
+                                {
+                                    LogDebug($"FindStructuresForSubAddresses: callAddress пустой для callStr: '{callStr}'");
                                 }
                             }
                             else
@@ -3912,6 +4200,7 @@ namespace NameFinder
                         index++;
                     } while (index < fileLines.Count && !foundEndp);
 
+                    LogDebug($"FindStructuresForSubAddresses: Найдена структура для адреса [{i}] '{subAddresses[i]}': {lst.Count} элементов");
                     structures.Add(i, lst);
                     found = true;
                     break;
@@ -3919,17 +4208,20 @@ namespace NameFinder
 
                 if (!found)
                 {
+                    LogWarn($"FindStructuresForSubAddresses: Не найдена структура для адреса [{i}] '{subAddresses[i]}'");
                     // Не нашли структуру
-                    structures.Add(i, new List<Struc>());
+                    structures.Add(i, new ObservableCollection<Struc>());
                 }
 
                 // Рефакторинг: обновляем прогресс
                 progressUpdate(structures.Count);
             }
+            LogDebug($"FindStructuresForSubAddresses: Завершено. Найдено структур: {structures.Count}");
         }
 
         private void FindSourceStructuresCS(string str)
         {
+            LogDebug($"FindSourceStructuresCS: Начало. searchPattern='{str}'");
             // Рефакторинг: используем универсальный метод
             FindStructuresInternal(
                 InListSource,
@@ -3939,7 +4231,7 @@ namespace NameFinder
                 ListSubSourceCS,
                 XrefsIn,
                 "CS_Unknown",
-                (address, lines, depth) => _structureFinderService.FindStructureIn(address, lines, depth),
+                (address, lines, depth, useSpaces4) => _structureFinderService.FindStructureIn(address, lines, depth, useSpaces4),
                 count => Helpers.UIHelper.InvokeUI(Dispatcher, () => ProgressBar12.Value = count),
                 FindStructIn,
                 false,
@@ -3980,6 +4272,7 @@ namespace NameFinder
 
         private void FindSourceStructuresSC(string str)
         {
+            LogDebug($"FindSourceStructuresSC: Начало. searchPattern='{str}'");
             // Рефакторинг: используем универсальный метод
             FindStructuresInternal(
                 InListSource,
@@ -3989,7 +4282,7 @@ namespace NameFinder
                 ListSubSourceSC,
                 XrefsIn,
                 "CS_Unknown",
-                (address, lines, depth) => _structureFinderService.FindStructureIn(address, lines, depth),
+                (address, lines, depth, useSpaces4) => _structureFinderService.FindStructureIn(address, lines, depth, useSpaces4),
                 count => Helpers.UIHelper.InvokeUI(Dispatcher, () => ProgressBar12.Value = count),
                 FindStructIn,
                 false,
@@ -3998,6 +4291,7 @@ namespace NameFinder
                     () => TextBox16.Text = "0",
                     () => TextBox17.Text = "0",
                     () => TextBox19.Text = "0",
+                    () => ProgressBar11.Value = InListSource.Count,
                     () => ProgressBar12.Value = 0,
                     () => Label_Semafor1.Background = Brushes.Yellow,
                     () => ButtonSaveIn1.IsEnabled = false,
@@ -4035,6 +4329,8 @@ namespace NameFinder
 
         private void FindDestinationStructuresCS(string str)
         {
+            LogDebug($"FindDestinationStructuresCS: Начало. searchPattern='{str}'");
+            LogDebug($"FindDestinationStructuresCS: ListSubDestinationCS.Count до вызова FindStructuresInternal: {ListSubDestinationCS.Count}");
             // Рефакторинг: используем универсальный метод
             FindStructuresInternal(
                 InListDestination,
@@ -4044,7 +4340,7 @@ namespace NameFinder
                 ListSubDestinationCS,
                 XrefsOut,
                 "CS_Unknown",
-                (address, lines, depth) => _structureFinderService.FindStructureOut(address, lines, depth),
+                (address, lines, depth, useSpaces4) => _structureFinderService.FindStructureOut(address, lines, depth, useSpaces4),
                 count => Helpers.UIHelper.InvokeUI(Dispatcher, () => ProgressBar22.Value = count),
                 FindStructOut,
                 true,
@@ -4097,10 +4393,21 @@ namespace NameFinder
                 ),
                 isOutCs => _isOutCs = isOutCs
             );
+            LogDebug($"FindDestinationStructuresCS: Завершено. ListSubDestinationCS.Count после вызова FindStructuresInternal: {ListSubDestinationCS.Count}");
+            if (ListSubDestinationCS.Count > 0)
+            {
+                var firstAddresses = string.Join(", ", ListSubDestinationCS.Take(5));
+                LogDebug($"FindDestinationStructuresCS: Первые 5 адресов в ListSubDestinationCS: {firstAddresses}");
+            }
+            else
+            {
+                LogWarn("FindDestinationStructuresCS: ListSubDestinationCS пуст после завершения FindStructuresInternal!");
+            }
         }
 
         private void FindDestinationStructuresSC(string str)
         {
+            LogDebug($"FindDestinationStructuresSC: Начало. searchPattern='{str}'");
             // Рефакторинг: используем универсальный метод
             FindStructuresInternal(
                 InListDestination,
@@ -4110,7 +4417,7 @@ namespace NameFinder
                 ListSubDestinationSC,
                 XrefsOut,
                 "SC_Unknown",
-                (address, lines, depth) => _structureFinderService.FindStructureOut(address, lines, depth),
+                (address, lines, depth, useSpaces4) => _structureFinderService.FindStructureOut(address, lines, depth, useSpaces4),
                 count => Helpers.UIHelper.InvokeUI(Dispatcher, () => ProgressBar22.Value = count),
                 FindStructOut,
                 false,
@@ -4119,6 +4426,7 @@ namespace NameFinder
                     () => TextBox26.Text = "0",
                     () => TextBox27.Text = "0",
                     () => TextBox29.Text = "0",
+                    () => ProgressBar21.Value = InListDestination.Count,
                     () => ProgressBar22.Value = 0,
                     () => Label_Semafor2.Background = Brushes.Yellow,
                     () => ButtonSaveOut1.IsEnabled = false,
@@ -4323,7 +4631,7 @@ namespace NameFinder
             var inText = TextBox12.Text;
             DepthIn = 0;
 
-            ListNameSourceSC = new List<string>();
+            ListNameSourceSC.Clear();
             FindOpcodeIn = CheckBoxFindOpcodeIn.IsChecked == true;
             FindStructIn = CheckBoxFindStructIn.IsChecked == true;
             _isInSc = false;
@@ -4394,7 +4702,7 @@ namespace NameFinder
             var inText = TextBox11.Text;
             DepthIn = 0;
 
-            ListNameSourceCS = new List<string>();
+            ListNameSourceCS.Clear();
             FindOpcodeIn = CheckBoxFindOpcodeIn.IsChecked == true;
             FindStructIn = CheckBoxFindStructIn.IsChecked == true;
             _isInSc = false;
@@ -4548,7 +4856,7 @@ namespace NameFinder
             var outText = TextBox22.Text;
             DepthOut = 0;
 
-            ListNameDestinationSC = new List<string>();
+            ListNameDestinationSC.Clear();
             FindOpcodeOut = CheckBoxFindOpcodeOut.IsChecked == true;
             FindStructOut = CheckBoxFindStructOut.IsChecked == true;
             //_isInSc = false;
@@ -4585,7 +4893,7 @@ namespace NameFinder
             var inText = TextBox21.Text;
             DepthIn = 0;
 
-            ListNameDestinationCS = new List<string>();
+            ListNameDestinationCS.Clear();
             FindOpcodeOut = CheckBoxFindOpcodeOut.IsChecked == true;
             FindStructOut = CheckBoxFindStructOut.IsChecked == true;
             //_isInSc = false;
@@ -4608,12 +4916,12 @@ namespace NameFinder
             });
         }
 
-        private void CompareSourceStructuresCS(ref List<string> listNameSource, ref List<string> listNameDestination, ref List<string> listSubDestination, ref Dictionary<int, List<Struc>> dictSource, ref Dictionary<int, List<Struc>> dictDestination, List<string> listOpcodes)
+        private void CompareSourceStructuresCS(ref ObservableCollection<string> listNameSource, ref ObservableCollection<string> listNameDestination, ref List<string> listSubDestination, ref Dictionary<int, ObservableCollection<Struc>> dictSource, ref Dictionary<int, ObservableCollection<Struc>> dictDestination, ObservableCollection<string> listOpcodes)
         {
             var stopWatch = new Stopwatch();
             stopWatch.Start();
             // подготовим список
-            ListNameCompareCS = new List<string>();
+            ListNameCompareCS.Clear();
             foreach (var t in listNameDestination)
             {
                 ListNameCompareCS.Add(t);
@@ -4793,12 +5101,12 @@ namespace NameFinder
             );
         }
 
-        private void CompareSourceStructuresSC(ref List<string> listNameSource, ref List<string> listNameDestination, ref List<string> listSubDestination, ref Dictionary<int, List<Struc>> dictSource, ref Dictionary<int, List<Struc>> dictDestination, List<string> listOpcodes)
+        private void CompareSourceStructuresSC(ref ObservableCollection<string> listNameSource, ref ObservableCollection<string> listNameDestination, ref List<string> listSubDestination, ref Dictionary<int, ObservableCollection<Struc>> dictSource, ref Dictionary<int, ObservableCollection<Struc>> dictDestination, ObservableCollection<string> listOpcodes)
         {
             var stopWatch = new Stopwatch();
             stopWatch.Start();
             // подготовим список
-            ListNameCompareSC = new List<string>();
+            ListNameCompareSC.Clear();
             foreach (var t in listNameDestination)
             {
                 ListNameCompareSC.Add(t);
@@ -4975,6 +5283,15 @@ namespace NameFinder
                 if (!isCompareCS)
                 {
                     // результат работы метода в ListNameCompareCS
+                    // ВАЖНО: сохраняем копии списков ДО вызова CompareSourceStructuresCS, чтобы они не потерялись
+                    // Сохраняем копии всегда, независимо от isCompareCS, чтобы они были доступны при открытии CompareWindow
+                    _savedListSubDestinationCS = ListSubDestinationCS != null && ListSubDestinationCS.Count > 0 ? new List<string>(ListSubDestinationCS) : null;
+                    _savedListNameDestinationCS = ListNameDestinationCS != null && ListNameDestinationCS.Count > 0 ? new List<string>(ListNameDestinationCS) : null;
+                    _savedListNameSourceCS = ListNameSourceCS != null && ListNameSourceCS.Count > 0 ? new List<string>(ListNameSourceCS) : null;
+                    // Убрано сохранение структур, так как теперь передаем ссылки напрямую
+                    
+                    LogDebug($"button2_Copy1_Click: Сохранены копии списков перед CompareSourceStructuresCS. _savedListSubDestinationCS.Count={_savedListSubDestinationCS?.Count ?? 0}, _savedListNameDestinationCS.Count={_savedListNameDestinationCS?.Count ?? 0}, _savedListNameSourceCS.Count={_savedListNameSourceCS?.Count ?? 0}");
+                    
                     // Рефакторинг: создаем локальные переменные для ref параметров, так как свойства нельзя передавать как ref
                     var listNameSourceCS = ListNameSourceCS;
                     var listNameDestinationCS = ListNameDestinationCS;
@@ -4982,6 +5299,16 @@ namespace NameFinder
                     var structureSourceCS = StructureSourceCS;
                     var structureDestinationCS = StructureDestinationCS;
                     CompareSourceStructuresCS(ref listNameSourceCS, ref listNameDestinationCS, ref listSubDestinationCS, ref structureSourceCS, ref structureDestinationCS, ListOpcodeDestinationCS);
+                    
+                    // Восстанавливаем списки, если они были очищены
+                    if (_savedListSubDestinationCS != null && (listSubDestinationCS == null || listSubDestinationCS.Count == 0))
+                    {
+                        listSubDestinationCS = new List<string>(_savedListSubDestinationCS);
+                        LogDebug($"button2_Copy1_Click: Восстановлен listSubDestinationCS из сохраненной копии. Count={listSubDestinationCS.Count}");
+                    }
+                    // Убрано восстановление списков, так как теперь передаем ссылки на ObservableCollection напрямую
+                    // Убрано восстановление структур, так как теперь передаем ссылки напрямую
+                    
                     ListNameSourceCS = listNameSourceCS;
                     ListNameDestinationCS = listNameDestinationCS;
                     ListSubDestinationCS = listSubDestinationCS;
@@ -4992,7 +5319,11 @@ namespace NameFinder
                 }
                 else
                 {
-                    ListNameCompareCS = new List<string>(ListNameCompare);
+                    ListNameCompareCS.Clear();
+                    foreach (var item in ListNameCompare)
+                    {
+                        ListNameCompareCS.Add(item);
+                    }
                     CheckBoxLock.IsChecked = true;
                 }
 
@@ -5092,31 +5423,82 @@ namespace NameFinder
                 CompareWindow.isRemoveOpcode = isRemoveOpcode;
                 CompareWindow.StructStringIn = StructStringIn;
                 CompareWindow.StructStringOut = StructStringOut;
+                
+                // ВАЖНО: сохраняем копии списков перед открытием CompareWindow, если они еще не сохранены или пустые
+                // Это нужно для случая, когда CompareWindow открывается повторно (isCompareCS уже true)
+                if (_savedListSubDestinationCS == null || _savedListSubDestinationCS.Count == 0)
+                {
+                    _savedListSubDestinationCS = ListSubDestinationCS != null && ListSubDestinationCS.Count > 0 ? new List<string>(ListSubDestinationCS) : null;
+                    LogDebug($"button2_Copy1_Click (CS Compare): Сохранены копии _savedListSubDestinationCS перед открытием CompareWindow. Count={_savedListSubDestinationCS?.Count ?? 0}");
+                }
+                if (_savedListNameDestinationCS == null || _savedListNameDestinationCS.Count == 0)
+                {
+                    _savedListNameDestinationCS = ListNameDestinationCS != null && ListNameDestinationCS.Count > 0 ? new List<string>(ListNameDestinationCS) : null;
+                    LogDebug($"button2_Copy1_Click (CS Compare): Сохранены копии _savedListNameDestinationCS перед открытием CompareWindow. Count={_savedListNameDestinationCS?.Count ?? 0}");
+                }
+                if (_savedListNameSourceCS == null || _savedListNameSourceCS.Count == 0)
+                {
+                    _savedListNameSourceCS = ListNameSourceCS != null && ListNameSourceCS.Count > 0 ? new List<string>(ListNameSourceCS) : null;
+                    LogDebug($"button2_Copy1_Click (CS Compare): Сохранены копии _savedListNameSourceCS перед открытием CompareWindow. Count={_savedListNameSourceCS?.Count ?? 0}");
+                }
+                // ВАЖНО: Теперь передаем ссылки на ObservableCollection напрямую, без копирования!
+                // ObservableCollection автоматически обновляет UI при изменении данных
+                // Для List (не ObservableCollection) создаем копии только для безопасности
+                var listSubDestinationCS = _savedListSubDestinationCS != null ? new List<string>(_savedListSubDestinationCS) : new List<string>(ListSubDestinationCS ?? new List<string>());
+                
+                // ВАЖНО: Передаем ссылки на Dictionary с ObservableCollection напрямую - без копирования!
+                // Изменения в CompareWindow автоматически отобразятся в MainWindow
+                
+                // Логирование перед передачей в CompareWindow
+                LogDebug($"button2_Copy1_Click (CS Compare): Перед открытием CompareWindow. ListNameSourceCS.Count={ListNameSourceCS.Count}, ListNameDestinationCS.Count={ListNameDestinationCS.Count}, ListNameCompareCS.Count={ListNameCompareCS.Count}, ListSubDestinationCS.Count={ListSubDestinationCS.Count}");
+                
+                // Если ListNameCompareCS пустой, инициализируем его из ListNameDestinationCS
+                if (ListNameCompareCS.Count == 0 && ListNameDestinationCS.Count > 0)
+                {
+                    ListNameCompareCS.Clear();
+                    foreach (var item in ListNameDestinationCS)
+                    {
+                        ListNameCompareCS.Add(item);
+                    }
+                    LogDebug($"button2_Copy1_Click (CS Compare): Инициализирован ListNameCompareCS из ListNameDestinationCS. Count={ListNameCompareCS.Count}");
+                }
+                
                 var compareWindow = new CompareWindow(this);
-                compareWindow.Show();
-                // Рефакторинг: создаем локальные переменные для ref параметров, так как свойства нельзя передавать как ref
-                var listNameSourceCS = ListNameSourceCS;
-                var listNameDestinationCS = ListNameDestinationCS;
-                var listNameCompareCS = ListNameCompareCS;
-                var listSubDestinationCS = ListSubDestinationCS;
-                var structureSourceCS = StructureSourceCS;
-                var structureDestinationCS = StructureDestinationCS;
-                compareWindow.CompareSourceStructures(ref listNameSourceCS, ref listNameDestinationCS, ref listNameCompareCS, ref listSubDestinationCS, ref structureSourceCS, ref structureDestinationCS, ListOpcodeDestinationCS);
-                ListNameSourceCS = listNameSourceCS;
-                ListNameDestinationCS = listNameDestinationCS;
-                ListNameCompareCS = listNameCompareCS;
-                ListSubDestinationCS = listSubDestinationCS;
-                StructureSourceCS = structureSourceCS;
-                StructureDestinationCS = structureDestinationCS;
+                LogDebug($"button2_Copy1_Click (CS Compare): Вызов CompareSourceStructures. Передаем ссылки на ObservableCollection. ListNameSourceCS.Count={ListNameSourceCS.Count}, ListNameDestinationCS.Count={ListNameDestinationCS.Count}, ListNameCompareCS.Count={ListNameCompareCS.Count}, listSubDestinationCS.Count={listSubDestinationCS.Count}");
+                
+                // ВАЖНО: Передаем ссылки на ObservableCollection напрямую - без копирования!
+                // Изменения в CompareWindow автоматически отобразятся в MainWindow
+                compareWindow.CompareSourceStructures(
+                    ListNameSourceCS,  // Передаем ссылку на ObservableCollection
+                    ListNameDestinationCS,  // Передаем ссылку на ObservableCollection
+                    ListNameCompareCS,  // Передаем ссылку на ObservableCollection
+                    listSubDestinationCS,
+                    StructureSourceCS,  // Передаем ссылку на Dictionary с ObservableCollection
+                    StructureDestinationCS,  // Передаем ссылку на Dictionary с ObservableCollection
+                    ListOpcodeDestinationCS);  // Передаем ссылку на ObservableCollection
+                
+                LogDebug($"button2_Copy1_Click (CS Compare): После CompareSourceStructures. ListNameCompareCS.Count={ListNameCompareCS.Count}");
+                
+                // Открываем окно модально, чтобы дождаться закрытия
+                compareWindow.ShowDialog();
+                
+                // ВАЖНО: Изменения уже применены к ObservableCollection, UI обновится автоматически!
+                // Нужно только обновить ListNameCompareOutCS, если были изменения
+                if (compareWindow.isDestinationNameChanged || compareWindow.isResetOpcode)
+                {
+                    LogDebug($"button2_Copy1_Click (CS Compare): Обнаружены изменения. isDestinationNameChanged={compareWindow.isDestinationNameChanged}, isResetOpcode={compareWindow.isResetOpcode}");
+                }
                 isCompareCS = true;
                 CheckBoxLock.IsChecked = true;
             }
 
-            ListNameCompareOutCS = new List<string>();
+            // ВАЖНО: формируем ListNameCompareOutCS из обновленного ListNameCompareCS
+            // ObservableCollection автоматически обновит UI при изменении
+            ListNameCompareOutCS.Clear();
             var idxD = 0;
             foreach (var t in ListNameCompareCS)
             {
-                if (ListOpcodeDestinationCS.Count > 0)
+                if (ListOpcodeDestinationCS != null && ListOpcodeDestinationCS.Count > idxD)
                 {
                     ListNameCompareOutCS.Add(t + "_" + ListOpcodeDestinationCS[idxD]);
                 }
@@ -5124,13 +5506,25 @@ namespace NameFinder
                 {
                     ListNameCompareOutCS.Add(t + "_" + "0xfff");
                 }
-
                 idxD++;
             }
 
-            ListView24.ItemsSource = ListOpcodeDestinationCS;
-            ListView31.ItemsSource = ListNameCompareCS;
-            ListView32.ItemsSource = ListNameCompareOutCS;
+            // Рефакторинг: ObservableCollection автоматически обновляет UI, но нужно установить ItemsSource один раз
+            // Если ItemsSource уже установлен на эту коллекцию, обновление произойдет автоматически
+            Helpers.UIHelper.InvokeUIBatch(Dispatcher,
+                () => 
+                {
+                    if (ListView24.ItemsSource != ListOpcodeDestinationCS)
+                        ListView24.ItemsSource = ListOpcodeDestinationCS;
+                    if (ListView31.ItemsSource != ListNameCompareCS)
+                        ListView31.ItemsSource = ListNameCompareCS; // ObservableCollection автоматически обновит UI
+                    if (ListView32.ItemsSource != ListNameCompareOutCS)
+                        ListView32.ItemsSource = ListNameCompareOutCS; // ObservableCollection автоматически обновит UI
+                    TextBox31.Text = ListNameCompareCS.Count.ToString();
+                }
+            );
+            
+            LogDebug($"button2_Copy1_Click (CS Compare): Обновлены ListView31 и ListView32. ListNameCompareCS.Count={ListNameCompareCS.Count}, ListNameCompareOutCS.Count={ListNameCompareOutCS.Count}");
 
             if (CheckBoxRename.IsChecked == true)
             {
@@ -5187,6 +5581,29 @@ namespace NameFinder
                 if (!isCompareSC)
                 {
                     // результат работы метода в ListNameCompareSC
+                    // ВАЖНО: сохраняем копии списков ДО вызова CompareSourceStructuresSC, чтобы они не потерялись
+                    _savedListSubDestinationSC = ListSubDestinationSC != null && ListSubDestinationSC.Count > 0 ? new List<string>(ListSubDestinationSC) : null;
+                    _savedListNameDestinationSC = ListNameDestinationSC != null && ListNameDestinationSC.Count > 0 ? new List<string>(ListNameDestinationSC) : null;
+                    _savedListNameSourceSC = ListNameSourceSC != null && ListNameSourceSC.Count > 0 ? new List<string>(ListNameSourceSC) : null;
+                    _savedStructureSourceSC = StructureSourceSC != null && StructureSourceSC.Count > 0 ? new Dictionary<int, List<Struc>>() : null;
+                    if (_savedStructureSourceSC != null)
+                    {
+                        foreach (var kvp in StructureSourceSC)
+                        {
+                            _savedStructureSourceSC[kvp.Key] = new List<Struc>(kvp.Value);
+                        }
+                    }
+                    _savedStructureDestinationSC = StructureDestinationSC != null && StructureDestinationSC.Count > 0 ? new Dictionary<int, List<Struc>>() : null;
+                    if (_savedStructureDestinationSC != null)
+                    {
+                        foreach (var kvp in StructureDestinationSC)
+                        {
+                            _savedStructureDestinationSC[kvp.Key] = new List<Struc>(kvp.Value);
+                        }
+                    }
+                    
+                    LogDebug($"button_Copy1_Click: Сохранены копии списков перед CompareSourceStructuresSC. _savedListSubDestinationSC.Count={_savedListSubDestinationSC?.Count ?? 0}, _savedListNameDestinationSC.Count={_savedListNameDestinationSC?.Count ?? 0}, _savedListNameSourceSC.Count={_savedListNameSourceSC?.Count ?? 0}");
+                    
                     // Рефакторинг: создаем локальные переменные для ref параметров, так как свойства нельзя передавать как ref
                     var listNameSourceSC = ListNameSourceSC;
                     var listNameDestinationSC = ListNameDestinationSC;
@@ -5194,6 +5611,15 @@ namespace NameFinder
                     var structureSourceSC = StructureSourceSC;
                     var structureDestinationSC = StructureDestinationSC;
                     CompareSourceStructuresSC(ref listNameSourceSC, ref listNameDestinationSC, ref listSubDestinationSC, ref structureSourceSC, ref structureDestinationSC, ListOpcodeDestinationSC);
+                    
+                    // Восстанавливаем списки, если они были очищены
+                    if (_savedListSubDestinationSC != null && (listSubDestinationSC == null || listSubDestinationSC.Count == 0))
+                    {
+                        listSubDestinationSC = new List<string>(_savedListSubDestinationSC);
+                        LogDebug($"button_Copy1_Click: Восстановлен listSubDestinationSC из сохраненной копии. Count={listSubDestinationSC.Count}");
+                    }
+                    // Убрано восстановление списков и структур, так как теперь передаем ссылки на ObservableCollection напрямую
+                    
                     ListNameSourceSC = listNameSourceSC;
                     ListNameDestinationSC = listNameDestinationSC;
                     ListSubDestinationSC = listSubDestinationSC;
@@ -5204,7 +5630,11 @@ namespace NameFinder
                 }
                 else
                 {
-                    ListNameCompareSC = new List<string>(ListNameCompare);
+                    ListNameCompareSC.Clear();
+                    foreach (var item in ListNameCompare)
+                    {
+                        ListNameCompareSC.Add(item);
+                    }
                     CheckBoxLock.IsChecked = true;
                 }
 
@@ -5302,31 +5732,81 @@ namespace NameFinder
             {
                 isCS = false;
                 CompareWindow.isRemoveOpcode = isRemoveOpcode;
+                CompareWindow.StructStringIn = StructStringIn;
+                CompareWindow.StructStringOut = StructStringOut;
+                
+                // ВАЖНО: сохраняем копии списков перед открытием CompareWindow, если они еще не сохранены или пустые
+                // Это нужно для случая, когда CompareWindow открывается повторно (isCompareSC уже true)
+                if (_savedListSubDestinationSC == null || _savedListSubDestinationSC.Count == 0)
+                {
+                    _savedListSubDestinationSC = ListSubDestinationSC != null && ListSubDestinationSC.Count > 0 ? new List<string>(ListSubDestinationSC) : null;
+                    LogDebug($"button2_Copy2_Click (SC Compare): Сохранены копии _savedListSubDestinationSC перед открытием CompareWindow. Count={_savedListSubDestinationSC?.Count ?? 0}");
+                }
+                if (_savedListNameDestinationSC == null || _savedListNameDestinationSC.Count == 0)
+                {
+                    _savedListNameDestinationSC = ListNameDestinationSC != null && ListNameDestinationSC.Count > 0 ? new List<string>(ListNameDestinationSC) : null;
+                    LogDebug($"button2_Copy2_Click (SC Compare): Сохранены копии _savedListNameDestinationSC перед открытием CompareWindow. Count={_savedListNameDestinationSC?.Count ?? 0}");
+                }
+                if (_savedListNameSourceSC == null || _savedListNameSourceSC.Count == 0)
+                {
+                    _savedListNameSourceSC = ListNameSourceSC != null && ListNameSourceSC.Count > 0 ? new List<string>(ListNameSourceSC) : null;
+                    LogDebug($"button2_Copy2_Click (SC Compare): Сохранены копии _savedListNameSourceSC перед открытием CompareWindow. Count={_savedListNameSourceSC?.Count ?? 0}");
+                }
+                // ВАЖНО: Теперь передаем ссылки на ObservableCollection напрямую, без копирования!
+                // ObservableCollection автоматически обновляет UI при изменении данных
+                // Для List (не ObservableCollection) создаем копии только для безопасности
+                var listSubDestinationSC = _savedListSubDestinationSC != null ? new List<string>(_savedListSubDestinationSC) : new List<string>(ListSubDestinationSC ?? new List<string>());
+                
+                // Логирование перед передачей в CompareWindow
+                LogDebug($"button2_Copy2_Click (SC Compare): Перед открытием CompareWindow. ListNameSourceSC.Count={ListNameSourceSC.Count}, ListNameDestinationSC.Count={ListNameDestinationSC.Count}, ListNameCompareSC.Count={ListNameCompareSC.Count}, ListSubDestinationSC.Count={ListSubDestinationSC.Count}");
+                
+                // Если ListNameCompareSC пустой, инициализируем его из ListNameDestinationSC
+                if (ListNameCompareSC.Count == 0 && ListNameDestinationSC.Count > 0)
+                {
+                    ListNameCompareSC.Clear();
+                    foreach (var item in ListNameDestinationSC)
+                    {
+                        ListNameCompareSC.Add(item);
+                    }
+                    LogDebug($"button2_Copy2_Click (SC Compare): Инициализирован ListNameCompareSC из ListNameDestinationSC. Count={ListNameCompareSC.Count}");
+                }
+                
                 var compareWindow = new CompareWindow(this);
-                compareWindow.Show();
-                // Рефакторинг: создаем локальные переменные для ref параметров, так как свойства нельзя передавать как ref
-                var listNameSourceSC = ListNameSourceSC;
-                var listNameDestinationSC = ListNameDestinationSC;
-                var listNameCompareSC = ListNameCompareSC;
-                var listSubDestinationSC = ListSubDestinationSC;
-                var structureSourceSC = StructureSourceSC;
-                var structureDestinationSC = StructureDestinationSC;
-                compareWindow.CompareSourceStructures(ref listNameSourceSC, ref listNameDestinationSC, ref listNameCompareSC, ref listSubDestinationSC, ref structureSourceSC, ref structureDestinationSC, ListOpcodeDestinationSC);
-                ListNameSourceSC = listNameSourceSC;
-                ListNameDestinationSC = listNameDestinationSC;
-                ListNameCompareSC = listNameCompareSC;
-                ListSubDestinationSC = listSubDestinationSC;
-                StructureSourceSC = structureSourceSC;
-                StructureDestinationSC = structureDestinationSC;
+                LogDebug($"button2_Copy2_Click (SC Compare): Вызов CompareSourceStructures. Передаем ссылки на ObservableCollection. ListNameSourceSC.Count={ListNameSourceSC.Count}, ListNameDestinationSC.Count={ListNameDestinationSC.Count}, ListNameCompareSC.Count={ListNameCompareSC.Count}, listSubDestinationSC.Count={listSubDestinationSC.Count}");
+                
+                // ВАЖНО: Передаем ссылки на ObservableCollection напрямую - без копирования!
+                // Изменения в CompareWindow автоматически отобразятся в MainWindow
+                compareWindow.CompareSourceStructures(
+                    ListNameSourceSC,  // Передаем ссылку на ObservableCollection
+                    ListNameDestinationSC,  // Передаем ссылку на ObservableCollection
+                    ListNameCompareSC,  // Передаем ссылку на ObservableCollection
+                    listSubDestinationSC,
+                    StructureSourceSC,  // Передаем ссылку на Dictionary с ObservableCollection
+                    StructureDestinationSC,  // Передаем ссылку на Dictionary с ObservableCollection
+                    ListOpcodeDestinationSC);  // Передаем ссылку на ObservableCollection
+                
+                LogDebug($"button2_Copy2_Click (SC Compare): После CompareSourceStructures. ListNameCompareSC.Count={ListNameCompareSC.Count}");
+                
+                // Открываем окно модально, чтобы дождаться закрытия
+                compareWindow.ShowDialog();
+                
+                // ВАЖНО: Изменения уже применены к ObservableCollection, UI обновится автоматически!
+                // Нужно только залогировать изменения
+                if (compareWindow.isSourceNameChanged || compareWindow.isDestinationNameChanged || compareWindow.isResetOpcode)
+                {
+                    LogDebug($"button2_Copy2_Click (SC Compare): Обнаружены изменения. isSourceNameChanged={compareWindow.isSourceNameChanged}, isDestinationNameChanged={compareWindow.isDestinationNameChanged}, isResetOpcode={compareWindow.isResetOpcode}");
+                }
                 isCompareSC = true;
                 CheckBoxLock.IsChecked = true;
             }
 
-            ListNameCompareOutSC = new List<string>();
+            // ВАЖНО: формируем ListNameCompareOutSC из обновленного ListNameCompareSC
+            // ObservableCollection автоматически обновит UI при изменении
+            ListNameCompareOutSC.Clear();
             var idxD = 0;
             foreach (var t in ListNameCompareSC)
             {
-                if (ListOpcodeDestinationSC.Count > 0)
+                if (ListOpcodeDestinationSC != null && ListOpcodeDestinationSC.Count > idxD)
                 {
                     ListNameCompareOutSC.Add(t + "_" + ListOpcodeDestinationSC[idxD]);
                 }
@@ -5334,13 +5814,25 @@ namespace NameFinder
                 {
                     ListNameCompareOutSC.Add(t + "_" + "0xfff");
                 }
-
                 idxD++;
             }
 
-            ListView24.ItemsSource = ListOpcodeDestinationSC;
-            ListView31.ItemsSource = ListNameCompareSC;
-            ListView32.ItemsSource = ListNameCompareOutSC;
+            // Рефакторинг: ObservableCollection автоматически обновляет UI, но нужно установить ItemsSource один раз
+            // Если ItemsSource уже установлен на эту коллекцию, обновление произойдет автоматически
+            Helpers.UIHelper.InvokeUIBatch(Dispatcher,
+                () => 
+                {
+                    if (ListView24.ItemsSource != ListOpcodeDestinationSC)
+                        ListView24.ItemsSource = ListOpcodeDestinationSC;
+                    if (ListView31.ItemsSource != ListNameCompareSC)
+                        ListView31.ItemsSource = ListNameCompareSC; // ObservableCollection автоматически обновит UI
+                    if (ListView32.ItemsSource != ListNameCompareOutSC)
+                        ListView32.ItemsSource = ListNameCompareOutSC; // ObservableCollection автоматически обновит UI
+                    TextBox31.Text = ListNameCompareSC.Count.ToString();
+                }
+            );
+            
+            LogDebug($"button2_Copy2_Click (SC Compare): Обновлены ListView31 и ListView32. ListNameCompareSC.Count={ListNameCompareSC.Count}, ListNameCompareOutSC.Count={ListNameCompareOutSC.Count}");
 
             if (CheckBoxRename.IsChecked == true)
             {
@@ -5388,7 +5880,7 @@ namespace NameFinder
             }
         }
 
-        private void RenamePackets(List<string> listName, List<string> listNameCompare)
+        private void RenamePackets(ObservableCollection<string> listName, ObservableCollection<string> listNameCompare)
         {
             var stopWatch = new Stopwatch();
             stopWatch.Start();
@@ -5441,14 +5933,19 @@ namespace NameFinder
             var tmp = new List<string>();
             for (var i = 0; i < ListNameCompareCS.Count; i++)
             {
-                if (ListOpcodeDestinationCS.Count > 0)
+                // Проверяем границы для ListSubDestinationCS и ListOpcodeDestinationCS
+                var packetBodyReader = i < ListSubDestinationCS.Count ? ListSubDestinationCS[i] : "";
+                var opcode = "";
+                
+                if (ListOpcodeDestinationCS.Count > 0 && i < ListOpcodeDestinationCS.Count)
                 {
-                    var lst = "Packet name: " + ListNameCompareCS[i] + ", PacketBodyReader: " + ListSubDestinationCS[i] + ", Opcode: " + ListOpcodeDestinationCS[i];
+                    opcode = ListOpcodeDestinationCS[i];
+                    var lst = "Packet name: " + ListNameCompareCS[i] + ", PacketBodyReader: " + packetBodyReader + ", Opcode: " + opcode;
                     tmp.Add(lst);
                 }
                 else
                 {
-                    var lst = "Packet name: " + ListNameCompareCS[i] + ", PacketBodyReader: " + ListSubDestinationCS[i] + ", Opcode: 0xfff";
+                    var lst = "Packet name: " + ListNameCompareCS[i] + ", PacketBodyReader: " + packetBodyReader + ", Opcode: 0xfff";
                     tmp.Add(lst);
                 }
             }
@@ -5466,14 +5963,19 @@ namespace NameFinder
             var tmp = new List<string>();
             for (var i = 0; i < ListNameCompareSC.Count; i++)
             {
-                if (ListOpcodeDestinationSC.Count > 0)
+                // Проверяем границы для ListSubDestinationSC и ListOpcodeDestinationSC
+                var packetBodyReader = i < ListSubDestinationSC.Count ? ListSubDestinationSC[i] : "";
+                var opcode = "";
+                
+                if (ListOpcodeDestinationSC.Count > 0 && i < ListOpcodeDestinationSC.Count)
                 {
-                    var lst = "Packet name: " + ListNameCompareSC[i] + ", PacketBodyReader: " + ListSubDestinationSC[i] + ", Opcode: " + ListOpcodeDestinationSC[i];
+                    opcode = ListOpcodeDestinationSC[i];
+                    var lst = "Packet name: " + ListNameCompareSC[i] + ", PacketBodyReader: " + packetBodyReader + ", Opcode: " + opcode;
                     tmp.Add(lst);
                 }
                 else
                 {
-                    var lst = "Packet name: " + ListNameCompareSC[i] + ", PacketBodyReader: " + ListSubDestinationSC[i] + ", Opcode: 0xfff";
+                    var lst = "Packet name: " + ListNameCompareSC[i] + ", PacketBodyReader: " + packetBodyReader + ", Opcode: 0xfff";
                     tmp.Add(lst);
                 }
             }
@@ -5488,30 +5990,73 @@ namespace NameFinder
 
         private void button_SaveStructCS_Click(object sender, RoutedEventArgs e)
         {
+            LogDebug($"button_SaveStructCS_Click: Начало сохранения. ListNameCompareCS.Count={ListNameCompareCS?.Count ?? 0}, StructureSourceCS.Count={StructureSourceCS?.Count ?? 0}, StructureDestinationCS.Count={StructureDestinationCS?.Count ?? 0}, InUseOut.Count={InUseOut?.Count ?? 0}");
             var tmp = new List<string>();
             var ss = 0;
             var dd = 0;
-            var key = 0;
             var lst = "";
-            List<Struc> src;
-            List<Struc> dst;
+            ObservableCollection<Struc> src;
+            ObservableCollection<Struc> dst;
             for (var i = 0; i < ListNameCompareCS.Count; i++)
             {
                 ss = 0;
                 dd = 0;
-                if (ListOpcodeDestinationCS.Count > 0)
+                // Проверяем границы для ListSubDestinationCS и ListOpcodeDestinationCS
+                var packetBodyReader = i < ListSubDestinationCS.Count ? ListSubDestinationCS[i] : "";
+                var opcode = "";
+                
+                if (ListOpcodeDestinationCS.Count > 0 && i < ListOpcodeDestinationCS.Count)
                 {
-                    lst = i + 1 + ": Packet name: " + ListNameCompareCS[i] + ", PacketBodyReader: " + ListSubDestinationCS[i] + ", Opcode: " + ListOpcodeDestinationCS[i];
+                    opcode = ListOpcodeDestinationCS[i];
+                    lst = i + 1 + ": Packet name: " + ListNameCompareCS[i] + ", PacketBodyReader: " + packetBodyReader + ", Opcode: " + opcode;
                 }
                 else
                 {
-                    lst = i + 1 + ": Packet name: " + ListNameCompareCS[i] + ", PacketBodyReader: " + ListSubDestinationCS[i] + ", Opcode: 0xfff";
+                    lst = i + 1 + ": Packet name: " + ListNameCompareCS[i] + ", PacketBodyReader: " + packetBodyReader + ", Opcode: 0xfff";
                 }
 
                 tmp.Add(lst);
 
-                src = InUseOut.TryGetValue(i, out var value) ? StructureSourceCS[value] : new List<Struc>();
-                dst = StructureDestinationCS[i];
+                // Получаем структуру Source через маппинг InUseOut
+                // InUseOut[i] содержит индекс в Source списке, соответствующий индексу i в Destination списке
+                if (InUseOut != null && InUseOut.TryGetValue(i, out var value) && StructureSourceCS != null && StructureSourceCS.ContainsKey(value))
+                {
+                    src = StructureSourceCS[value];
+                    LogDebug($"button_SaveStructCS_Click: Пакет [{i}] '{ListNameCompareCS[i]}': Найдена Source структура через InUseOut[{i}]={value}, элементов: {src.Count}");
+                }
+                else
+                {
+                    // Если маппинг не найден, пытаемся получить структуру напрямую по индексу i
+                    // (на случай, если индексы совпадают)
+                    if (InUseOut != null && InUseOut.TryGetValue(i, out var value2))
+                    {
+                        LogDebug($"button_SaveStructCS_Click: Пакет [{i}] '{ListNameCompareCS[i]}': InUseOut[{i}]={value2}, но StructureSourceCS не содержит ключ {value2}");
+                    }
+                    else
+                    {
+                        LogDebug($"button_SaveStructCS_Click: Пакет [{i}] '{ListNameCompareCS[i]}': InUseOut не содержит ключ {i}");
+                    }
+                    src = StructureSourceCS != null && StructureSourceCS.ContainsKey(i) 
+                        ? StructureSourceCS[i] 
+                        : new ObservableCollection<Struc>();
+                    if (src.Count > 0)
+                    {
+                        LogDebug($"button_SaveStructCS_Click: Пакет [{i}] '{ListNameCompareCS[i]}': Найдена Source структура напрямую по индексу {i}, элементов: {src.Count}");
+                    }
+                }
+                
+                // Получаем структуру Destination по индексу i (это словарь, а не список)
+                dst = StructureDestinationCS != null && StructureDestinationCS.TryGetValue(i, out var dstValue) 
+                    ? dstValue 
+                    : new ObservableCollection<Struc>();
+                if (dst.Count > 0)
+                {
+                    LogDebug($"button_SaveStructCS_Click: Пакет [{i}] '{ListNameCompareCS[i]}': Найдена Destination структура по индексу {i}, элементов: {dst.Count}");
+                }
+                else if (i < 5) // Логируем только первые 5 для отладки
+                {
+                    LogWarn($"button_SaveStructCS_Click: Пакет [{i}] '{ListNameCompareCS[i]}': Destination структура пустая (StructureDestinationCS не содержит ключ {i})");
+                }
 
                 var count = Math.Max(src.Count, dst.Count);
                 // проходим по самому длинному списку
@@ -5520,7 +6065,8 @@ namespace NameFinder
                     var str1 = ss < src.Count ? src[ss].Name : "";
                     var str2 = dd < dst.Count ? dst[dd].Name : "";
 
-                    lst = ss + ": " + str1 + "\t\t" + ss + ": " + str2;
+                    // Исправлено: было ss дважды, должно быть ss и dd
+                    lst = ss + ": " + str1 + "\t\t" + dd + ": " + str2;
                     tmp.Add(lst);
 
                     ss++;
@@ -5529,9 +6075,11 @@ namespace NameFinder
 
                 tmp.Add("--------------------------------------------------------------------------------------------------------------------------------------------");
             }
+            LogDebug($"button_SaveStructCS_Click: Завершено. Подготовлено {tmp.Count} строк для сохранения");
             if (SaveFileDialog7())
             {
                 File.WriteAllLines(FilePathOut7, tmp);
+                LogDebug($"button_SaveStructCS_Click: Файл сохранен: {FilePathOut7}");
             }
         }
 
@@ -5544,25 +6092,47 @@ namespace NameFinder
             var dd = 0;
             var key = 0;
             var lst = "";
-            List<Struc> src;
-            List<Struc> dst;
+            ObservableCollection<Struc> src;
+            ObservableCollection<Struc> dst;
             for (var i = 0; i < ListNameCompareSC.Count; i++)
             {
                 ss = 0;
                 dd = 0;
-                if (ListOpcodeDestinationSC.Count > 0)
+                // Проверяем границы для ListSubDestinationSC и ListOpcodeDestinationSC
+                var packetBodyReader = i < ListSubDestinationSC.Count ? ListSubDestinationSC[i] : "";
+                var opcode = "";
+                
+                if (ListOpcodeDestinationSC.Count > 0 && i < ListOpcodeDestinationSC.Count)
                 {
-                    lst = i + 1 + ": Packet name: " + ListNameCompareSC[i] + ", PacketBodyReader: " + ListSubDestinationSC[i] + ", Opcode: " + ListOpcodeDestinationSC[i];
+                    opcode = ListOpcodeDestinationSC[i];
+                    lst = i + 1 + ": Packet name: " + ListNameCompareSC[i] + ", PacketBodyReader: " + packetBodyReader + ", Opcode: " + opcode;
                 }
                 else
                 {
-                    lst = i + 1 + ": Packet name: " + ListNameCompareSC[i] + ", PacketBodyReader: " + ListSubDestinationSC[i] + ", Opcode: 0xfff";
+                    lst = i + 1 + ": Packet name: " + ListNameCompareSC[i] + ", PacketBodyReader: " + packetBodyReader + ", Opcode: 0xfff";
                 }
 
                 tmp.Add(lst);
 
-                src = InUseOut.TryGetValue(i, out var value) ? StructureSourceSC[value] : new List<Struc>();
-                dst = StructureDestinationSC[i];
+                // Получаем структуру Source через маппинг InUseOut
+                // InUseOut[i] содержит индекс в Source списке, соответствующий индексу i в Destination списке
+                if (InUseOut != null && InUseOut.TryGetValue(i, out var value) && StructureSourceSC != null && StructureSourceSC.ContainsKey(value))
+                {
+                    src = StructureSourceSC[value];
+                }
+                else
+                {
+                    // Если маппинг не найден, пытаемся получить структуру напрямую по индексу i
+                    // (на случай, если индексы совпадают)
+                    src = StructureSourceSC != null && StructureSourceSC.ContainsKey(i) 
+                        ? StructureSourceSC[i] 
+                        : new ObservableCollection<Struc>();
+                }
+                
+                // Получаем структуру Destination по индексу i (это словарь, а не список)
+                dst = StructureDestinationSC != null && StructureDestinationSC.TryGetValue(i, out var dstValue) 
+                    ? dstValue 
+                    : new ObservableCollection<Struc>();
 
                 var count = Math.Max(src.Count, dst.Count);
                 // проходим по самому длинному списку
@@ -5571,7 +6141,8 @@ namespace NameFinder
                     var str1 = ss < src.Count ? src[ss].Name : "";
                     var str2 = dd < dst.Count ? dst[dd].Name : "";
 
-                    lst = ss + ": " + str1 + "\t\t" + ss + ": " + str2;
+                    // Исправлено: было ss дважды, должно быть ss и dd
+                    lst = ss + ": " + str1 + "\t\t" + dd + ": " + str2;
                     tmp.Add(lst);
 
                     ss++;
@@ -6145,11 +6716,19 @@ namespace NameFinder
                     InListDestination = File.ReadAllLines(DirPath + "\\data\\InListDestination").ToList();
                     ListView21.ItemsSource = InListDestination;
 
-                    ListNameSourceCS = File.ReadAllLines(DirPathCS + "\\ListNameSourceCS").ToList();
+                    ListNameSourceCS.Clear();
+                    foreach (var line in File.ReadAllLines(DirPathCS + "\\ListNameSourceCS"))
+                    {
+                        ListNameSourceCS.Add(line);
+                    }
                     ListView12.ItemsSource = ListNameSourceCS;
                     TextBox13.Text = ListNameSourceCS.Count.ToString();
 
-                    ListNameSourceSC = File.ReadAllLines(DirPathCS + "\\ListNameSourceSC").ToList();
+                    ListNameSourceSC.Clear();
+                    foreach (var line in File.ReadAllLines(DirPathCS + "\\ListNameSourceSC"))
+                    {
+                        ListNameSourceSC.Add(line);
+                    }
                     //ListView12.ItemsSource = ListNameSourceSC;
                     TextBox16.Text = ListNameSourceSC.Count.ToString();
 
@@ -6161,19 +6740,35 @@ namespace NameFinder
                     //ListView13.ItemsSource = ListSubSourceSC;
                     TextBox17.Text = ListSubSourceSC.Count.ToString();
 
-                    ListOpcodeSourceCS = File.ReadAllLines(DirPathCS + "\\ListOpcodeSourceCS").ToList();
+                    ListOpcodeSourceCS.Clear();
+                    foreach (var line in File.ReadAllLines(DirPathCS + "\\ListOpcodeSourceCS"))
+                    {
+                        ListOpcodeSourceCS.Add(line);
+                    }
                     ListView14.ItemsSource = ListOpcodeSourceCS;
                     TextBox16Copy.Text = ListOpcodeSourceCS.Count.ToString();
 
-                    ListOpcodeSourceSC = File.ReadAllLines(DirPathCS + "\\ListOpcodeSourceSC").ToList();
+                    ListOpcodeSourceSC.Clear();
+                    foreach (var line in File.ReadAllLines(DirPathCS + "\\ListOpcodeSourceSC"))
+                    {
+                        ListOpcodeSourceSC.Add(line);
+                    }
                     //ListView14.ItemsSource = ListOpcodeSourceSC;
                     //TextBox16Copy.Text = ListOpcodeSourceSC.Count.ToString();
 
-                    ListNameDestinationCS = File.ReadAllLines(DirPathCS + "\\ListNameDestinationCS").ToList();
+                    ListNameDestinationCS.Clear();
+                    foreach (var line in File.ReadAllLines(DirPathCS + "\\ListNameDestinationCS"))
+                    {
+                        ListNameDestinationCS.Add(line);
+                    }
                     ListView22.ItemsSource = ListNameDestinationCS;
                     TextBox23.Text = ListNameDestinationCS.Count.ToString();
 
-                    ListNameDestinationSC = File.ReadAllLines(DirPathCS + "\\ListNameDestinationSC").ToList();
+                    ListNameDestinationSC.Clear();
+                    foreach (var line in File.ReadAllLines(DirPathCS + "\\ListNameDestinationSC"))
+                    {
+                        ListNameDestinationSC.Add(line);
+                    }
                     //ListView22.ItemsSource = ListNameDestinationSC;
                     TextBox26.Text = ListNameDestinationSC.Count.ToString();
 
@@ -6185,28 +6780,52 @@ namespace NameFinder
                     //ListView23.ItemsSource = ListSubDestinationSC;
                     TextBox27.Text = ListSubDestinationSC.Count.ToString();
 
-                    ListOpcodeDestinationCS = File.ReadAllLines(DirPathCS + "\\ListOpcodeDestinationCS").ToList();
+                    ListOpcodeDestinationCS.Clear();
+                    foreach (var line in File.ReadAllLines(DirPathCS + "\\ListOpcodeDestinationCS"))
+                    {
+                        ListOpcodeDestinationCS.Add(line);
+                    }
                     ListView24.ItemsSource = ListOpcodeDestinationCS;
                     TextBox16Copy1.Text = ListOpcodeDestinationCS.Count.ToString();
 
-                    ListOpcodeDestinationSC = File.ReadAllLines(DirPathCS + "\\ListOpcodeDestinationSC").ToList();
+                    ListOpcodeDestinationSC.Clear();
+                    foreach (var line in File.ReadAllLines(DirPathCS + "\\ListOpcodeDestinationSC"))
+                    {
+                        ListOpcodeDestinationSC.Add(line);
+                    }
                     //ListView24.ItemsSource = ListOpcodeDestinationSC;
                     //TextBox16Copy1.Text = ListOpcodeDestinationSC.Count.ToString();
 
-                    ListNameCompareCS = File.ReadAllLines(DirPathCS + "\\ListNameCompareCS").ToList();
+                    ListNameCompareCS.Clear();
+                    foreach (var line in File.ReadAllLines(DirPathCS + "\\ListNameCompareCS"))
+                    {
+                        ListNameCompareCS.Add(line);
+                    }
                     ListView31.ItemsSource = ListNameCompareCS;
                     TextBox31.Text = ListNameCompareCS.Count.ToString();
 
-                    ListNameCompareSC = File.ReadAllLines(DirPathCS + "\\ListNameCompareSC").ToList();
+                    ListNameCompareSC.Clear();
+                    foreach (var line in File.ReadAllLines(DirPathCS + "\\ListNameCompareSC"))
+                    {
+                        ListNameCompareSC.Add(line);
+                    }
                     //ListView31.ItemsSource = ListNameCompareCS;
                     //TextBox31.Text = ListNameCompareSC.Count.ToString();
 
                     ListNameCompare = File.ReadAllLines(DirPathCS + "\\ListNameCompare").ToList();
 
-                    ListNameCompareOutCS = File.ReadAllLines(DirPathCS + "\\ListNameCompareOutCS").ToList();
+                    ListNameCompareOutCS.Clear();
+                    foreach (var line in File.ReadAllLines(DirPathCS + "\\ListNameCompareOutCS"))
+                    {
+                        ListNameCompareOutCS.Add(line);
+                    }
                     ListView32.ItemsSource = ListNameCompareOutCS;
 
-                    ListNameCompareOutSC = File.ReadAllLines(DirPathCS + "\\ListNameCompareOutSC").ToList();
+                    ListNameCompareOutSC.Clear();
+                    foreach (var line in File.ReadAllLines(DirPathCS + "\\ListNameCompareOutSC"))
+                    {
+                        ListNameCompareOutSC.Add(line);
+                    }
                     //ListView32.ItemsSource = ListNameCompareOutSC;
 
                     var json = File.ReadAllText(DirPathCS + "\\InUseIn.json");
@@ -6219,16 +6838,48 @@ namespace NameFinder
                     IsRenameDestination = JsonConvert.DeserializeObject<Dictionary<int, bool>>(json);
 
                     json = File.ReadAllText(DirPathCS + "\\StructureSourceCS.json");
-                    StructureSourceCS = JsonConvert.DeserializeObject<Dictionary<int, List<Struc>>>(json);
+                    var structureSourceCS = JsonConvert.DeserializeObject<Dictionary<int, List<Struc>>>(json);
+                    StructureSourceCS.Clear();
+                    if (structureSourceCS != null)
+                    {
+                        foreach (var kvp in structureSourceCS)
+                        {
+                            StructureSourceCS[kvp.Key] = new ObservableCollection<Struc>(kvp.Value);
+                        }
+                    }
 
                     json = File.ReadAllText(DirPathCS + "\\StructureSourceSC.json");
-                    StructureSourceSC = JsonConvert.DeserializeObject<Dictionary<int, List<Struc>>>(json);
+                    var structureSourceSC = JsonConvert.DeserializeObject<Dictionary<int, List<Struc>>>(json);
+                    StructureSourceSC.Clear();
+                    if (structureSourceSC != null)
+                    {
+                        foreach (var kvp in structureSourceSC)
+                        {
+                            StructureSourceSC[kvp.Key] = new ObservableCollection<Struc>(kvp.Value);
+                        }
+                    }
 
                     json = File.ReadAllText(DirPathCS + "\\StructureDestinationCS.json");
-                    StructureDestinationCS = JsonConvert.DeserializeObject<Dictionary<int, List<Struc>>>(json);
+                    var structureDestinationCS = JsonConvert.DeserializeObject<Dictionary<int, List<Struc>>>(json);
+                    StructureDestinationCS.Clear();
+                    if (structureDestinationCS != null)
+                    {
+                        foreach (var kvp in structureDestinationCS)
+                        {
+                            StructureDestinationCS[kvp.Key] = new ObservableCollection<Struc>(kvp.Value);
+                        }
+                    }
 
                     json = File.ReadAllText(DirPathCS + "\\StructureDestinationSC.json");
-                    StructureDestinationSC = JsonConvert.DeserializeObject<Dictionary<int, List<Struc>>>(json);
+                    var structureDestinationSC = JsonConvert.DeserializeObject<Dictionary<int, List<Struc>>>(json);
+                    StructureDestinationSC.Clear();
+                    if (structureDestinationSC != null)
+                    {
+                        foreach (var kvp in structureDestinationSC)
+                        {
+                            StructureDestinationSC[kvp.Key] = new ObservableCollection<Struc>(kvp.Value);
+                        }
+                    }
 
                     json = File.ReadAllText(DirPathCS + "\\XrefsIn.json");
                     XrefsIn = JsonConvert.DeserializeObject<Dictionary<int, List<string>>>(json);
@@ -6306,11 +6957,19 @@ namespace NameFinder
                     InListDestination = File.ReadAllLines(DirPath + "\\data\\InListDestination").ToList();
                     ListView21.ItemsSource = InListDestination;
 
-                    ListNameSourceCS = File.ReadAllLines(DirPathSC + "\\ListNameSourceCS").ToList();
+                    ListNameSourceCS.Clear();
+                    foreach (var line in File.ReadAllLines(DirPathSC + "\\ListNameSourceCS"))
+                    {
+                        ListNameSourceCS.Add(line);
+                    }
                     //ListView12.ItemsSource = ListNameSourceCS;
                     TextBox13.Text = ListNameSourceCS.Count.ToString();
 
-                    ListNameSourceSC = File.ReadAllLines(DirPathSC + "\\ListNameSourceSC").ToList();
+                    ListNameSourceSC.Clear();
+                    foreach (var line in File.ReadAllLines(DirPathSC + "\\ListNameSourceSC"))
+                    {
+                        ListNameSourceSC.Add(line);
+                    }
                     ListView12.ItemsSource = ListNameSourceSC;
                     TextBox16.Text = ListNameSourceSC.Count.ToString();
 
@@ -6322,19 +6981,35 @@ namespace NameFinder
                     ListView13.ItemsSource = ListSubSourceSC;
                     TextBox17.Text = ListSubSourceSC.Count.ToString();
 
-                    ListOpcodeSourceCS = File.ReadAllLines(DirPathSC + "\\ListOpcodeSourceCS").ToList();
+                    ListOpcodeSourceCS.Clear();
+                    foreach (var line in File.ReadAllLines(DirPathSC + "\\ListOpcodeSourceCS"))
+                    {
+                        ListOpcodeSourceCS.Add(line);
+                    }
                     //ListView14.ItemsSource = ListOpcodeSourceCS;
                     //TextBox16Copy.Text = ListOpcodeSourceCS.Count.ToString();
 
-                    ListOpcodeSourceSC = File.ReadAllLines(DirPathSC + "\\ListOpcodeSourceSC").ToList();
+                    ListOpcodeSourceSC.Clear();
+                    foreach (var line in File.ReadAllLines(DirPathSC + "\\ListOpcodeSourceSC"))
+                    {
+                        ListOpcodeSourceSC.Add(line);
+                    }
                     ListView14.ItemsSource = ListOpcodeSourceSC;
                     TextBox16Copy.Text = ListOpcodeSourceSC.Count.ToString();
 
-                    ListNameDestinationCS = File.ReadAllLines(DirPathSC + "\\ListNameDestinationCS").ToList();
+                    ListNameDestinationCS.Clear();
+                    foreach (var line in File.ReadAllLines(DirPathSC + "\\ListNameDestinationCS"))
+                    {
+                        ListNameDestinationCS.Add(line);
+                    }
                     //ListView22.ItemsSource = ListNameDestinationCS;
                     TextBox23.Text = ListNameDestinationCS.Count.ToString();
 
-                    ListNameDestinationSC = File.ReadAllLines(DirPathSC + "\\ListNameDestinationSC").ToList();
+                    ListNameDestinationSC.Clear();
+                    foreach (var line in File.ReadAllLines(DirPathSC + "\\ListNameDestinationSC"))
+                    {
+                        ListNameDestinationSC.Add(line);
+                    }
                     ListView22.ItemsSource = ListNameDestinationSC;
                     TextBox26.Text = ListNameDestinationSC.Count.ToString();
 
@@ -6346,28 +7021,52 @@ namespace NameFinder
                     ListView23.ItemsSource = ListSubDestinationSC;
                     TextBox27.Text = ListSubDestinationSC.Count.ToString();
 
-                    ListOpcodeDestinationCS = File.ReadAllLines(DirPathSC + "\\ListOpcodeDestinationCS").ToList();
+                    ListOpcodeDestinationCS.Clear();
+                    foreach (var line in File.ReadAllLines(DirPathSC + "\\ListOpcodeDestinationCS"))
+                    {
+                        ListOpcodeDestinationCS.Add(line);
+                    }
                     //ListView24.ItemsSource = ListOpcodeDestinationCS;
                     //TextBox16Copy1.Text = ListOpcodeDestinationCS.Count.ToString();
 
-                    ListOpcodeDestinationSC = File.ReadAllLines(DirPathSC + "\\ListOpcodeDestinationSC").ToList();
+                    ListOpcodeDestinationSC.Clear();
+                    foreach (var line in File.ReadAllLines(DirPathSC + "\\ListOpcodeDestinationSC"))
+                    {
+                        ListOpcodeDestinationSC.Add(line);
+                    }
                     ListView24.ItemsSource = ListOpcodeDestinationSC;
                     TextBox16Copy1.Text = ListOpcodeDestinationSC.Count.ToString();
 
-                    ListNameCompareCS = File.ReadAllLines(DirPathSC + "\\ListNameCompareCS").ToList();
+                    ListNameCompareCS.Clear();
+                    foreach (var line in File.ReadAllLines(DirPathSC + "\\ListNameCompareCS"))
+                    {
+                        ListNameCompareCS.Add(line);
+                    }
                     //ListView31.ItemsSource = ListNameCompareCS;
                     //TextBox31.Text = ListNameCompareCS.Count.ToString();
 
-                    ListNameCompareSC = File.ReadAllLines(DirPathSC + "\\ListNameCompareSC").ToList();
+                    ListNameCompareSC.Clear();
+                    foreach (var line in File.ReadAllLines(DirPathSC + "\\ListNameCompareSC"))
+                    {
+                        ListNameCompareSC.Add(line);
+                    }
                     ListView31.ItemsSource = ListNameCompareSC;
                     TextBox31.Text = ListNameCompareSC.Count.ToString();
 
                     ListNameCompare = File.ReadAllLines(DirPathSC + "\\ListNameCompare").ToList();
 
-                    ListNameCompareOutCS = File.ReadAllLines(DirPathSC + "\\ListNameCompareOutCS").ToList();
+                    ListNameCompareOutCS.Clear();
+                    foreach (var line in File.ReadAllLines(DirPathSC + "\\ListNameCompareOutCS"))
+                    {
+                        ListNameCompareOutCS.Add(line);
+                    }
                     //ListView32.ItemsSource = ListNameCompareOutCS;
 
-                    ListNameCompareOutSC = File.ReadAllLines(DirPathSC + "\\ListNameCompareOutSC").ToList();
+                    ListNameCompareOutSC.Clear();
+                    foreach (var line in File.ReadAllLines(DirPathSC + "\\ListNameCompareOutSC"))
+                    {
+                        ListNameCompareOutSC.Add(line);
+                    }
                     ListView32.ItemsSource = ListNameCompareOutSC;
 
                     var json = File.ReadAllText(DirPathSC + "\\InUseIn.json");
@@ -6380,16 +7079,48 @@ namespace NameFinder
                     IsRenameDestination = JsonConvert.DeserializeObject<Dictionary<int, bool>>(json);
 
                     json = File.ReadAllText(DirPathSC + "\\StructureSourceCS.json");
-                    StructureSourceCS = JsonConvert.DeserializeObject<Dictionary<int, List<Struc>>>(json);
+                    var structureSourceCS5 = JsonConvert.DeserializeObject<Dictionary<int, List<Struc>>>(json);
+                    StructureSourceCS.Clear();
+                    if (structureSourceCS5 != null)
+                    {
+                        foreach (var kvp in structureSourceCS5)
+                        {
+                            StructureSourceCS[kvp.Key] = new ObservableCollection<Struc>(kvp.Value);
+                        }
+                    }
 
                     json = File.ReadAllText(DirPathSC + "\\StructureSourceSC.json");
-                    StructureSourceSC = JsonConvert.DeserializeObject<Dictionary<int, List<Struc>>>(json);
+                    var structureSourceSC5 = JsonConvert.DeserializeObject<Dictionary<int, List<Struc>>>(json);
+                    StructureSourceSC.Clear();
+                    if (structureSourceSC5 != null)
+                    {
+                        foreach (var kvp in structureSourceSC5)
+                        {
+                            StructureSourceSC[kvp.Key] = new ObservableCollection<Struc>(kvp.Value);
+                        }
+                    }
 
                     json = File.ReadAllText(DirPathSC + "\\StructureDestinationCS.json");
-                    StructureDestinationCS = JsonConvert.DeserializeObject<Dictionary<int, List<Struc>>>(json);
+                    var structureDestinationCS6 = JsonConvert.DeserializeObject<Dictionary<int, List<Struc>>>(json);
+                    StructureDestinationCS.Clear();
+                    if (structureDestinationCS6 != null)
+                    {
+                        foreach (var kvp in structureDestinationCS6)
+                        {
+                            StructureDestinationCS[kvp.Key] = new ObservableCollection<Struc>(kvp.Value);
+                        }
+                    }
 
                     json = File.ReadAllText(DirPathSC + "\\StructureDestinationSC.json");
-                    StructureDestinationSC = JsonConvert.DeserializeObject<Dictionary<int, List<Struc>>>(json);
+                    var structureDestinationSC6 = JsonConvert.DeserializeObject<Dictionary<int, List<Struc>>>(json);
+                    StructureDestinationSC.Clear();
+                    if (structureDestinationSC6 != null)
+                    {
+                        foreach (var kvp in structureDestinationSC6)
+                        {
+                            StructureDestinationSC[kvp.Key] = new ObservableCollection<Struc>(kvp.Value);
+                        }
+                    }
 
                     json = File.ReadAllText(DirPathSC + "\\XrefsIn.json");
                     XrefsIn = JsonConvert.DeserializeObject<Dictionary<int, List<string>>>(json);

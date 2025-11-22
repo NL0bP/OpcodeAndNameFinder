@@ -2,6 +2,7 @@
 using Microsoft.Win32;
 
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Windows;
@@ -26,38 +27,63 @@ namespace NameFinder
         {
             InitializeComponent();
             _mainWindow = mainWindow ?? throw new ArgumentNullException(nameof(mainWindow));
+            
+            // Центрируем окно на экране
+            WindowStartupLocation = WindowStartupLocation.CenterScreen;
         }
 
-        public static List<string> ListNameCompare = new List<string>();
-        public static List<string> ListNameSource = new List<string>();
-        public static List<string> ListNameDestination = new List<string>();
+        public static ObservableCollection<string> ListNameCompare = new ObservableCollection<string>();
+        public static ObservableCollection<string> ListNameSource = new ObservableCollection<string>();
+        public static ObservableCollection<string> ListNameDestination = new ObservableCollection<string>();
         public static List<string> ListSubDestination = new List<string>();
-        public static Dictionary<int, List<Struc>> StructureSource = new Dictionary<int, List<Struc>>();
-        public static Dictionary<int, List<Struc>> StructureDestination = new Dictionary<int, List<Struc>>();
-        public static List<string> ListOpcodeDestination = new List<string>();
+        public static Dictionary<int, ObservableCollection<Struc>> StructureSource = new Dictionary<int, ObservableCollection<Struc>>();
+        public static Dictionary<int, ObservableCollection<Struc>> StructureDestination = new Dictionary<int, ObservableCollection<Struc>>();
+        public static ObservableCollection<string> ListOpcodeDestination = new ObservableCollection<string>();
         public static bool isRemoveOpcode = false;
         public static string StructStringIn = "";
         public static string StructStringOut = "";
 
 
         public void CompareSourceStructures(
-            ref List<string> listNameSource,
-            ref List<string> listNameDestination,
-            ref List<string> listNameCompare,
-            ref List<string> listSubDestination,
-            ref Dictionary<int, List<Struc>> structureSource,
-            ref Dictionary<int, List<Struc>> structureDestination,
-            List<string> listOpcodeDestination)
+            ObservableCollection<string> listNameSource,
+            ObservableCollection<string> listNameDestination,
+            ObservableCollection<string> listNameCompare,
+            List<string> listSubDestination,
+            Dictionary<int, ObservableCollection<Struc>> structureSource,
+            Dictionary<int, ObservableCollection<Struc>> structureDestination,
+            ObservableCollection<string> listOpcodeDestination)
         {
-            ListNameCompare = new List<string>(listNameCompare);
-            ListNameSource = new List<string>(listNameSource);
-            ListNameDestination = new List<string>(listNameDestination);
-            ListSubDestination = new List<string>(listSubDestination);
-            StructureSource = new Dictionary<int, List<Struc>>(structureSource);
-            StructureDestination = new Dictionary<int, List<Struc>>(structureDestination);
-            ListOpcodeDestination = new List<string>(listOpcodeDestination);
-
-            //MainWindow.ListNameCompare = new List<string>(ListNameCompare);
+            // Логирование полученных параметров
+            System.Diagnostics.Debug.WriteLine($"[DEBUG] {System.DateTime.Now:HH:mm:ss.fff} CompareWindow.CompareSourceStructures: Получены параметры. listNameSource.Count={listNameSource?.Count ?? 0}, listNameDestination.Count={listNameDestination?.Count ?? 0}, listNameCompare.Count={listNameCompare?.Count ?? 0}, listSubDestination.Count={listSubDestination?.Count ?? 0}");
+            
+            if (listNameSource == null || listNameSource.Count == 0)
+            {
+                System.Diagnostics.Debug.WriteLine($"[WARN] {System.DateTime.Now:HH:mm:ss.fff} CompareWindow.CompareSourceStructures: listNameSource пуст или null!");
+            }
+            if (listNameDestination == null || listNameDestination.Count == 0)
+            {
+                System.Diagnostics.Debug.WriteLine($"[WARN] {System.DateTime.Now:HH:mm:ss.fff} CompareWindow.CompareSourceStructures: listNameDestination пуст или null!");
+            }
+            if (listNameCompare == null || listNameCompare.Count == 0)
+            {
+                System.Diagnostics.Debug.WriteLine($"[WARN] {System.DateTime.Now:HH:mm:ss.fff} CompareWindow.CompareSourceStructures: listNameCompare пуст или null!");
+            }
+            if (listSubDestination == null || listSubDestination.Count == 0)
+            {
+                System.Diagnostics.Debug.WriteLine($"[WARN] {System.DateTime.Now:HH:mm:ss.fff} CompareWindow.CompareSourceStructures: listSubDestination пуст или null!");
+            }
+            
+            // ВАЖНО: Работаем напрямую с переданными ObservableCollection - передаем ссылки, не копии!
+            // Это позволяет автоматически обновлять UI в MainWindow при изменении данных
+            ListNameCompare = listNameCompare;
+            ListNameSource = listNameSource;
+            ListNameDestination = listNameDestination;
+            ListSubDestination = new List<string>(listSubDestination); // Оставляем копию для List, так как это не ObservableCollection
+            StructureSource = structureSource; // Передаем ссылку на Dictionary с ObservableCollection
+            StructureDestination = structureDestination; // Передаем ссылку на Dictionary с ObservableCollection
+            ListOpcodeDestination = listOpcodeDestination;
+            
+            System.Diagnostics.Debug.WriteLine($"[DEBUG] {System.DateTime.Now:HH:mm:ss.fff} CompareWindow.CompareSourceStructures: Используются ссылки на ObservableCollection. ListNameSource.Count={ListNameSource.Count}, ListNameDestination.Count={ListNameDestination.Count}, ListNameCompare.Count={ListNameCompare.Count}, ListSubDestination.Count={ListSubDestination.Count}");
 
             // начнем с начала
             IdxD = 0;
@@ -358,6 +384,32 @@ namespace NameFinder
 
         private void ShowList()
         {
+            // Проверка на пустые списки
+            if (ListNameSource == null || ListNameSource.Count == 0)
+            {
+                TextBoxNameIn.Text = "";
+                TextBoxTotalIn.Text = "0";
+                TextBoxCurPktIn.Text = "0";
+                ListView11.ItemsSource = null;
+                return;
+            }
+
+            if (ListNameCompare == null || ListNameCompare.Count == 0)
+            {
+                TextBoxNameOut.Text = "";
+                TextBoxTotalOut.Text = "0";
+                TextBoxOpcodeOut.Text = "";
+                TextBoxCurPktOut.Text = "0";
+                ListView21.ItemsSource = null;
+                return;
+            }
+
+            if (ListOpcodeDestination == null || ListOpcodeDestination.Count == 0)
+            {
+                TextBoxOpcodeOut.Text = "";
+            }
+
+            // Корректировка индексов
             if (IdxS >= ListNameSource.Count)
             {
                 IdxS = 0;
@@ -370,19 +422,35 @@ namespace NameFinder
 
             if (IdxS < 0)
             {
-                IdxS = ListNameSource.Count - 1;
+                IdxS = ListNameSource.Count > 0 ? ListNameSource.Count - 1 : 0;
             }
 
             if (IdxD < 0)
             {
-                IdxD = ListNameCompare.Count - 1;
+                IdxD = ListNameCompare.Count > 0 ? ListNameCompare.Count - 1 : 0;
+            }
+
+            // Проверка границ перед обращением к элементам
+            if (IdxS < 0 || IdxS >= ListNameSource.Count)
+            {
+                TextBoxNameIn.Text = "";
+                TextBoxTotalIn.Text = ListNameSource.Count.ToString();
+                TextBoxCurPktIn.Text = "0";
+                ListView11.ItemsSource = null;
+                return;
             }
 
             TextBoxNameIn.Text = ListNameSource[IdxS];
             TextBoxTotalIn.Text = ListNameSource.Count.ToString();
             var idxs = IdxS + 1;
             TextBoxCurPktIn.Text = idxs.ToString();
-            if (StructureSource[IdxS].Count == 0)
+            
+            // Проверка наличия ключа в словаре перед обращением
+            if (!StructureSource.ContainsKey(IdxS))
+            {
+                ListView11.ItemsSource = "nullsub";
+            }
+            else if (StructureSource[IdxS].Count == 0)
             {
                 ListView11.ItemsSource = "nullsub";
             }
@@ -426,13 +494,39 @@ namespace NameFinder
                 ListView11.ItemsSource = source.ToList();
             }
 
+            // Проверка границ перед обращением к элементам
+            if (IdxD < 0 || IdxD >= ListNameCompare.Count)
+            {
+                TextBoxNameOut.Text = "";
+                TextBoxTotalOut.Text = ListNameCompare.Count.ToString();
+                TextBoxOpcodeOut.Text = "";
+                TextBoxCurPktOut.Text = "0";
+                ListView21.ItemsSource = null;
+                return;
+            }
+
             TextBoxNameOut.Text = ListNameCompare[IdxD];
             TextBoxTotalOut.Text = ListNameCompare.Count.ToString();
-            TextBoxOpcodeOut.Text = ListOpcodeDestination[IdxD];
+            
+            // Проверка границ для ListOpcodeDestination
+            if (ListOpcodeDestination != null && IdxD < ListOpcodeDestination.Count)
+            {
+                TextBoxOpcodeOut.Text = ListOpcodeDestination[IdxD];
+            }
+            else
+            {
+                TextBoxOpcodeOut.Text = "";
+            }
+            
             var idxd = IdxD + 1;
             TextBoxCurPktOut.Text = idxd.ToString();
 
-            if (StructureDestination[IdxD].Count == 0)
+            // Проверка наличия ключа в словаре перед обращением
+            if (!StructureDestination.ContainsKey(IdxD))
+            {
+                ListView21.ItemsSource = "nullsub";
+            }
+            else if (StructureDestination[IdxD].Count == 0)
             {
                 ListView21.ItemsSource = "nullsub";
             }
@@ -664,46 +758,33 @@ namespace NameFinder
 
         private void ButtonQuit_Click(object sender, RoutedEventArgs e)
         {
+            System.Diagnostics.Debug.WriteLine($"[DEBUG] {System.DateTime.Now:HH:mm:ss.fff} CompareWindow.ButtonQuit_Click: Начало. isSourceNameChanged={isSourceNameChanged}, isDestinationNameChanged={isDestinationNameChanged}, isResetOpcode={isResetOpcode}");
+            System.Diagnostics.Debug.WriteLine($"[DEBUG] {System.DateTime.Now:HH:mm:ss.fff} CompareWindow.ButtonQuit_Click: ListNameSource.Count={ListNameSource.Count}, ListNameCompare.Count={ListNameCompare.Count}, ListOpcodeDestination.Count={ListOpcodeDestination.Count}");
+            
+            // ВАЖНО: Теперь мы работаем напрямую с ObservableCollection из MainWindow
+            // Изменения уже применены к коллекциям, так как мы работали со ссылками
+            // Нужно только обновить флаги и обновить ListNameCompareOut, если нужно
+            
             if (isSourceNameChanged)
             {
-                // Рефакторинг: используем ссылку на экземпляр MainWindow вместо статического доступа
-                if (MainWindow.isCS)
-                {
-                    _mainWindow.ListNameSourceCS = new List<string>(ListNameSource);
-                }
-                else
-                {
-                    _mainWindow.ListNameSourceSC = new List<string>(ListNameSource);
-                }
+                // Изменения уже применены к ObservableCollection, UI обновится автоматически
+                System.Diagnostics.Debug.WriteLine($"[DEBUG] {System.DateTime.Now:HH:mm:ss.fff} CompareWindow.ButtonQuit_Click: isSourceNameChanged=True. Изменения уже применены к ObservableCollection.");
             }
             if (isDestinationNameChanged)
             {
-                // Рефакторинг: используем ссылку на экземпляр MainWindow вместо статического доступа
-                if (MainWindow.isCS)
-                {
-                    _mainWindow.ListNameCompareCS = new List<string>(ListNameCompare);
-                    //MainWindow.ListNameDestinationCS = new List<string>(ListNameCompare);
-                }
-                else
-                {
-                    _mainWindow.ListNameCompareSC = new List<string>(ListNameCompare);
-                    //MainWindow.ListNameDestinationSC = new List<string>(ListNameCompare);
-                }
+                // Изменения уже применены к ObservableCollection, UI обновится автоматически
+                // Но нужно обновить ListNameCompareOut, если он используется
+                System.Diagnostics.Debug.WriteLine($"[DEBUG] {System.DateTime.Now:HH:mm:ss.fff} CompareWindow.ButtonQuit_Click: isDestinationNameChanged=True. Изменения уже применены к ObservableCollection. Count={ListNameCompare.Count}");
             }
             if (isResetOpcode)
             {
-                if (MainWindow.isCS)
-                {
-                    // Рефакторинг: используем ссылку на экземпляр MainWindow вместо статического доступа
-                    _mainWindow.ListOpcodeDestinationCS = new List<string>(ListOpcodeDestination);
-                }
-                else
-                {
-                    _mainWindow.ListOpcodeDestinationSC = new List<string>(ListOpcodeDestination);
-                }
+                // Изменения уже применены к ObservableCollection, UI обновится автоматически
+                System.Diagnostics.Debug.WriteLine($"[DEBUG] {System.DateTime.Now:HH:mm:ss.fff} CompareWindow.ButtonQuit_Click: isResetOpcode=True. Изменения уже применены к ObservableCollection. Count={ListOpcodeDestination.Count}");
             }
 
+            // Обновляем статический ListNameCompare для обратной совместимости
             MainWindow.ListNameCompare = new List<string>(ListNameCompare);
+            System.Diagnostics.Debug.WriteLine($"[DEBUG] {System.DateTime.Now:HH:mm:ss.fff} CompareWindow.ButtonQuit_Click: Обновлен MainWindow.ListNameCompare. Count={MainWindow.ListNameCompare.Count}");
 
             Close();
         }
