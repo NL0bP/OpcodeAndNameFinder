@@ -13,10 +13,10 @@ namespace NameFinder.Helpers
         public static readonly Regex EndProcedure = new Regex(@"\s+endp\s*", RegexOptions.Compiled);
 
         /// <summary>
-        /// Поиск offset в mov инструкциях
+        /// Поиск offset в mov инструкциях (только с off_)
         /// </summary>
         public static readonly Regex OffsetPattern = new Regex(
-            @"mov\s+\[(\w+\+\w+)\],\soffset\s|mov\s+dword\sptr\s\[(\w+)\],\soffset\s|mov\s+dword\sptr\s\[(\w+\+\w+)\],\soffset\s",
+            @"mov\s+\[(\w+\+[0-9a-fA-F]+h?|\w+\+\w+)\],\soffset\s+off_|mov\s+dword\sptr\s\[(\w+)\],\soffset\s+off_|mov\s+dword\sptr\s\[(\w+\+[0-9a-fA-F]+h?|\w+\+\w+)\],\soffset\s+off_",
             RegexOptions.Compiled);
 
         /// <summary>

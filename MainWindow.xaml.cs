@@ -960,7 +960,7 @@ namespace NameFinder
             //
             // здесь ищем ссылку на подпрограмму, где есть опкоды
             //
-            var regexOffset = new Regex(@"mov\s+\[(\w+\+\w+)\],\soffset\s|mov\s+dword\sptr\s\[(\w+)\],\soffset\s|mov\s+dword\sptr\s\[(\w+\+\w+)\],\soffset\s", RegexOptions.Compiled);
+            var regexOffset = new Regex(@"mov\s+\[(\w+\+[0-9a-fA-F]+h?|\w+\+\w+)\],\soffset\s+off_|mov\s+dword\sptr\s\[(\w+)\],\soffset\s+off_|mov\s+dword\sptr\s\[(\w+\+[0-9a-fA-F]+h?|\w+\+\w+)\],\soffset\s+off_", RegexOptions.Compiled);
             //var regexOpcode = new Regex(@"mov\s+\[\w+\+\w+\],\s+([0-9A-F]+)|mov\s+dword\sptr\s\[\w+\+\w+\],\s+([0-9A-F]+)|mov\s+dword\sptr\s\[\w+\+\w+\+\w+\],\s+([0-9A-F]+)|mov\s+dword\sptr\s\[\w+\-\w+\],\s+([0-9A-F]+)", RegexOptions.Compiled);
             var regexOpcode = new Regex(@"\[\w+\-(?![0-9a-f]+h+)[0-9a-fA-F]+\],\s([0-9a-fA-F]+)|\[\w+\+(?![0-9a-f]+h+)[0-9a-fA-F]+\],\s([0-9a-fA-F]+)|\[\w+\+(?![0-9a-f]+h+)\w+[0-9a-fA-F]+\],\s([0-9a-fA-F]+)|\[\w+\+(?![0-9a-f]+h)\w+[0-9a-fA-F]+\+[0-9a-fA-F]+\],\s([0-9a-fA-F]+)", RegexOptions.Compiled);
 
@@ -1086,111 +1086,31 @@ namespace NameFinder
                             {
                                 if (matchesOpcode.Groups[4].ToString() != "" && matchesOpcode.Groups[4].ToString() != "0")
                                 {
-                                    var matchGroup = "";
-                                    switch (matchesOpcode.Groups[4].Length)
-                                    {
-                                        case 1:
-                                            matchGroup = "0x00" + matchesOpcode.Groups[4];
-                                            break;
-                                        case 2:
-                                            matchGroup = "0x0" + matchesOpcode.Groups[4];
-                                            break;
-                                        case 3:
-                                            matchGroup = "0x" + matchesOpcode.Groups[4];
-                                            break;
-                                        case 4:
-                                            matchGroup = "0x" + matchesOpcode.Groups[4];
-                                            break;
-                                    }
-
+                                    var matchGroup = FormatOpcodeValue(matchesOpcode.Groups[4].ToString());
                                     ListOpcodeSourceCS.Add(matchGroup);
                                     foundOpcode = true; // нашли Opcode
                                 }
                                 else if (matchesOpcode.Groups[3].ToString() != "" && matchesOpcode.Groups[3].ToString() != "0")
                                 {
-                                    var matchGroup = "";
-                                    switch (matchesOpcode.Groups[3].Length)
-                                    {
-                                        case 1:
-                                            matchGroup = "0x00" + matchesOpcode.Groups[3];
-                                            break;
-                                        case 2:
-                                            matchGroup = "0x0" + matchesOpcode.Groups[3];
-                                            break;
-                                        case 3:
-                                            matchGroup = "0x" + matchesOpcode.Groups[3];
-                                            break;
-                                        case 4:
-                                            matchGroup = "0x" + matchesOpcode.Groups[3];
-                                            break;
-                                    }
-
+                                    var matchGroup = FormatOpcodeValue(matchesOpcode.Groups[3].ToString());
                                     ListOpcodeSourceCS.Add(matchGroup);
                                     foundOpcode = true; // нашли Opcode
                                 }
                                 else if (matchesOpcode.Groups[2].ToString() != "" && matchesOpcode.Groups[2].ToString() != "0")
                                 {
-                                    var matchGroup = "";
-                                    switch (matchesOpcode.Groups[2].Length)
-                                    {
-                                        case 1:
-                                            matchGroup = "0x00" + matchesOpcode.Groups[2];
-                                            break;
-                                        case 2:
-                                            matchGroup = "0x0" + matchesOpcode.Groups[2];
-                                            break;
-                                        case 3:
-                                            matchGroup = "0x" + matchesOpcode.Groups[2];
-                                            break;
-                                        case 4:
-                                            matchGroup = "0x" + matchesOpcode.Groups[2];
-                                            break;
-                                    }
-
+                                    var matchGroup = FormatOpcodeValue(matchesOpcode.Groups[2].ToString());
                                     ListOpcodeSourceCS.Add(matchGroup);
                                     foundOpcode = true; // нашли Opcode
                                 }
                                 else if (matchesOpcode.Groups[1].ToString() != "" && matchesOpcode.Groups[1].ToString() != "0")
                                 {
-                                    var matchGroup = "";
-                                    switch (matchesOpcode.Groups[1].Length)
-                                    {
-                                        case 1:
-                                            matchGroup = "0x00" + matchesOpcode.Groups[1];
-                                            break;
-                                        case 2:
-                                            matchGroup = "0x0" + matchesOpcode.Groups[1];
-                                            break;
-                                        case 3:
-                                            matchGroup = "0x" + matchesOpcode.Groups[1];
-                                            break;
-                                        case 4:
-                                            matchGroup = "0x" + matchesOpcode.Groups[1];
-                                            break;
-                                    }
-
+                                    var matchGroup = FormatOpcodeValue(matchesOpcode.Groups[1].ToString());
                                     ListOpcodeSourceCS.Add(matchGroup);
                                     foundOpcode = true; // нашли Opcode
                                 }
                                 else if (matchesOpcode.Groups[0].ToString() != "" && matchesOpcode.Groups[0].ToString() != "0")
                                 {
-                                    var matchGroup = "";
-                                    switch (matchesOpcode.Groups[0].Length)
-                                    {
-                                        case 1:
-                                            matchGroup = "0x00" + matchesOpcode.Groups[0];
-                                            break;
-                                        case 2:
-                                            matchGroup = "0x0" + matchesOpcode.Groups[0];
-                                            break;
-                                        case 3:
-                                            matchGroup = "0x" + matchesOpcode.Groups[0];
-                                            break;
-                                        case 4:
-                                            matchGroup = "0x" + matchesOpcode.Groups[0];
-                                            break;
-                                    }
-
+                                    var matchGroup = FormatOpcodeValue(matchesOpcode.Groups[0].ToString());
                                     ListOpcodeSourceCS.Add(matchGroup);
                                     foundOpcode = true; // нашли Opcode
                                 }
@@ -1336,7 +1256,7 @@ namespace NameFinder
             //
             // здесь ищем ссылку на подпрограмму, где есть опкоды
             //
-            var regexOffset = new Regex(@"mov\s+\[(\w+\+\w+)\],\soffset\s|mov\s+dword\sptr\s\[(\w+)\],\soffset\s|mov\s+dword\sptr\s\[(\w+\+\w+)\],\soffset\s", RegexOptions.Compiled);
+            var regexOffset = new Regex(@"mov\s+\[(\w+\+[0-9a-fA-F]+h?|\w+\+\w+)\],\soffset\s+off_|mov\s+dword\sptr\s\[(\w+)\],\soffset\s+off_|mov\s+dword\sptr\s\[(\w+\+[0-9a-fA-F]+h?|\w+\+\w+)\],\soffset\s+off_", RegexOptions.Compiled);
             //var regexOpcode = new Regex(@"mov\s+\[\w+\+\w+\],\s+([0-9A-F]+)|mov\s+dword\sptr\s\[\w+\+\w+\],\s+([0-9A-F]+)|mov\s+dword\sptr\s\[\w+\+\w+\+\w+\],\s+([0-9A-F]+)|mov\s+dword\sptr\s\[\w+\-\w+\],\s+([0-9A-F]+)", RegexOptions.Compiled);
             var regexOpcode = new Regex(@"\[\w+\-(?![0-9a-f]+h+)[0-9a-fA-F]+\],\s([0-9a-fA-F]+)|\[\w+\+(?![0-9a-f]+h+)[0-9a-fA-F]+\],\s([0-9a-fA-F]+)|\[\w+\+(?![0-9a-f]+h+)\w+[0-9a-fA-F]+\],\s([0-9a-fA-F]+)|\[\w+\+(?![0-9a-f]+h)\w+[0-9a-fA-F]+\+[0-9a-fA-F]+\],\s([0-9a-fA-F]+)", RegexOptions.Compiled);
 
@@ -1463,111 +1383,31 @@ namespace NameFinder
                             {
                                 if (matchesOpcode.Groups[4].ToString() != "" && matchesOpcode.Groups[4].ToString() != "0")
                                 {
-                                    var matchGroup = "";
-                                    switch (matchesOpcode.Groups[4].Length)
-                                    {
-                                        case 1:
-                                            matchGroup = "0x00" + matchesOpcode.Groups[4];
-                                            break;
-                                        case 2:
-                                            matchGroup = "0x0" + matchesOpcode.Groups[4];
-                                            break;
-                                        case 3:
-                                            matchGroup = "0x" + matchesOpcode.Groups[4];
-                                            break;
-                                        case 4:
-                                            matchGroup = "0x" + matchesOpcode.Groups[4];
-                                            break;
-                                    }
-
+                                    var matchGroup = FormatOpcodeValue(matchesOpcode.Groups[4].ToString());
                                     ListOpcodeSourceSC.Add(matchGroup);
                                     foundOpcode = true; // нашли Opcode
                                 }
                                 else if (matchesOpcode.Groups[3].ToString() != "" && matchesOpcode.Groups[3].ToString() != "0")
                                 {
-                                    var matchGroup = "";
-                                    switch (matchesOpcode.Groups[3].Length)
-                                    {
-                                        case 1:
-                                            matchGroup = "0x00" + matchesOpcode.Groups[3];
-                                            break;
-                                        case 2:
-                                            matchGroup = "0x0" + matchesOpcode.Groups[3];
-                                            break;
-                                        case 3:
-                                            matchGroup = "0x" + matchesOpcode.Groups[3];
-                                            break;
-                                        case 4:
-                                            matchGroup = "0x" + matchesOpcode.Groups[3];
-                                            break;
-                                    }
-
+                                    var matchGroup = FormatOpcodeValue(matchesOpcode.Groups[3].ToString());
                                     ListOpcodeSourceSC.Add(matchGroup);
                                     foundOpcode = true; // нашли Opcode
                                 }
                                 else if (matchesOpcode.Groups[2].ToString() != "" && matchesOpcode.Groups[2].ToString() != "0")
                                 {
-                                    var matchGroup = "";
-                                    switch (matchesOpcode.Groups[2].Length)
-                                    {
-                                        case 1:
-                                            matchGroup = "0x00" + matchesOpcode.Groups[2];
-                                            break;
-                                        case 2:
-                                            matchGroup = "0x0" + matchesOpcode.Groups[2];
-                                            break;
-                                        case 3:
-                                            matchGroup = "0x" + matchesOpcode.Groups[2];
-                                            break;
-                                        case 4:
-                                            matchGroup = "0x" + matchesOpcode.Groups[2];
-                                            break;
-                                    }
-
+                                    var matchGroup = FormatOpcodeValue(matchesOpcode.Groups[2].ToString());
                                     ListOpcodeSourceSC.Add(matchGroup);
                                     foundOpcode = true; // нашли Opcode
                                 }
                                 else if (matchesOpcode.Groups[1].ToString() != "" && matchesOpcode.Groups[1].ToString() != "0")
                                 {
-                                    var matchGroup = "";
-                                    switch (matchesOpcode.Groups[1].Length)
-                                    {
-                                        case 1:
-                                            matchGroup = "0x00" + matchesOpcode.Groups[1];
-                                            break;
-                                        case 2:
-                                            matchGroup = "0x0" + matchesOpcode.Groups[1];
-                                            break;
-                                        case 3:
-                                            matchGroup = "0x" + matchesOpcode.Groups[1];
-                                            break;
-                                        case 4:
-                                            matchGroup = "0x" + matchesOpcode.Groups[1];
-                                            break;
-                                    }
-
+                                    var matchGroup = FormatOpcodeValue(matchesOpcode.Groups[1].ToString());
                                     ListOpcodeSourceSC.Add(matchGroup);
                                     foundOpcode = true; // нашли Opcode
                                 }
                                 else if (matchesOpcode.Groups[0].ToString() != "" && matchesOpcode.Groups[0].ToString() != "0")
                                 {
-                                    var matchGroup = "";
-                                    switch (matchesOpcode.Groups[0].Length)
-                                    {
-                                        case 1:
-                                            matchGroup = "0x00" + matchesOpcode.Groups[0];
-                                            break;
-                                        case 2:
-                                            matchGroup = "0x0" + matchesOpcode.Groups[0];
-                                            break;
-                                        case 3:
-                                            matchGroup = "0x" + matchesOpcode.Groups[0];
-                                            break;
-                                        case 4:
-                                            matchGroup = "0x" + matchesOpcode.Groups[0];
-                                            break;
-                                    }
-
+                                    var matchGroup = FormatOpcodeValue(matchesOpcode.Groups[0].ToString());
                                     ListOpcodeSourceSC.Add(matchGroup);
                                     foundOpcode = true; // нашли Opcode
                                 }
@@ -1699,7 +1539,7 @@ namespace NameFinder
             // здесь ищем ссылку на подпрограмму, где есть опкоды
             var found = false;
             var regexEndp = new Regex(@"\s+endp\s*", RegexOptions.Compiled); // ищем конец подпрограммы
-            var regexOffset = new Regex(@"mov\s+\[(\w+\+\w+)\],\soffset\s|mov\s+dword\sptr\s\[(\w+)\],\soffset\s|mov\s+dword\sptr\s\[(\w+\+\w+)\],\soffset\s", RegexOptions.Compiled);
+            var regexOffset = new Regex(@"mov\s+\[(\w+\+[0-9a-fA-F]+h?|\w+\+\w+)\],\soffset\s+off_|mov\s+dword\sptr\s\[(\w+)\],\soffset\s+off_|mov\s+dword\sptr\s\[(\w+\+[0-9a-fA-F]+h?|\w+\+\w+)\],\soffset\s+off_", RegexOptions.Compiled);
             //var regexOpcode = new Regex(@"mov\s+\[\w+\+\w+\],\s+([0-9A-F]+)|mov\s+dword\sptr\s\[\w+\+\w+\],\s+([0-9A-F]+)|mov\s+dword\sptr\s\[\w+\+\w+\+\w+\],\s+([0-9A-F]+)|mov\s+dword\sptr\s\[\w+\-\w+\],\s+([0-9A-F]+)", RegexOptions.Compiled);
             var regexOpcode = new Regex(@"\[\w+\-(?![0-9a-f]+h+)[0-9a-fA-F]+\],\s([0-9a-fA-F]+)|\[\w+\+(?![0-9a-f]+h+)[0-9a-fA-F]+\],\s([0-9a-fA-F]+)|\[\w+\+(?![0-9a-f]+h+)\w+[0-9a-fA-F]+\],\s([0-9a-fA-F]+)|\[\w+\+(?![0-9a-f]+h)\w+[0-9a-fA-F]+\+[0-9a-fA-F]+\],\s([0-9a-fA-F]+)", RegexOptions.Compiled);
 
@@ -1821,111 +1661,31 @@ namespace NameFinder
                             {
                                 if (matchesOpcode.Groups[4].ToString() != "" && matchesOpcode.Groups[4].ToString() != "0")
                                 {
-                                    var matchGroup = "";
-                                    switch (matchesOpcode.Groups[4].Length)
-                                    {
-                                        case 1:
-                                            matchGroup = "0x00" + matchesOpcode.Groups[4];
-                                            break;
-                                        case 2:
-                                            matchGroup = "0x0" + matchesOpcode.Groups[4];
-                                            break;
-                                        case 3:
-                                            matchGroup = "0x" + matchesOpcode.Groups[4];
-                                            break;
-                                        case 4:
-                                            matchGroup = "0x" + matchesOpcode.Groups[4];
-                                            break;
-                                    }
-
+                                    var matchGroup = FormatOpcodeValue(matchesOpcode.Groups[4].ToString());
                                     ListOpcodeDestinationCS.Add(matchGroup);
                                     foundOpcode = true; // нашли Opcode
                                 }
                                 else if (matchesOpcode.Groups[3].ToString() != "" && matchesOpcode.Groups[3].ToString() != "0")
                                 {
-                                    var matchGroup = "";
-                                    switch (matchesOpcode.Groups[3].Length)
-                                    {
-                                        case 1:
-                                            matchGroup = "0x00" + matchesOpcode.Groups[3];
-                                            break;
-                                        case 2:
-                                            matchGroup = "0x0" + matchesOpcode.Groups[3];
-                                            break;
-                                        case 3:
-                                            matchGroup = "0x" + matchesOpcode.Groups[3];
-                                            break;
-                                        case 4:
-                                            matchGroup = "0x" + matchesOpcode.Groups[3];
-                                            break;
-                                    }
-
+                                    var matchGroup = FormatOpcodeValue(matchesOpcode.Groups[3].ToString());
                                     ListOpcodeDestinationCS.Add(matchGroup);
                                     foundOpcode = true; // нашли Opcode
                                 }
                                 else if (matchesOpcode.Groups[2].ToString() != "" && matchesOpcode.Groups[2].ToString() != "0")
                                 {
-                                    var matchGroup = "";
-                                    switch (matchesOpcode.Groups[2].Length)
-                                    {
-                                        case 1:
-                                            matchGroup = "0x00" + matchesOpcode.Groups[2];
-                                            break;
-                                        case 2:
-                                            matchGroup = "0x0" + matchesOpcode.Groups[2];
-                                            break;
-                                        case 3:
-                                            matchGroup = "0x" + matchesOpcode.Groups[2];
-                                            break;
-                                        case 4:
-                                            matchGroup = "0x" + matchesOpcode.Groups[2];
-                                            break;
-                                    }
-
+                                    var matchGroup = FormatOpcodeValue(matchesOpcode.Groups[2].ToString());
                                     ListOpcodeDestinationCS.Add(matchGroup);
                                     foundOpcode = true; // нашли Opcode
                                 }
                                 else if (matchesOpcode.Groups[1].ToString() != "" && matchesOpcode.Groups[1].ToString() != "0")
                                 {
-                                    var matchGroup = "";
-                                    switch (matchesOpcode.Groups[1].Length)
-                                    {
-                                        case 1:
-                                            matchGroup = "0x00" + matchesOpcode.Groups[1];
-                                            break;
-                                        case 2:
-                                            matchGroup = "0x0" + matchesOpcode.Groups[1];
-                                            break;
-                                        case 3:
-                                            matchGroup = "0x" + matchesOpcode.Groups[1];
-                                            break;
-                                        case 4:
-                                            matchGroup = "0x" + matchesOpcode.Groups[1];
-                                            break;
-                                    }
-
+                                    var matchGroup = FormatOpcodeValue(matchesOpcode.Groups[1].ToString());
                                     ListOpcodeDestinationCS.Add(matchGroup);
                                     foundOpcode = true; // нашли Opcode
                                 }
                                 else if (matchesOpcode.Groups[0].ToString() != "" && matchesOpcode.Groups[0].ToString() != "0")
                                 {
-                                    var matchGroup = "";
-                                    switch (matchesOpcode.Groups[0].Length)
-                                    {
-                                        case 1:
-                                            matchGroup = "0x00" + matchesOpcode.Groups[0];
-                                            break;
-                                        case 2:
-                                            matchGroup = "0x0" + matchesOpcode.Groups[0];
-                                            break;
-                                        case 3:
-                                            matchGroup = "0x" + matchesOpcode.Groups[0];
-                                            break;
-                                        case 4:
-                                            matchGroup = "0x" + matchesOpcode.Groups[0];
-                                            break;
-                                    }
-
+                                    var matchGroup = FormatOpcodeValue(matchesOpcode.Groups[0].ToString());
                                     ListOpcodeDestinationCS.Add(matchGroup);
                                     foundOpcode = true; // нашли Opcode
                                 }
@@ -2051,7 +1811,7 @@ namespace NameFinder
             // здесь ищем ссылку на подпрограмму, где есть опкоды
             var found = false;
             var regexEndp = new Regex(@"\s+endp\s*", RegexOptions.Compiled); // ищем конец подпрограммы
-            var regexOffset = new Regex(@"mov\s+\[(\w+\+\w+)\],\soffset\s|mov\s+dword\sptr\s\[(\w+)\],\soffset\s|mov\s+dword\sptr\s\[(\w+\+\w+)\],\soffset\s", RegexOptions.Compiled);
+            var regexOffset = new Regex(@"mov\s+\[(\w+\+[0-9a-fA-F]+h?|\w+\+\w+)\],\soffset\s+off_|mov\s+dword\sptr\s\[(\w+)\],\soffset\s+off_|mov\s+dword\sptr\s\[(\w+\+[0-9a-fA-F]+h?|\w+\+\w+)\],\soffset\s+off_", RegexOptions.Compiled);
             //var regexOpcode = new Regex(@"mov\s+\[\w+\+\w+\],\s+([0-9A-F]+)|mov\s+dword\sptr\s\[\w+\+\w+\],\s+([0-9A-F]+)|mov\s+dword\sptr\s\[\w+\+\w+\+\w+\],\s+([0-9A-F]+)|mov\s+dword\sptr\s\[\w+\-\w+\],\s+([0-9A-F]+)", RegexOptions.Compiled);
             var regexOpcode = new Regex(@"\[\w+\-(?![0-9a-f]+h+)[0-9a-fA-F]+\],\s([0-9a-fA-F]+)|\[\w+\+(?![0-9a-f]+h+)[0-9a-fA-F]+\],\s([0-9a-fA-F]+)|\[\w+\+(?![0-9a-f]+h+)\w+[0-9a-fA-F]+\],\s([0-9a-fA-F]+)|\[\w+\+(?![0-9a-f]+h)\w+[0-9a-fA-F]+\+[0-9a-fA-F]+\],\s([0-9a-fA-F]+)", RegexOptions.Compiled);
 
@@ -2167,111 +1927,31 @@ namespace NameFinder
                             {
                                 if (matchesOpcode.Groups[4].ToString() != "" && matchesOpcode.Groups[4].ToString() != "0")
                                 {
-                                    var matchGroup = "";
-                                    switch (matchesOpcode.Groups[4].Length)
-                                    {
-                                        case 1:
-                                            matchGroup = "0x00" + matchesOpcode.Groups[4];
-                                            break;
-                                        case 2:
-                                            matchGroup = "0x0" + matchesOpcode.Groups[4];
-                                            break;
-                                        case 3:
-                                            matchGroup = "0x" + matchesOpcode.Groups[4];
-                                            break;
-                                        case 4:
-                                            matchGroup = "0x" + matchesOpcode.Groups[4];
-                                            break;
-                                    }
-
+                                    var matchGroup = FormatOpcodeValue(matchesOpcode.Groups[4].ToString());
                                     foundOpcode = true; // нашли Opcode
                                     ListOpcodeDestinationSC.Add(matchGroup);
                                 }
                                 else if (matchesOpcode.Groups[3].ToString() != "" && matchesOpcode.Groups[3].ToString() != "0")
                                 {
-                                    var matchGroup = "";
-                                    switch (matchesOpcode.Groups[3].Length)
-                                    {
-                                        case 1:
-                                            matchGroup = "0x00" + matchesOpcode.Groups[3];
-                                            break;
-                                        case 2:
-                                            matchGroup = "0x0" + matchesOpcode.Groups[3];
-                                            break;
-                                        case 3:
-                                            matchGroup = "0x" + matchesOpcode.Groups[3];
-                                            break;
-                                        case 4:
-                                            matchGroup = "0x" + matchesOpcode.Groups[3];
-                                            break;
-                                    }
-
+                                    var matchGroup = FormatOpcodeValue(matchesOpcode.Groups[3].ToString());
                                     ListOpcodeDestinationSC.Add(matchGroup);
                                     foundOpcode = true; // нашли Opcode
                                 }
                                 else if (matchesOpcode.Groups[2].ToString() != "" && matchesOpcode.Groups[2].ToString() != "0")
                                 {
-                                    var matchGroup = "";
-                                    switch (matchesOpcode.Groups[2].Length)
-                                    {
-                                        case 1:
-                                            matchGroup = "0x00" + matchesOpcode.Groups[2];
-                                            break;
-                                        case 2:
-                                            matchGroup = "0x0" + matchesOpcode.Groups[2];
-                                            break;
-                                        case 3:
-                                            matchGroup = "0x" + matchesOpcode.Groups[2];
-                                            break;
-                                        case 4:
-                                            matchGroup = "0x" + matchesOpcode.Groups[2];
-                                            break;
-                                    }
-
+                                    var matchGroup = FormatOpcodeValue(matchesOpcode.Groups[2].ToString());
                                     ListOpcodeDestinationSC.Add(matchGroup);
                                     foundOpcode = true; // нашли Opcode
                                 }
                                 else if (matchesOpcode.Groups[1].ToString() != "" && matchesOpcode.Groups[1].ToString() != "0")
                                 {
-                                    var matchGroup = "";
-                                    switch (matchesOpcode.Groups[1].Length)
-                                    {
-                                        case 1:
-                                            matchGroup = "0x00" + matchesOpcode.Groups[1];
-                                            break;
-                                        case 2:
-                                            matchGroup = "0x0" + matchesOpcode.Groups[1];
-                                            break;
-                                        case 3:
-                                            matchGroup = "0x" + matchesOpcode.Groups[1];
-                                            break;
-                                        case 4:
-                                            matchGroup = "0x" + matchesOpcode.Groups[1];
-                                            break;
-                                    }
-
+                                    var matchGroup = FormatOpcodeValue(matchesOpcode.Groups[1].ToString());
                                     ListOpcodeDestinationSC.Add(matchGroup);
                                     foundOpcode = true; // нашли Opcode
                                 }
                                 else if (matchesOpcode.Groups[0].ToString() != "" && matchesOpcode.Groups[0].ToString() != "0")
                                 {
-                                    var matchGroup = "";
-                                    switch (matchesOpcode.Groups[0].Length)
-                                    {
-                                        case 1:
-                                            matchGroup = "0x00" + matchesOpcode.Groups[0];
-                                            break;
-                                        case 2:
-                                            matchGroup = "0x0" + matchesOpcode.Groups[0];
-                                            break;
-                                        case 3:
-                                            matchGroup = "0x" + matchesOpcode.Groups[0];
-                                            break;
-                                        case 4:
-                                            matchGroup = "0x" + matchesOpcode.Groups[0];
-                                            break;
-                                    }
-
+                                    var matchGroup = FormatOpcodeValue(matchesOpcode.Groups[0].ToString());
                                     ListOpcodeDestinationSC.Add(matchGroup);
                                     foundOpcode = true; // нашли Opcode
                                 }
@@ -2361,7 +2041,7 @@ namespace NameFinder
                     numb = num.ToString("X");
                     fstr = prefix + numb + postfix;
                     fstr = fstr.Replace("+", "\\+");
-                    find = "\\[" + fstr + "\\],\\s([0-9a-fA-F]+)";
+                    find = "\\[" + fstr + "\\],\\s([0-9a-fA-F]+h?)";
                 }
                 else if (str.LastIndexOf("+", StringComparison.Ordinal) > 0)
                 {
@@ -2373,13 +2053,13 @@ namespace NameFinder
                     numb = num.ToString("X");
                     fstr = prefix + numb + postfix;
                     fstr = fstr.Replace("+", "\\+");
-                    find = "\\[" + fstr + "\\],\\s([0-9a-fA-F]+)";
+                    find = "\\[" + fstr + "\\],\\s([0-9a-fA-F]+h?)";
                 }
                 else
                 {
                     // eax
                     fstr = str + "\\+" + inc;
-                    find = "\\[" + fstr + "\\],\\s([0-9a-fA-F]+)";
+                    find = "\\[" + fstr + "\\],\\s([0-9a-fA-F]+h?)";
                 }
 
                 return find;
@@ -2387,6 +2067,32 @@ namespace NameFinder
             catch (Exception e)
             {
                 return "@@@@@@";
+            }
+        }
+
+        /// <summary>
+        /// Форматирует опкод, удаляя суффикс 'h' если есть
+        /// </summary>
+        private static string FormatOpcodeValue(string opcodeValue)
+        {
+            if (string.IsNullOrEmpty(opcodeValue))
+                return opcodeValue;
+            
+            // Убираем суффикс 'h' если есть
+            var cleaned = opcodeValue.TrimEnd('h', 'H');
+            var length = cleaned.Length;
+            
+            switch (length)
+            {
+                case 1:
+                    return "0x00" + cleaned;
+                case 2:
+                    return "0x0" + cleaned;
+                case 3:
+                case 4:
+                    return "0x" + cleaned;
+                default:
+                    return "0x" + cleaned;
             }
         }
 
@@ -2425,7 +2131,7 @@ namespace NameFinder
                     numb = num.ToString("X");
                     fstr = prefix + numb + postfix;
                     fstr = fstr.Replace("+", "\\+");
-                    find = "\\[" + fstr + "\\],\\s([0-9a-fA-F]+)";
+                    find = "\\[" + fstr + "\\],\\s([0-9a-fA-F]+h?)";
                 }
                 else if (str.LastIndexOf("+", StringComparison.Ordinal) > 0)
                 {
@@ -2437,13 +2143,13 @@ namespace NameFinder
                     numb = num.ToString("X");
                     fstr = prefix + numb + postfix;
                     fstr = fstr.Replace("+", "\\+");
-                    find = "\\[" + fstr + "\\],\\s([0-9a-fA-F]+)";
+                    find = "\\[" + fstr + "\\],\\s([0-9a-fA-F]+h?)";
                 }
                 else
                 {
                     // eax
                     fstr = str + "\\-" + dec;
-                    find = "\\[" + fstr + "\\],\\s([0-9a-fA-F]+)";
+                    find = "\\[" + fstr + "\\],\\s([0-9a-fA-F]+h?)";
                 }
 
                 return find;
@@ -2753,7 +2459,7 @@ namespace NameFinder
             // Рефакторинг: используем UIHelper для чтения значения из UI
             var txtSC = "";
             Helpers.UIHelper.InvokeUI(Dispatcher, () => txtSC = TextBox12.Text);
-            var regex = new Regex(@"(^(\s+\w+\s+\d+)|^\s*$)", RegexOptions.IgnoreCase); // ищем мусорные строки 
+            var regex = new Regex(@"(^(\s+\w+\s+\d+)|^\s*$)", RegexOptions.IgnoreCase); // ищем мусорные строки
             for (var index = idx; index < InListSource.Count; index++)
             {
                 if (index % progress == 0)
@@ -2762,14 +2468,25 @@ namespace NameFinder
                     Helpers.UIHelper.InvokeUI(Dispatcher, () => ProgressBar11.Value = index);
                 }
 
-                var matches = regex.Matches(InListSource[index]);
-                if (matches.Count > 0)
+                var line = InListSource[index];
+                
+                // Пропускаем проверку для валидных инструкций mov с квадратными скобками или запятыми
+                // Например: "                mov     [ebp+var_2AC], 5" - должна остаться
+                if (line.Contains("mov") && (line.Contains("[") || line.Contains(",")))
                 {
-                    //tmpLst2.Add(InListSource[index]); // сохранили мусор, для теста
+                    tmpLst.Add(line); // сохранили
+                    found = true;
                     continue;
                 }
 
-                tmpLst.Add(InListSource[index]); // сохранили
+                var matches = regex.Matches(line);
+                if (matches.Count > 0)
+                {
+                    //tmpLst2.Add(line); // сохранили мусор, для теста
+                    continue;
+                }
+
+                tmpLst.Add(line); // сохранили
                 found = true;
             }
             //var InListSource0 = new List<string>(tmpLst2);
@@ -2901,11 +2618,11 @@ namespace NameFinder
             // Оставляем только нужные инструкции:
             // - push offset
             // - mov [ebp+var_XXX], offset
-            // - mov [ebp+var_XXX], hex_value
+            // - mov [ebp+var_XXX], hex_value или число
             // - mov dword ptr [register], offset
-            // - mov dword ptr [register+offset], hex_value
+            // - mov dword ptr [register+offset], hex_value или число
             // - call sub_XXX или call MySubbroutine (но не call eax, call ebx и т.д.)
-            var regexSub = new Regex(@"push\s+offset\s|mov\s+\[ebp\+var_\w+\],\s+offset\s|mov\s+\[ebp\+var_\w+\],\s+[0-9A-Fa-f]+h|mov\s+dword\s+ptr\s+\[e(ax|bx|cx|dx|si|di|sp|bp)\],\s+offset\s|mov\s+dword\s+ptr\s+\[e(ax|bx|cx|dx|si|di|sp|bp)\+[0-9A-Fa-f]+\],\s+[0-9A-Fa-f]+h|call\s+(sub_\w+|[A-Z_][A-Za-z0-9_]*)", RegexOptions.Compiled);
+            var regexSub = new Regex(@"push\s+offset\s|mov\s+\[ebp\+var_\w+\],\s+offset|mov\s+\[ebp\+var_\w+\],\s+([0-9A-Fa-f]+h|\d+)(\s|;|$)|mov\s+dword\s+ptr\s+\[e(ax|bx|cx|dx|si|di|sp|bp)\],\s+offset|mov\s+dword\s+ptr\s+\[e(ax|bx|cx|dx|si|di|sp|bp)\+[0-9A-Fa-f]+\],\s+([0-9A-Fa-f]+h|\d+)(\s|;|$)|call\s+(sub_\w+|[A-Z_][A-Za-z0-9_]*)", RegexOptions.Compiled);
 
             for (var index = idx; index < maxCount; index++)
             {
@@ -2982,11 +2699,11 @@ namespace NameFinder
             // Оставляем только нужные инструкции:
             // - push offset
             // - mov [ebp+var_XXX], offset
-            // - mov [ebp+var_XXX], hex_value
+            // - mov [ebp+var_XXX], hex_value или число
             // - mov dword ptr [register], offset
-            // - mov dword ptr [register+offset], hex_value
+            // - mov dword ptr [register+offset], hex_value или число
             // - call sub_XXX или call MySubbroutine (но не call eax, call ebx и т.д.)
-            var regexSub = new Regex(@"push\s+offset\s|mov\s+\[ebp\+var_\w+\],\s+offset\s|mov\s+\[ebp\+var_\w+\],\s+[0-9A-Fa-f]+h|mov\s+dword\s+ptr\s+\[e(ax|bx|cx|dx|si|di|sp|bp)\],\s+offset\s|mov\s+dword\s+ptr\s+\[e(ax|bx|cx|dx|si|di|sp|bp)\+[0-9A-Fa-f]+\],\s+[0-9A-Fa-f]+h|call\s+(sub_\w+|[A-Z_][A-Za-z0-9_]*)", RegexOptions.Compiled);
+            var regexSub = new Regex(@"push\s+offset\s|mov\s+\[ebp\+var_\w+\],\s+offset|mov\s+\[ebp\+var_\w+\],\s+([0-9A-Fa-f]+h|\d+)(\s|;|$)|mov\s+dword\s+ptr\s+\[e(ax|bx|cx|dx|si|di|sp|bp)\],\s+offset|mov\s+dword\s+ptr\s+\[e(ax|bx|cx|dx|si|di|sp|bp)\+[0-9A-Fa-f]+\],\s+([0-9A-Fa-f]+h|\d+)(\s|;|$)|call\s+(sub_\w+|[A-Z_][A-Za-z0-9_]*)", RegexOptions.Compiled);
 
             for (var index = idx; index < maxCount; index++)
             {
@@ -3806,7 +3523,9 @@ namespace NameFinder
         {
             LogDebug($"ExtractPacketInfo: Начало извлечения информации. searchPattern={searchPattern}, fileLines.Count={fileLines?.Count ?? 0}");
             var regex = new Regex(@"^[a-zA-Z0-9_?@]+\s+dd\soffset\s" + searchPattern, RegexOptions.Compiled);
-            var regexXREF = new Regex(@"(^\s+;[a-zA-Z:\s]*\s(sub_\w+|X2\w+|w+))", RegexOptions.Compiled);
+            var regexXREF = new Regex(@"(^\s+;[a-zA-Z:\s]*\s(sub_\w+|X2\w+|w+))|(;\s*DATA\s+XREF:)", RegexOptions.Compiled);
+            var regexXREFInLine = new Regex(@";\s*DATA\s+XREF:[^;]*", RegexOptions.Compiled);
+            var regexStopLine = new Regex(@"^\s+dd\s+offset", RegexOptions.Compiled);
             var indexRefs = 0;
 
             for (var index = 0; index < fileLines.Count; index++)
@@ -3819,26 +3538,66 @@ namespace NameFinder
                 }
 
                 var lst = new List<string>();
-                var tmpIdx = index;
-                var tmpIdxMax = tmpIdx + 2;
-                do
+                
+                // Проверяем, содержит ли текущая строка "DATA XREF"
+                if (fileLines[index].Contains("DATA XREF"))
                 {
-                    tmpIdx++;
-                    if (tmpIdx >= fileLines.Count)
-                        break;
-
-                    // ищем "; DATA XREF: sub_3922E1C0+79↑o" или "; sub_3922E1C0:loc_3922E37F↑o"
-                    var matchesXREF = regexXREF.Matches(fileLines[tmpIdx]);
-                    if (matchesXREF.Count <= 0)
+                    // Извлекаем XREF из текущей строки
+                    var xrefMatch = regexXREFInLine.Match(fileLines[index]);
+                    if (xrefMatch.Success)
                     {
-                        continue;
+                        lst.Add(xrefMatch.ToString());
                     }
-
-                    foreach (var match in matchesXREF)
+                    
+                    // Продолжаем собирать XREF из последующих строк до строки вида "                dd offset CS_PACKETS"
+                    var tmpIdx = index;
+                    do
                     {
-                        lst.Add(match.ToString()); // сохранили XREF
-                    }
-                } while (tmpIdx < tmpIdxMax);
+                        tmpIdx++;
+                        if (tmpIdx >= fileLines.Count)
+                            break;
+                        
+                        // Останавливаемся, если нашли строку с ведущими пробелами и "dd offset"
+                        if (regexStopLine.IsMatch(fileLines[tmpIdx]))
+                        {
+                            break;
+                        }
+                        
+                        // Ищем "; DATA XREF: sub_3922E1C0+79↑o" или "; sub_3922E1C0:loc_3922E37F↑o"
+                        var matchesXREF = regexXREF.Matches(fileLines[tmpIdx]);
+                        if (matchesXREF.Count > 0)
+                        {
+                            foreach (var match in matchesXREF)
+                            {
+                                lst.Add(match.ToString()); // сохранили XREF
+                            }
+                        }
+                    } while (true);
+                }
+                else
+                {
+                    // Старая логика для обратной совместимости
+                    var tmpIdx = index;
+                    var tmpIdxMax = tmpIdx + 2;
+                    do
+                    {
+                        tmpIdx++;
+                        if (tmpIdx >= fileLines.Count)
+                            break;
+
+                        // ищем "; DATA XREF: sub_3922E1C0+79↑o" или "; sub_3922E1C0:loc_3922E37F↑o"
+                        var matchesXREF = regexXREF.Matches(fileLines[tmpIdx]);
+                        if (matchesXREF.Count <= 0)
+                        {
+                            continue;
+                        }
+
+                        foreach (var match in matchesXREF)
+                        {
+                            lst.Add(match.ToString()); // сохранили XREF
+                        }
+                    } while (tmpIdx < tmpIdxMax);
+                }
 
                 xrefs.Add(indexRefs, lst); // сохраним список XREF для пакета
                 indexRefs++; // следующий номер пакета
