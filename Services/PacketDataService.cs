@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using NameFinder.Models;
 
 namespace NameFinder.Services
@@ -32,10 +33,10 @@ namespace NameFinder.Services
             { PacketType.SC, new Dictionary<int, List<string>>() }
         };
 
-        public Dictionary<PacketType, List<string>> CompareNames { get; } = new Dictionary<PacketType, List<string>>
+        public Dictionary<PacketType, ObservableCollection<string>> CompareNames { get; } = new Dictionary<PacketType, ObservableCollection<string>>
         {
-            { PacketType.CS, new List<string>() },
-            { PacketType.SC, new List<string>() }
+            { PacketType.CS, new ObservableCollection<string>() },
+            { PacketType.SC, new ObservableCollection<string>() }
         };
 
         public Dictionary<PacketType, Dictionary<int, int>> InUseMapping { get; } = new Dictionary<PacketType, Dictionary<int, int>>
@@ -46,29 +47,29 @@ namespace NameFinder.Services
 
         public Dictionary<int, bool> IsRenameDestination { get; } = new Dictionary<int, bool>();
 
-        public Dictionary<PacketType, List<string>> CompareOutNames { get; } = new Dictionary<PacketType, List<string>>
+        public Dictionary<PacketType, ObservableCollection<string>> CompareOutNames { get; } = new Dictionary<PacketType, ObservableCollection<string>>
         {
-            { PacketType.CS, new List<string>() },
-            { PacketType.SC, new List<string>() }
+            { PacketType.CS, new ObservableCollection<string>() },
+            { PacketType.SC, new ObservableCollection<string>() }
         };
 
-        public Dictionary<PacketType, List<string>> SourceOpcodes { get; } = new Dictionary<PacketType, List<string>>
+        public Dictionary<PacketType, ObservableCollection<string>> SourceOpcodes { get; } = new Dictionary<PacketType, ObservableCollection<string>>
         {
-            { PacketType.CS, new List<string>() },
-            { PacketType.SC, new List<string>() }
+            { PacketType.CS, new ObservableCollection<string>() },
+            { PacketType.SC, new ObservableCollection<string>() }
         };
 
-        public Dictionary<PacketType, List<string>> DestinationOpcodes { get; } = new Dictionary<PacketType, List<string>>
+        public Dictionary<PacketType, ObservableCollection<string>> DestinationOpcodes { get; } = new Dictionary<PacketType, ObservableCollection<string>>
         {
-            { PacketType.CS, new List<string>() },
-            { PacketType.SC, new List<string>() }
+            { PacketType.CS, new ObservableCollection<string>() },
+            { PacketType.SC, new ObservableCollection<string>() }
         };
 
         // Списки имен пакетов (Source)
-        public Dictionary<PacketType, List<string>> SourcePacketNames { get; } = new Dictionary<PacketType, List<string>>
+        public Dictionary<PacketType, ObservableCollection<string>> SourcePacketNames { get; } = new Dictionary<PacketType, ObservableCollection<string>>
         {
-            { PacketType.CS, new List<string>() },
-            { PacketType.SC, new List<string>() }
+            { PacketType.CS, new ObservableCollection<string>() },
+            { PacketType.SC, new ObservableCollection<string>() }
         };
 
         public Dictionary<PacketType, List<string>> SourceSubNames { get; } = new Dictionary<PacketType, List<string>>
@@ -78,10 +79,10 @@ namespace NameFinder.Services
         };
 
         // Списки имен пакетов (Destination)
-        public Dictionary<PacketType, List<string>> DestinationPacketNames { get; } = new Dictionary<PacketType, List<string>>
+        public Dictionary<PacketType, ObservableCollection<string>> DestinationPacketNames { get; } = new Dictionary<PacketType, ObservableCollection<string>>
         {
-            { PacketType.CS, new List<string>() },
-            { PacketType.SC, new List<string>() }
+            { PacketType.CS, new ObservableCollection<string>() },
+            { PacketType.SC, new ObservableCollection<string>() }
         };
 
         public Dictionary<PacketType, List<string>> DestinationSubNames { get; } = new Dictionary<PacketType, List<string>>
@@ -94,17 +95,17 @@ namespace NameFinder.Services
         public List<string> DestinationFileLines { get; } = new List<string>();
 
         // Структуры пакетов (Source) - используем Struc для обратной совместимости
-        public Dictionary<PacketType, Dictionary<int, List<NameFinder.Struc>>> SourceStructures { get; } = new Dictionary<PacketType, Dictionary<int, List<NameFinder.Struc>>>
+        public Dictionary<PacketType, Dictionary<int, ObservableCollection<NameFinder.Struc>>> SourceStructures { get; } = new Dictionary<PacketType, Dictionary<int, ObservableCollection<NameFinder.Struc>>>
         {
-            { PacketType.CS, new Dictionary<int, List<NameFinder.Struc>>() },
-            { PacketType.SC, new Dictionary<int, List<NameFinder.Struc>>() }
+            { PacketType.CS, new Dictionary<int, ObservableCollection<NameFinder.Struc>>() },
+            { PacketType.SC, new Dictionary<int, ObservableCollection<NameFinder.Struc>>() }
         };
 
         // Структуры пакетов (Destination)
-        public Dictionary<PacketType, Dictionary<int, List<NameFinder.Struc>>> DestinationStructures { get; } = new Dictionary<PacketType, Dictionary<int, List<NameFinder.Struc>>>
+        public Dictionary<PacketType, Dictionary<int, ObservableCollection<NameFinder.Struc>>> DestinationStructures { get; } = new Dictionary<PacketType, Dictionary<int, ObservableCollection<NameFinder.Struc>>>
         {
-            { PacketType.CS, new Dictionary<int, List<NameFinder.Struc>>() },
-            { PacketType.SC, new Dictionary<int, List<NameFinder.Struc>>() }
+            { PacketType.CS, new Dictionary<int, ObservableCollection<NameFinder.Struc>>() },
+            { PacketType.SC, new Dictionary<int, ObservableCollection<NameFinder.Struc>>() }
         };
 
         public void Clear()

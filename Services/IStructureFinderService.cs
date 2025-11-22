@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using NameFinder.Models;
 
 namespace NameFinder.Services
@@ -16,7 +17,7 @@ namespace NameFinder.Services
         /// <param name="searchPattern">Паттерн поиска</param>
         /// <param name="progressCallback">Callback для обновления прогресса</param>
         /// <returns>Словарь структур по индексам пакетов</returns>
-        Dictionary<int, List<NameFinder.Struc>> FindSourceStructures(
+        Dictionary<int, ObservableCollection<NameFinder.Struc>> FindSourceStructures(
             List<string> fileLines,
             PacketType packetType,
             string searchPattern,
@@ -30,7 +31,7 @@ namespace NameFinder.Services
         /// <param name="searchPattern">Паттерн поиска</param>
         /// <param name="progressCallback">Callback для обновления прогресса</param>
         /// <returns>Словарь структур по индексам пакетов</returns>
-        Dictionary<int, List<NameFinder.Struc>> FindDestinationStructures(
+        Dictionary<int, ObservableCollection<NameFinder.Struc>> FindDestinationStructures(
             List<string> fileLines,
             PacketType packetType,
             string searchPattern,
@@ -39,12 +40,22 @@ namespace NameFinder.Services
         /// <summary>
         /// Находит структуру по адресу (для Source)
         /// </summary>
-        List<NameFinder.Struc> FindStructureIn(string address, List<string> fileLines, int maxDepth = 10);
+        ObservableCollection<NameFinder.Struc> FindStructureIn(string address, List<string> fileLines, int maxDepth = 10, bool useCallSpaces4 = false);
 
         /// <summary>
         /// Находит структуру по адресу (для Destination)
         /// </summary>
-        List<NameFinder.Struc> FindStructureOut(string address, List<string> fileLines, int maxDepth = 10);
+        ObservableCollection<NameFinder.Struc> FindStructureOut(string address, List<string> fileLines, int maxDepth = 10, bool useCallSpaces4 = true);
+
+        /// <summary>
+        /// Сбрасывает глубину рекурсии для Source
+        /// </summary>
+        void ResetDepthIn();
+
+        /// <summary>
+        /// Сбрасывает глубину рекурсии для Destination
+        /// </summary>
+        void ResetDepthOut();
     }
 }
 

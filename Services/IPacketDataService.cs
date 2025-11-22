@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using NameFinder.Models;
 
 namespace NameFinder.Services
@@ -17,21 +18,21 @@ namespace NameFinder.Services
         Dictionary<PacketType, Dictionary<int, List<string>>> DestinationXrefs { get; }
         
         // Сравнение
-        Dictionary<PacketType, List<string>> CompareNames { get; }
+        Dictionary<PacketType, ObservableCollection<string>> CompareNames { get; }
         Dictionary<PacketType, Dictionary<int, int>> InUseMapping { get; }
         Dictionary<int, bool> IsRenameDestination { get; }
-        Dictionary<PacketType, List<string>> CompareOutNames { get; }
+        Dictionary<PacketType, ObservableCollection<string>> CompareOutNames { get; }
         
         // Опкоды
-        Dictionary<PacketType, List<string>> SourceOpcodes { get; }
-        Dictionary<PacketType, List<string>> DestinationOpcodes { get; }
+        Dictionary<PacketType, ObservableCollection<string>> SourceOpcodes { get; }
+        Dictionary<PacketType, ObservableCollection<string>> DestinationOpcodes { get; }
 
         // Списки имен пакетов (Source)
-        Dictionary<PacketType, List<string>> SourcePacketNames { get; }
+        Dictionary<PacketType, ObservableCollection<string>> SourcePacketNames { get; }
         Dictionary<PacketType, List<string>> SourceSubNames { get; }
         
         // Списки имен пакетов (Destination)
-        Dictionary<PacketType, List<string>> DestinationPacketNames { get; }
+        Dictionary<PacketType, ObservableCollection<string>> DestinationPacketNames { get; }
         Dictionary<PacketType, List<string>> DestinationSubNames { get; }
 
         // Файловые данные
@@ -40,10 +41,10 @@ namespace NameFinder.Services
 
         // Структуры пакетов (Source) - используем Struc для обратной совместимости
         // TODO: В будущем можно мигрировать на StructureField из Models
-        Dictionary<PacketType, Dictionary<int, List<NameFinder.Struc>>> SourceStructures { get; }
+        Dictionary<PacketType, Dictionary<int, ObservableCollection<NameFinder.Struc>>> SourceStructures { get; }
         
         // Структуры пакетов (Destination)
-        Dictionary<PacketType, Dictionary<int, List<NameFinder.Struc>>> DestinationStructures { get; }
+        Dictionary<PacketType, Dictionary<int, ObservableCollection<NameFinder.Struc>>> DestinationStructures { get; }
 
         void Clear();
         void ClearSource();
