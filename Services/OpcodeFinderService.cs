@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -134,11 +135,24 @@ namespace NameFinder.Services
                 if (!foundOffset)
                 {
                     var offsetMatch = RegexPatterns.OffsetPattern.Match(line);
+                    Trace.WriteLine($"[OPCODE DEBUG] Checking offset line {i}: {line.Trim()}");
+                    Trace.WriteLine($"[OPCODE DEBUG] Offset match success: {offsetMatch.Success}, Groups count: {offsetMatch.Groups.Count}");
                     if (offsetMatch.Success)
                     {
+                        for (int g = 1; g < offsetMatch.Groups.Count; g++)
+                        {
+                            if (offsetMatch.Groups[g].Success)
+                            {
+                                Trace.WriteLine($"[OPCODE DEBUG] Offset Group[{g}]: '{offsetMatch.Groups[g].Value}'");
+                            }
+                        }
                         // Определяем смещение для поиска опкода
                         offsetPattern = DetermineOffsetPattern(offsetMatch);
                         foundOffset = !string.IsNullOrEmpty(offsetPattern);
+                        if (foundOffset)
+                        {
+                            Trace.WriteLine($"[OPCODE DEBUG] Created opcode pattern: {offsetPattern}");
+                        }
                     }
                 }
 
@@ -147,14 +161,64 @@ namespace NameFinder.Services
                     {
                         var opcodePattern = new Regex(offsetPattern, RegexOptions.IgnoreCase);
                         var opcodeMatch = opcodePattern.Match(line);
-
-                        if (opcodeMatch.Success && opcodeMatch.Groups.Count >= 2)
+                        
+                        Trace.WriteLine($"[OPCODE DEBUG] Checking opcode line {i}: {line.Trim()}");
+                        Trace.WriteLine($"[OPCODE DEBUG] Opcode match success: {opcodeMatch.Success}, Groups count: {opcodeMatch.Groups.Count}");
+                        
+                        if (opcodeMatch.Success)
                         {
-                            // Извлекаем опкод из группы 1
-                            var opcodeValue = opcodeMatch.Groups[1].Value;
+                            for (int g = 0; g < opcodeMatch.Groups.Count; g++)
+                            {
+                                Trace.WriteLine($"[OPCODE DEBUG] Opcode Group[{g}]: Success={opcodeMatch.Groups[g].Success}, Length={opcodeMatch.Groups[g].Length}, Value='{opcodeMatch.Groups[g].Value}'");
+                            }
+                            
+                            // Для паттернов с ebp+var_XXX опкод находится в Groups[2]
+                            // Для паттерна с любым регистром +4 (Group 2): Groups[1] = "dword ptr " (если есть), Groups[2] = регистр, Groups[3] = опкод
+                            // Для паттерна с ebp+var_XXX+4: Groups[1] = "dword ptr " (если есть), Groups[2] = опкод, Groups[3] = пробел/;/$ в конце
+                            // Для других паттернов опкод находится в Groups[1]
+                            string opcodeValue = null;
+                            
+                            // Сначала проверяем, является ли это паттерном с ebp+var_XXX+4
+                            // В этом случае Groups[2] содержит опкод, а Groups[3] содержит пробел/;/$ в конце
+                            if (opcodeMatch.Groups.Count >= 3 && opcodeMatch.Groups[2].Length > 0)
+                            {
+                                var group2Value = opcodeMatch.Groups[2].Value.Trim();
+                                // Если Groups[2] выглядит как опкод (hex число с h или без), а не как регистр
+                                if (System.Text.RegularExpressions.Regex.IsMatch(group2Value, @"^[0-9a-fA-F]+h?$|^\d+$"))
+                                {
+                                    // Это паттерн с ebp+var_XXX+4: Groups[2] = опкод
+                                    opcodeValue = group2Value;
+                                    Trace.WriteLine($"[OPCODE DEBUG] Extracting opcode from Groups[2] (ebp+var_XXX+4 pattern): '{opcodeValue}'");
+                                }
+                                else if (opcodeMatch.Groups.Count >= 4 && opcodeMatch.Groups[3].Length > 0)
+                                {
+                                    // Это паттерн с любым регистром +4: Groups[2] = регистр, Groups[3] = опкод
+                                    opcodeValue = opcodeMatch.Groups[3].Value;
+                                    Trace.WriteLine($"[OPCODE DEBUG] Extracting opcode from Groups[3] (any register +4 pattern): '{opcodeValue}'");
+                                }
+                                else
+                                {
+                                    // Паттерн с dword ptr и ebp+var_XXX (без +4): Groups[2] = опкод
+                                    opcodeValue = group2Value;
+                                    Trace.WriteLine($"[OPCODE DEBUG] Extracting opcode from Groups[2] (ebp+var_XXX pattern): '{opcodeValue}'");
+                                }
+                            }
+                            else if (opcodeMatch.Groups.Count >= 2 && opcodeMatch.Groups[1].Length > 0)
+                            {
+                                // Обычный паттерн: Groups[1] = опкод
+                                opcodeValue = opcodeMatch.Groups[1].Value;
+                                Trace.WriteLine($"[OPCODE DEBUG] Extracting opcode from Groups[1] (simple pattern): '{opcodeValue}'");
+                            }
+
                             if (!string.IsNullOrEmpty(opcodeValue))
                             {
-                                return FormatOpcode(opcodeValue);
+                                var formatted = FormatOpcode(opcodeValue);
+                                Trace.WriteLine($"[OPCODE DEBUG] Formatted opcode: '{formatted}'");
+                                return formatted;
+                            }
+                            else
+                            {
+                                Trace.WriteLine($"[OPCODE DEBUG] No valid opcode value found in groups");
                             }
                         }
                     }
@@ -169,9 +233,11 @@ namespace NameFinder.Services
         private string DetermineOffsetPattern(Match offsetMatch)
         {
             // Group 1: [ebp+var_50] -> ищем [ebp+var_4C] (уменьшаем на 4)
+            // Это для паттерна без "dword ptr": mov [ebp+var_XXX], offset off_XXX
             if (offsetMatch.Groups[1].Success)
             {
                 var baseOffset = offsetMatch.Groups[1].Value;
+                Trace.WriteLine($"[OPCODE DEBUG] Group 1 matched: baseOffset='{baseOffset}', using DecreaseOffset");
                 return DecreaseOffset(baseOffset, 4);
             }
 
@@ -179,6 +245,7 @@ namespace NameFinder.Services
             if (offsetMatch.Groups[2].Success)
             {
                 var baseOffset = offsetMatch.Groups[2].Value;
+                Trace.WriteLine($"[OPCODE DEBUG] Group 2 matched: baseOffset='{baseOffset}', using IncreaseOffset");
                 return IncreaseOffset(baseOffset, 4);
             }
 
@@ -186,9 +253,27 @@ namespace NameFinder.Services
             if (offsetMatch.Groups[3].Success)
             {
                 var baseOffset = offsetMatch.Groups[3].Value;
+                Trace.WriteLine($"[OPCODE DEBUG] Group 3 matched: baseOffset='{baseOffset}', using IncreaseOffset");
                 return IncreaseOffset(baseOffset, 4);
             }
 
+            // Group 4: [ebp+var_34] -> ищем [ebp+var_34+4] (увеличиваем на 4)
+            if (offsetMatch.Groups[4].Success)
+            {
+                var baseOffset = offsetMatch.Groups[4].Value;
+                Trace.WriteLine($"[OPCODE DEBUG] Group 4 matched: baseOffset='{baseOffset}', using IncreaseOffset");
+                return IncreaseOffset(baseOffset, 4);
+            }
+
+            // Group 5: [ebp+var_34+8] -> ищем [ebp+var_34+Ch] (увеличиваем на 4)
+            if (offsetMatch.Groups[5].Success)
+            {
+                var baseOffset = offsetMatch.Groups[5].Value;
+                Trace.WriteLine($"[OPCODE DEBUG] Group 5 matched: baseOffset='{baseOffset}', using IncreaseOffset");
+                return IncreaseOffset(baseOffset, 4);
+            }
+
+            Trace.WriteLine($"[OPCODE DEBUG] No offset group matched");
             return null;
         }
 
@@ -263,6 +348,8 @@ namespace NameFinder.Services
             {
                 // mov     dword ptr [esi+10C0h], offset SCUnitDeathPacket_0x1f5
                 // mov     dword ptr [esi+10C4h], 1F5h
+                // mov     dword ptr [ebp+var_34], offset off_39D11730
+                // mov     dword ptr [ebp+var_34+4], 43h
                 string postfix = "";
                 string prefix;
                 string numb;
@@ -276,7 +363,33 @@ namespace NameFinder.Services
                     postfix = "h";
                 }
 
-                if (offset.LastIndexOf("_", StringComparison.Ordinal) > 0)
+                // Специальная обработка для ebp+var_XXX - нужно добавить +4, а не изменять число
+                if (offset.Contains("ebp+var_"))
+                {
+                    // ebp+var_34 -> ebp+var_34+4
+                    // ebp+var_34+8 -> ebp+var_34+Ch
+                    if (offset.LastIndexOf("+", StringComparison.Ordinal) > offset.IndexOf("var_"))
+                    {
+                        // Уже есть + после var_, например: ebp+var_34+8
+                        var offsetIndex = offset.LastIndexOf("+", StringComparison.Ordinal) + 1;
+                        prefix = offset.Substring(0, offsetIndex);
+                        numb = offset.Substring(offsetIndex);
+                        num = Convert.ToInt32(numb, 16) + value;
+                        numb = num.ToString("X");
+                        fstr = prefix + numb + postfix;
+                    }
+                    else
+                    {
+                        // Нет + после var_, например: ebp+var_34
+                        fstr = offset + "+" + value.ToString("X");
+                    }
+                    fstr = fstr.Replace("+", "\\+");
+                    // Учитываем возможное наличие "dword ptr" перед "[ebp+var_XXX+число]"
+                    // Также учитываем возможные комментарии после опкода
+                    find = "mov\\s+(dword\\s+ptr\\s+)?\\[" + fstr + "\\],\\s*([0-9a-fA-F]+h?)(\\s|;|$)";
+                    return find;
+                }
+                else if (offset.LastIndexOf("_", StringComparison.Ordinal) > 0)
                 {
                     // esi+var_10C
                     var offsetIndex = offset.LastIndexOf("_", StringComparison.Ordinal) + 1;
@@ -299,14 +412,17 @@ namespace NameFinder.Services
                     numb = num.ToString("X");
                     fstr = prefix + numb + postfix;
                     fstr = fstr.Replace("+", "\\+");
-                    find = "\\[" + fstr + "\\],\\s([0-9a-fA-F]+)";
+                    // Учитываем возможное наличие "dword ptr" перед "[register+offset]"
+                    find = "(dword\\s+ptr\\s+)?\\[" + fstr + "\\],\\s*([0-9a-fA-F]+h?)(\\s|;|$)";
                     return find;
                 }
                 else
                 {
-                    // eax
-                    fstr = offset + "\\+" + value;
-                    find = "\\[" + fstr + "\\],\\s([0-9a-fA-F]+)";
+                    // eax, ecx, esi и т.д. - просто регистр
+                    // Опкод может быть в любом регистре с +4, не обязательно в том же
+                    // Например: mov dword ptr [ecx], offset off_XXX -> mov dword ptr [eax+4], 6Eh
+                    // Учитываем возможное наличие "dword ptr" перед "[register+offset]"
+                    find = "mov\\s+(dword\\s+ptr\\s+)?\\[(\\w+)\\+4\\],\\s+([0-9a-fA-F]+h?|\\d+)(\\s|;|$)";
                     return find;
                 }
             }
